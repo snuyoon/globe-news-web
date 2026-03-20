@@ -57,13 +57,14 @@ export default function TheaterSeats() {
     const stored = localStorage.getItem(STORAGE_KEY);
     const version = localStorage.getItem(STORAGE_KEY + "_v");
     // v3: 순서대로 채우기
-    if (stored && version === "4") {
+    if (stored && version === "5") {
       try { setSeats(JSON.parse(stored)); }
       catch { const d = generateDemoSeats(); setSeats(d); localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
     } else {
       const d = generateDemoSeats(); setSeats(d);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-      localStorage.setItem(STORAGE_KEY + "_v", "4");
+      localStorage.setItem(STORAGE_KEY + "_v", "5");
+      localStorage.removeItem("us_sokbo_subscription");
     }
   }, []);
 
