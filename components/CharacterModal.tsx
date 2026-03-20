@@ -31,7 +31,7 @@ const HAIR_OPTIONS: { label: string; value: HairStyle }[] = [
 interface CharacterModalProps {
   seatId: string;
   onClose: () => void;
-  onSave: (seatId: string, data: SeatData) => void;
+  onSave: (seatId: string, data: SeatData, topicRequest?: string) => void;
 }
 
 export interface SeatData {
@@ -67,19 +67,7 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
 
   const handleSave = () => {
     if (!initial.trim()) return;
-    // 주제 신청이 있으면 localStorage에 저장
-    if (topicRequest.trim()) {
-      const requests = JSON.parse(localStorage.getItem("topic_requests") || "[]");
-      requests.push({
-        seatId,
-        initial: initial.trim(),
-        topic: topicRequest.trim(),
-        character: { hoodieColor, eyeStyle, hairStyle },
-        createdAt: new Date().toISOString(),
-      });
-      localStorage.setItem("topic_requests", JSON.stringify(requests));
-    }
-    onSave(seatId, { initial: initial.trim(), hoodieColor, eyeStyle, hairStyle });
+    onSave(seatId, { initial: initial.trim(), hoodieColor, eyeStyle, hairStyle }, topicRequest.trim() || undefined);
   };
 
   return (

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import TickerBar from "@/components/TickerBar";
-import Navbar from "@/components/Navbar";
+import ClientLayout from "@/components/ClientLayout";
 
 export const metadata: Metadata = {
   title: "US속보 - AI 미국 금융 속보",
@@ -22,9 +21,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <TickerBar />
-        <Navbar />
-        {children}
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

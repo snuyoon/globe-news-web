@@ -4,10 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import Character, { type EyeStyle, type HairStyle } from "./Character";
 import CharacterModal, { type SeatData } from "./CharacterModal";
 import SubscribeModal from "./SubscribeModal";
+import { useAuth } from "./AuthProvider";
+import { supabase } from "@/lib/supabase";
 
 const ROWS = "ABCDEFGHIJ".split("");
 const COLS = Array.from({ length: 10 }, (_, i) => i + 1);
-const STORAGE_KEY = "theater_seats";
 
 // 럭키넘버: 좌석 순번 (A1=1, A2=2, ... J10=100)
 const LUCKY_NUMBERS = new Set([1, 7, 77, 100]);
@@ -19,13 +20,6 @@ function isLuckySeat(row: string, col: number): boolean {
 }
 
 const SEAT_COLORS = ["#e74c3c", "#3498db", "#f1c40f", "#9b59b6", "#e91e8a", "#27ae60", "#ef6d09", "#1abc9c"];
-const DEMO_EYES: EyeStyle[] = ["dot", "round", "happy", "star"];
-const DEMO_HAIR: HairStyle[] = ["bangs", "parted", "none", "curly"];
-const DEMO_INITIALS = [
-  "JH", "MK", "SY", "YJ", "HS", "JW", "EJ", "DH", "SM", "HJ",
-  "JY", "SW", "MJ", "KH", "YS", "TH", "BK", "SH", "WJ", "GD",
-  "JK", "HN", "YR", "DJ", "CW",
-];
 
 // 좌석 순서: A1=1, A2=2, ... A10=10, B1=11, ... J10=100
 function seatIdByOrder(n: number): string {
@@ -34,77 +28,138 @@ function seatIdByOrder(n: number): string {
   return `${row}${col}`;
 }
 
-function generateDemoSeats(): Record<string, SeatData> {
-  // 0명 — 실제 구독자만 착석
-  return {};
+interface SubscriberRow {
+  seat_number: number;
+  character_data: SeatData | null;
+  is_lucky: boolean;
+  user_id: string;
 }
 
 export default function TheaterSeats() {
+  const { user, signInWithGoogle } = useAuth();
   const [seats, setSeats] = useState<Record<string, SeatData>>({});
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
   const [subscribeSeat, setSubscribeSeat] = useState<string | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [mySeatedId, setMySeatedId] = useState<string | null>(null); // 이미 앉은 좌석
+  const [mySeatedId, setMySeatedId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [dbLoading, setDbLoading] = useState(true);
+
+  // Supabase에서 좌석 데이터 로드
+  const loadSeats = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("subscribers")
+      .select("seat_number, character_data, is_lucky, user_id")
+      .order("seat_number");
+
+    if (error) {
+      console.error("좌석 데이터 로드 실패:", error);
+      setDbLoading(false);
+      return;
+    }
+
+    const seatMap: Record<string, SeatData> = {};
+    let myId: string | null = null;
+
+    (data as SubscriberRow[]).forEach((row) => {
+      if (row.seat_number && row.character_data) {
+        const id = seatIdByOrder(row.seat_number);
+        seatMap[id] = row.character_data;
+        if (user && row.user_id === user.id) {
+          myId = id;
+        }
+      }
+    });
+
+    setSeats(seatMap);
+    setMySeatedId(myId);
+    setDbLoading(false);
+  }, [user]);
 
   useEffect(() => {
     setMounted(true);
-    const sub = localStorage.getItem("us_sokbo_subscription");
-    setIsSubscribed(!!sub);
-    if (sub) {
-      try { setMySeatedId(JSON.parse(sub).seatId || null); } catch { /* */ }
-    }
-    // #subscribe 앵커로 왔으면 자동으로 구독 모달
-    if (window.location.hash === "#subscribe" && !sub) {
+    loadSeats();
+  }, [loadSeats]);
+
+  // #subscribe 앵커 처리
+  useEffect(() => {
+    if (!mounted || dbLoading) return;
+    if (window.location.hash === "#subscribe" && !mySeatedId) {
       setTimeout(() => {
         for (let n = 1; n <= 100; n++) {
           const id = seatIdByOrder(n);
-          const stored = localStorage.getItem(STORAGE_KEY);
-          const seats = stored ? JSON.parse(stored) : {};
-          if (!seats[id]) { setSubscribeSeat(id); break; }
+          if (!seats[id]) {
+            setSubscribeSeat(id);
+            break;
+          }
         }
       }, 500);
     }
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const version = localStorage.getItem(STORAGE_KEY + "_v");
-    // v3: 순서대로 채우기
-    if (stored && version === "5") {
-      try { setSeats(JSON.parse(stored)); }
-      catch { const d = generateDemoSeats(); setSeats(d); localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
-    } else {
-      const d = generateDemoSeats(); setSeats(d);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-      localStorage.setItem(STORAGE_KEY + "_v", "5");
-      localStorage.removeItem("us_sokbo_subscription");
-    }
-  }, []);
+  }, [mounted, dbLoading, mySeatedId, seats]);
 
-  const handleSave = useCallback((seatId: string, data: SeatData) => {
-    setSeats((prev) => {
-      const next = { ...prev, [seatId]: data };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-    setMySeatedId(seatId);
-    // 구독 정보에 seatId 기록
-    const sub = localStorage.getItem("us_sokbo_subscription");
-    if (sub) {
-      try {
-        const parsed = JSON.parse(sub);
-        parsed.seatId = seatId;
-        localStorage.setItem("us_sokbo_subscription", JSON.stringify(parsed));
-      } catch { /* */ }
+  // 다음 빈 좌석 번호 구하기
+  const getNextSeatNumber = useCallback((): number | null => {
+    for (let n = 1; n <= 100; n++) {
+      const id = seatIdByOrder(n);
+      if (!seats[id]) return n;
     }
+    return null;
+  }, [seats]);
+
+  const handleSave = useCallback(async (seatId: string, data: SeatData, topicRequest?: string) => {
+    if (!user) return;
+
+    const nextNum = getNextSeatNumber();
+    if (nextNum === null) return;
+
+    const lucky = LUCKY_NUMBERS.has(nextNum);
+
+    const { error } = await supabase.from("subscribers").insert({
+      user_id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
+      seat_number: nextNum,
+      character_data: data,
+      topic_request: topicRequest || null,
+      payment_status: "test",
+      is_lucky: lucky,
+    });
+
+    if (error) {
+      console.error("착석 실패:", error);
+      alert("착석에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
+
+    // 성공: UI 업데이트
+    const actualSeatId = seatIdByOrder(nextNum);
+    setSeats((prev) => ({ ...prev, [actualSeatId]: data }));
+    setMySeatedId(actualSeatId);
     setSelectedSeat(null);
-  }, []);
+  }, [user, getNextSeatNumber]);
 
   const occupiedCount = Object.keys(seats).length;
   const remaining = 100 - occupiedCount;
   const fillPercent = occupiedCount;
 
-  if (!mounted) {
+  if (!mounted || dbLoading) {
     return <div className="min-h-screen flex items-center justify-center"><div className="text-[var(--text-muted)] animate-pulse">불러오는 중...</div></div>;
   }
+
+  // 좌석 클릭 핸들러
+  const handleSeatClick = () => {
+    if (mySeatedId) return;
+    const nextNum = getNextSeatNumber();
+    if (nextNum === null) return;
+    const nextId = seatIdByOrder(nextNum);
+
+    if (!user) {
+      // 로그인 안 됨 → 구독 모달에서 로그인 유도
+      setSubscribeSeat(nextId);
+    } else {
+      // 로그인됨 → 구독 모달 (결제 단계)
+      setSubscribeSeat(nextId);
+    }
+  };
 
   return (
     <>
@@ -163,13 +218,13 @@ export default function TheaterSeats() {
                 <span className="text-[var(--text-muted)] text-lg">/ 월</span>
               </div>
               <p className="text-[#f0b90b] text-sm font-semibold mt-1">
-                ✨ 선착순 100명 한정 — 지금 구독하면 <span className="underline underline-offset-2">평생 이 가격</span>
+                선착순 100명 한정 — 지금 구독하면 <span className="underline underline-offset-2">평생 이 가격</span>
               </p>
               <a
                 href="/subscribe"
                 className="inline-flex items-center gap-1.5 mt-3 text-sm text-[var(--text-muted)] hover:text-[#f0b90b] transition-colors"
               >
-                🎁 구독하면 어떤 혜택이? <span className="underline underline-offset-2">자세히 보기 →</span>
+                구독하면 어떤 혜택이? <span className="underline underline-offset-2">자세히 보기</span>
               </a>
             </div>
 
@@ -199,9 +254,9 @@ export default function TheaterSeats() {
 
             {/* SNS */}
             <div className="flex items-center gap-4 mt-6 text-xs text-[var(--text-muted)] justify-center lg:justify-start">
-              <a href="https://x.com/US_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">𝕏 @US_sokbo</a>
-              <a href="https://www.threads.net/@us_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">🧵 Threads</a>
-              <a href="https://www.instagram.com/us_sokbo/" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">📸 Instagram</a>
+              <a href="https://x.com/US_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">X @US_sokbo</a>
+              <a href="https://www.threads.net/@us_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">Threads</a>
+              <a href="https://www.instagram.com/us_sokbo/" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">Instagram</a>
             </div>
           </div>
 
@@ -223,7 +278,7 @@ export default function TheaterSeats() {
                 구독하면 VIP 좌석에 내 캐릭터가 영구히 앉아있어요
               </p>
               <p className="text-[11px] text-[var(--text-muted)]">
-                🎰 <span className="text-[#f0b90b] font-bold">1·7·77·100</span>번째 구독자 → 이번 달만 내면 <span className="text-[#f0b90b] font-bold">평생 무료</span>
+                <span className="text-[#f0b90b] font-bold">1, 7, 77, 100</span>번째 구독자 → 이번 달만 내면 <span className="text-[#f0b90b] font-bold">평생 무료</span>
               </p>
             </div>
 
@@ -252,21 +307,14 @@ export default function TheaterSeats() {
                           key={seatId}
                           onClick={() => {
                             if (isOccupied) return;
-                            if (mySeatedId) return; // 이미 착석함
-                            // 다음 순번 좌석 배정
-                            let nextSeat = seatId;
-                            for (let n = 1; n <= 100; n++) {
-                              const id = seatIdByOrder(n);
-                              if (!seats[id]) { nextSeat = id; break; }
-                            }
-                            if (isSubscribed) setSelectedSeat(nextSeat);
-                            else setSubscribeSeat(nextSeat);
+                            if (mySeatedId) return;
+                            handleSeatClick();
                           }}
                           className={`relative flex items-end justify-center transition-all duration-200 group ${
                             isOccupied ? "cursor-default" : "cursor-pointer"
                           }`}
                           style={{ width: "54px", height: "64px" }}
-                          title={isOccupied ? `${data.initial} (${row}${col})` : lucky ? `🎰 ${seatNum}번째 — 평생 무료!` : `${row}${col} — 빈 좌석`}
+                          title={isOccupied ? `${data.initial} (${row}${col})` : lucky ? `${seatNum}번째 — 평생 무료!` : `${row}${col} — 빈 좌석`}
                         >
                           {/* Lucky seat glow */}
                           {lucky && (
@@ -277,7 +325,7 @@ export default function TheaterSeats() {
                           {/* Lucky badge — inside the seat */}
                           {lucky && (
                             <div className="absolute bottom-[1px] left-1/2 -translate-x-1/2 z-20 px-1.5 py-[1px] rounded-t bg-[#f0b90b] text-black text-[7px] font-black whitespace-nowrap">
-                              {isOccupied ? "🎰 당첨!" : "🎰 FREE"}
+                              {isOccupied ? "당첨!" : "FREE"}
                             </div>
                           )}
                           {/* Seat back */}
@@ -344,29 +392,18 @@ export default function TheaterSeats() {
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a15]/90 backdrop-blur-lg border-t border-[var(--border)]">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="hidden sm:flex items-center gap-4">
-            <a href="/news" className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">📰 뉴스</a>
-            <a href="/" className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">🏠 홈</a>
-            <a href="/briefing" className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">❤️ 브리핑</a>
+            <a href="/news" className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">뉴스</a>
+            <a href="/" className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">홈</a>
           </div>
           <button
-            onClick={() => {
-              if (mySeatedId) return; // 이미 착석
-              for (let n = 1; n <= 100; n++) {
-                const id = seatIdByOrder(n);
-                if (!seats[id]) {
-                  if (isSubscribed) setSelectedSeat(id);
-                  else setSubscribeSeat(id);
-                  return;
-                }
-              }
-            }}
+            onClick={handleSeatClick}
             className={`mx-auto sm:mx-0 px-8 py-2.5 rounded-lg font-bold text-sm transition-opacity shadow-lg ${
               mySeatedId
                 ? "bg-[var(--card)] text-[var(--text-muted)] cursor-default shadow-none"
                 : "bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90 shadow-[#f0b90b]/20"
             }`}
           >
-            {mySeatedId ? "✅ 착석 완료" : isSubscribed ? "내 자리 꾸미기" : "구독하고 착석하기"}
+            {mySeatedId ? "착석 완료" : "구독하고 착석하기"}
           </button>
           <div className="hidden sm:block">
             <span className="text-xs text-[var(--text-muted)]">{remaining}석 남음</span>
@@ -379,7 +416,7 @@ export default function TheaterSeats() {
 
       {/* Disclaimer */}
       <div className="text-center py-4 text-[10px] text-[var(--text-muted)]/40">
-        본 서비스는 투자 조언이 아닌 정보 제공 목적입니다 · © 2026 US속보
+        본 서비스는 투자 조언이 아닌 정보 제공 목적입니다 · 2026 US속보
       </div>
 
       {/* Subscribe Modal */}
@@ -388,7 +425,6 @@ export default function TheaterSeats() {
           seatId={subscribeSeat}
           onClose={() => setSubscribeSeat(null)}
           onSubscribed={() => {
-            setIsSubscribed(true);
             const seat = subscribeSeat;
             setSubscribeSeat(null);
             setSelectedSeat(seat);
