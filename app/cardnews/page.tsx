@@ -224,8 +224,7 @@ export default function CardNewsPage() {
       <div className="min-h-screen">
         <CardNewsArticle
           data={viewMode.data}
-          type={activeTab as "premarket" | "morning" | "weekend"}
-          onBack={() => setViewMode({ type: "list" })}
+          onClose={() => setViewMode({ type: "list" })}
         />
         <Footer />
       </div>

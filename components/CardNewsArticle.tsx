@@ -1,507 +1,299 @@
 "use client";
 
-import { Fragment } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-/* ─── sample.json TypeScript interfaces ─── */
-interface SampleMeta {
-  date: string;
-  day: string;
-  handle: string;
-  total_slides: number;
-}
-
-interface CoverData {
-  headline: string;
-  tickers: string[];
-}
-
-interface Indicator {
-  num: string;
-  label: string;
-  time: string;
-  values: string;
-}
-
-interface EarningsItem {
-  symbol: string;
-  name: string;
-  quarter: string;
-  color: string;
-  status: string;
-  eps: string;
-  why: string;
-}
-
-interface EarningsBlock {
-  subtitle: string;
-  items: EarningsItem[];
-}
-
-interface QnA {
-  q: string;
-  a: string;
-}
-
-interface FlowStep {
-  title: string;
-  detail: string;
-  color: string;
-}
-
-interface Impact {
-  bullish: string[];
-  bearish: string[];
-}
-
-interface HistoryItem {
-  year?: string;
-  title?: string;
-  detail?: string;
-}
-
-interface Explainer {
-  badge: string;
-  title: string;
-  qna: QnA[];
-  flow?: FlowStep[];
-  impact?: Impact;
-  history?: HistoryItem[];
-}
-
-interface Checkpoint {
-  num: string;
-  title: string;
-  desc: string;
-}
-
+/* ── 타입 ── */
 export interface SampleJSON {
-  _schema_version: string;
-  meta: SampleMeta;
-  cover: CoverData;
-  indicators: Indicator[];
-  earnings_pre: EarningsBlock;
-  earnings_post: EarningsBlock;
-  explainers: Explainer[];
-  checkpoints: Checkpoint[];
+  _schema_version?: string;
+  meta: { date: string; day: string; handle: string; total_slides: number; brief_label?: string; cover_title?: string; cover_sub?: string };
+  cover: { headline: string; tickers?: { name: string; value: string; color: string }[] };
+  indicators?: { num: string; label: string; time?: string; values: string }[];
+  indicators_label?: string;
+  indicators_title?: string;
+  earnings_pre?: { subtitle?: string; cat_label?: string; title?: string; items: { symbol: string; name: string; eps?: string; why?: string; color?: string; quarter?: string; status?: string }[] };
+  earnings_post?: { subtitle?: string; cat_label?: string; title?: string; items: { symbol: string; name: string; eps?: string; why?: string; color?: string; quarter?: string; status?: string }[] };
+  explainers?: {
+    badge?: string; type?: string; title: string;
+    qna?: { q: string; a: string }[];
+    flow?: { title: string; detail: string; color: string }[];
+    impact?: { positive_label?: string; negative_label?: string; bullish?: string[]; bearish?: string[] };
+    history?: { year: string; title: string; desc: string }[];
+    checklist?: { text: string }[];
+  }[];
+  checkpoints?: { num: string; title: string; desc: string }[];
 }
 
-/* ─── Custom markup parser ─── */
-function renderMarkup(text: string): React.ReactNode[] {
-  // Parse custom tags: <strong>, <green>, <red>, <yellow>, <em-yellow>
-  const regex = /<(strong|green|red|yellow|em-yellow)>(.*?)<\/\1>/g;
-  const parts: React.ReactNode[] = [];
+/* ── 마크업 파서 ── */
+function renderMarkup(text: string) {
+  if (!text) return null;
+  const parts: (string | React.ReactNode)[] = [];
+  const tagMap: Record<string, string> = {
+    strong: "text-white font-bold",
+    green: "text-[#22c55e] font-semibold",
+    red: "text-[#ef4444] font-semibold",
+    yellow: "text-[#f0b90b] font-semibold",
+    "em-yellow": "text-[#f0b90b] text-xl font-bold",
+    "em-red": "text-[#ef4444] text-xl font-bold",
+    "em-green": "text-[#22c55e] text-xl font-bold",
+    "hl-box": "bg-[#f0b90b]/20 text-[#f0b90b] px-1.5 py-0.5 rounded font-bold",
+  };
+  const regex = /<(strong|green|red|yellow|em-yellow|em-red|em-green|hl-box)>([\s\S]*?)<\/\1>/g;
   let lastIndex = 0;
-  let match: RegExpExecArray | null;
   let key = 0;
-
+  let match;
   while ((match = regex.exec(text)) !== null) {
-    // Text before the match
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-
-    const tag = match[1];
-    const content = match[2];
-
-    switch (tag) {
-      case "strong":
-        parts.push(<strong key={key++} className="font-bold text-white">{content}</strong>);
-        break;
-      case "green":
-        parts.push(<span key={key++} className="text-[#22c55e] font-semibold">{content}</span>);
-        break;
-      case "red":
-        parts.push(<span key={key++} className="text-[#ef4444] font-semibold">{content}</span>);
-        break;
-      case "yellow":
-        parts.push(<span key={key++} className="text-[#f0b90b] font-semibold">{content}</span>);
-        break;
-      case "em-yellow":
-        parts.push(<span key={key++} className="text-[#f0b90b] font-bold text-lg">{content}</span>);
-        break;
-    }
-
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+    parts.push(<span key={key++} className={tagMap[match[1]] || ""}>{match[2]}</span>);
     lastIndex = match.index + match[0].length;
   }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-
-  return parts;
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return <>{parts}</>;
 }
 
-/* Render multiline text with markup */
-function RichText({ text, className = "" }: { text: string; className?: string }) {
-  const lines = text.split("\n");
-  return (
-    <span className={className}>
-      {lines.map((line, i) => (
-        <Fragment key={i}>
-          {renderMarkup(line)}
-          {i < lines.length - 1 && <br />}
-        </Fragment>
-      ))}
-    </span>
-  );
-}
-
-/* ─── Color map for flow timeline ─── */
 const FLOW_COLORS: Record<string, string> = {
-  yellow: "#f0b90b",
-  purple: "#8b5cf6",
-  red: "#ef4444",
-  pink: "#ec4899",
-  green: "#22c55e",
-  blue: "#3b82f6",
+  red: "#ef4444", yellow: "#f0b90b", green: "#22c55e", purple: "#8b5cf6", pink: "#ec4899", blue: "#3b82f6",
 };
 
-/* ─── Earnings color map ─── */
-const EARNINGS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  purple: { bg: "bg-[#8b5cf6]/10", border: "border-[#8b5cf6]/30", text: "text-[#8b5cf6]" },
-  green: { bg: "bg-[#22c55e]/10", border: "border-[#22c55e]/30", text: "text-[#22c55e]" },
-  red: { bg: "bg-[#ef4444]/10", border: "border-[#ef4444]/30", text: "text-[#ef4444]" },
-  yellow: { bg: "bg-[#f0b90b]/10", border: "border-[#f0b90b]/30", text: "text-[#f0b90b]" },
-  blue: { bg: "bg-[#3b82f6]/10", border: "border-[#3b82f6]/30", text: "text-[#3b82f6]" },
-};
+/* ── 메인: 페이지 넘기기 형태 ── */
+export default function CardNewsArticle({ data, onClose }: { data: SampleJSON; onClose: () => void }) {
+  const pages = buildPages(data);
+  const [current, setCurrent] = useState(0);
 
-/* ─── Main component ─── */
-export default function CardNewsArticle({
-  data,
-  type,
-  onBack,
-}: {
-  data: SampleJSON;
-  type: "premarket" | "morning" | "weekend";
-  onBack: () => void;
-}) {
-  const { meta, cover, indicators, earnings_pre, earnings_post, explainers, checkpoints } = data;
+  const goNext = useCallback(() => setCurrent((p) => Math.min(p + 1, pages.length - 1)), [pages.length]);
+  const goPrev = useCallback(() => setCurrent((p) => Math.max(p - 1, 0)), []);
 
-  const typeLabel = type === "premarket" ? "장전 브리핑" : type === "morning" ? "모닝 브리핑" : "주말 특별판";
-  const typeColor = type === "premarket" ? "#8b5cf6" : type === "morning" ? "#f0b90b" : "#22c55e";
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === " ") goNext();
+      else if (e.key === "ArrowLeft") goPrev();
+      else if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", handleKey); document.body.style.overflow = ""; };
+  }, [goNext, goPrev, onClose]);
+
+  // 터치 스와이프
+  useEffect(() => {
+    let startX = 0;
+    const onStart = (e: TouchEvent) => { startX = e.touches[0].clientX; };
+    const onEnd = (e: TouchEvent) => {
+      const diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) { diff > 0 ? goNext() : goPrev(); }
+    };
+    window.addEventListener("touchstart", onStart);
+    window.addEventListener("touchend", onEnd);
+    return () => { window.removeEventListener("touchstart", onStart); window.removeEventListener("touchend", onEnd); };
+  }, [goNext, goPrev]);
 
   return (
-    <div className="min-h-screen pb-16">
-      {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--border)]">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-white transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            목록
+    <div className="fixed inset-0 z-[100] bg-[#08080d] flex flex-col">
+      {/* 상단 */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)] shrink-0">
+        <span className="text-sm text-[var(--text-muted)] font-medium">{data.meta.brief_label || "BRIEFING"}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-[#f0b90b]">{current + 1}</span>
+          <span className="text-sm text-[var(--text-muted)]">/ {pages.length}</span>
+        </div>
+        <button onClick={onClose} className="text-[var(--text-muted)] hover:text-white transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" /></svg>
+        </button>
+      </div>
+
+      {/* 페이지 */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* 좌측 화살표 */}
+        {current > 0 && (
+          <button onClick={goPrev} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+            ←
           </button>
-          <div className="flex-1" />
-          <span
-            className="text-xs px-2.5 py-1 rounded-full font-medium"
-            style={{ backgroundColor: `${typeColor}15`, color: typeColor }}
-          >
-            {typeLabel}
-          </span>
+        )}
+        {/* 우측 화살표 */}
+        {current < pages.length - 1 && (
+          <button onClick={goNext} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-[#f0b90b]/20 backdrop-blur flex items-center justify-center text-[#f0b90b] hover:bg-[#f0b90b]/30 transition-colors">
+            →
+          </button>
+        )}
+
+        <div className="h-full overflow-y-auto flex items-start justify-center px-12 md:px-16 py-8">
+          <div className="w-full max-w-xl">
+            {pages[current]}
+          </div>
         </div>
       </div>
 
-      <article className="max-w-3xl mx-auto px-4">
-        {/* ═══════ COVER / HERO ═══════ */}
-        <header className="pt-10 pb-8 border-b border-[var(--border)]">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-[var(--text-muted)]">{meta.date}</span>
-            <span className="text-xs text-[var(--text-muted)]">({meta.day})</span>
-            <span className="text-xs text-[var(--text-muted)]">{meta.handle}</span>
-          </div>
-          <h1 className="text-2xl md:text-4xl font-extrabold leading-tight mb-4">
-            <RichText text={cover.headline} />
-          </h1>
-          {cover.tickers.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {cover.tickers.map((t) => (
-                <span
-                  key={t}
-                  className="px-3 py-1 rounded-full bg-[#f0b90b]/10 text-[#f0b90b] text-sm font-mono font-bold"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          )}
-        </header>
-
-        {/* ═══════ INDICATORS ═══════ */}
-        {indicators.length > 0 && (
-          <section className="py-8 border-b border-[var(--border)]">
-            <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-[#3b82f6]/10 flex items-center justify-center text-base">
-                {"📈"}
-              </span>
-              주요 지표
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {indicators.map((ind) => (
-                <div
-                  key={ind.num}
-                  className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-[var(--text-muted)] font-mono">#{ind.num}</span>
-                    <span className="text-xs text-[var(--text-muted)]">{ind.time}</span>
-                  </div>
-                  <p className="text-sm font-semibold">{ind.label}</p>
-                  {ind.values && (
-                    <p className="text-sm text-[var(--text-muted)] mt-1">{ind.values}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ═══════ EARNINGS PRE ═══════ */}
-        {earnings_pre.items.length > 0 && (
-          <section className="py-8 border-b border-[var(--border)]">
-            <h2 className="text-lg font-bold mb-2 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-[#8b5cf6]/10 flex items-center justify-center text-base">
-                {"📊"}
-              </span>
-              장전 실적발표
-            </h2>
-            <p className="text-xs text-[var(--text-muted)] mb-5">{earnings_pre.subtitle}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {earnings_pre.items.map((item) => {
-                const colors = EARNINGS_COLORS[item.color] || EARNINGS_COLORS.purple;
-                return (
-                  <div
-                    key={item.symbol}
-                    className={`${colors.bg} border ${colors.border} rounded-xl p-4`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`font-mono font-bold text-sm ${colors.text}`}>{item.symbol}</span>
-                      {item.quarter && (
-                        <span className="text-xs text-[var(--text-muted)]">{item.quarter}</span>
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold mb-2">{item.name}</p>
-                    <p className="text-xs text-[var(--text-muted)] mb-2 font-mono">{item.eps}</p>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">{item.why}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ═══════ EARNINGS POST ═══════ */}
-        {earnings_post.items.length > 0 && (
-          <section className="py-8 border-b border-[var(--border)]">
-            <h2 className="text-lg font-bold mb-2 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-[#f0b90b]/10 flex items-center justify-center text-base">
-                {"📊"}
-              </span>
-              장후 실적발표
-            </h2>
-            <p className="text-xs text-[var(--text-muted)] mb-5">{earnings_post.subtitle}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {earnings_post.items.map((item) => {
-                const colors = EARNINGS_COLORS[item.color] || EARNINGS_COLORS.purple;
-                return (
-                  <div
-                    key={item.symbol}
-                    className={`${colors.bg} border ${colors.border} rounded-xl p-4`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`font-mono font-bold text-sm ${colors.text}`}>{item.symbol}</span>
-                      {item.quarter && (
-                        <span className="text-xs text-[var(--text-muted)]">{item.quarter}</span>
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold mb-2">{item.name}</p>
-                    <p className="text-xs text-[var(--text-muted)] mb-2 font-mono">{item.eps}</p>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">{item.why}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ═══════ EXPLAINERS ═══════ */}
-        {explainers.map((exp, idx) => (
-          <section key={idx} className="py-8 border-b border-[var(--border)]">
-            {/* Badge + Title */}
-            <div className="mb-6">
-              <span className="inline-block text-xs font-bold px-2.5 py-1 rounded-full bg-[#f0b90b]/15 text-[#f0b90b] mb-3">
-                {exp.badge}
-              </span>
-              <h2 className="text-xl md:text-2xl font-extrabold leading-snug">
-                <RichText text={exp.title} />
-              </h2>
-            </div>
-
-            {/* Q&A */}
-            <div className="space-y-5 mb-6">
-              {exp.qna.map((qa, qi) => (
-                <div key={qi} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
-                  <p className="font-bold text-sm mb-2 flex items-start gap-2">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#f0b90b]/15 text-[#f0b90b] text-xs flex items-center justify-center font-bold mt-0.5">
-                      Q
-                    </span>
-                    <span>{qa.q}</span>
-                  </p>
-                  <p className="text-sm text-[var(--text-muted)] leading-relaxed ml-8">
-                    <RichText text={qa.a} />
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Flow Timeline */}
-            {exp.flow && exp.flow.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4">
-                  파급 경로
-                </h3>
-                <div className="relative pl-6">
-                  {/* Vertical line */}
-                  <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-[var(--border)]" />
-                  <div className="space-y-4">
-                    {exp.flow.map((step, si) => {
-                      const dotColor = FLOW_COLORS[step.color] || "#71717a";
-                      return (
-                        <div key={si} className="relative flex items-start gap-4">
-                          {/* Dot */}
-                          <div
-                            className="absolute -left-6 top-1 w-3 h-3 rounded-full border-2"
-                            style={{
-                              borderColor: dotColor,
-                              backgroundColor: `${dotColor}30`,
-                            }}
-                          />
-                          <div>
-                            <p className="text-sm font-bold" style={{ color: dotColor }}>
-                              {step.title}
-                            </p>
-                            <p className="text-xs text-[var(--text-muted)]">{step.detail}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Impact: Bullish / Bearish */}
-            {exp.impact && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                {/* Bullish */}
-                <div className="bg-[#22c55e]/5 border border-[#22c55e]/20 rounded-xl p-4">
-                  <h4 className="text-sm font-bold text-[#22c55e] mb-3 flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M12 19V5M5 12l7-7 7 7" />
-                    </svg>
-                    수혜
-                  </h4>
-                  <ul className="space-y-2">
-                    {exp.impact.bullish.map((item, bi) => (
-                      <li key={bi} className="text-sm text-[var(--text-muted)] flex items-start gap-2">
-                        <span className="text-[#22c55e] mt-0.5">+</span>
-                        <RichText text={item} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                {/* Bearish */}
-                <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-xl p-4">
-                  <h4 className="text-sm font-bold text-[#ef4444] mb-3 flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M12 5v14M5 12l7 7 7-7" />
-                    </svg>
-                    리스크
-                  </h4>
-                  <ul className="space-y-2">
-                    {exp.impact.bearish.map((item, bi) => (
-                      <li key={bi} className="text-sm text-[var(--text-muted)] flex items-start gap-2">
-                        <span className="text-[#ef4444] mt-0.5">-</span>
-                        <RichText text={item} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            {/* History */}
-            {exp.history && exp.history.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4">
-                  역사적 사례
-                </h3>
-                <div className="space-y-3">
-                  {exp.history.map((h, hi) => (
-                    <div
-                      key={hi}
-                      className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 flex items-start gap-3"
-                    >
-                      {h.year && (
-                        <span className="flex-shrink-0 text-xs font-mono font-bold text-[#f0b90b] bg-[#f0b90b]/10 px-2 py-1 rounded">
-                          {h.year}
-                        </span>
-                      )}
-                      <div>
-                        {h.title && <p className="text-sm font-bold mb-1">{h.title}</p>}
-                        {h.detail && (
-                          <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                            <RichText text={h.detail} />
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
+      {/* 하단 인디케이터 */}
+      <div className="flex items-center justify-center gap-1.5 py-3 border-t border-[var(--border)] shrink-0">
+        {pages.map((_, i) => (
+          <button key={i} onClick={() => setCurrent(i)} className={`rounded-full transition-all ${i === current ? "w-6 h-2 bg-[#f0b90b]" : "w-2 h-2 bg-[var(--border)] hover:bg-[var(--text-muted)]"}`} />
         ))}
-
-        {/* ═══════ CHECKPOINTS ═══════ */}
-        {checkpoints.length > 0 && (
-          <section className="py-8">
-            <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-[#22c55e]/10 flex items-center justify-center text-base">
-                {"✅"}
-              </span>
-              체크포인트
-            </h2>
-            <div className="space-y-3">
-              {checkpoints.map((cp) => (
-                <div
-                  key={cp.num}
-                  className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 flex items-start gap-4"
-                >
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#22c55e]/10 text-[#22c55e] text-sm font-bold flex items-center justify-center">
-                    {cp.num}
-                  </span>
-                  <div>
-                    <p className="text-sm font-bold mb-1">{cp.title}</p>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                      <RichText text={cp.desc} />
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Disclaimer */}
-            <div className="mt-6 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] text-center">
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                본 콘텐츠는 투자 조언이 아닙니다. 모든 투자 결정은 본인의 판단에 따라 이루어져야 합니다.
-              </p>
-            </div>
-          </section>
-        )}
-      </article>
+      </div>
     </div>
   );
+}
+
+/* ── 페이지 빌더 ── */
+function buildPages(data: SampleJSON): React.ReactNode[] {
+  const pages: React.ReactNode[] = [];
+
+  // 1. 커버
+  pages.push(
+    <div className="flex flex-col items-center justify-center min-h-[50vh] text-center" key="cover">
+      <div className="text-xs text-[#f0b90b] font-bold tracking-[0.3em] mb-3">{data.meta.brief_label || "BRIEFING"}</div>
+      <p className="text-sm text-[var(--text-muted)] mb-6">{data.meta.date} {data.meta.day}</p>
+      <h1 className="text-2xl md:text-3xl font-black leading-tight mb-8 whitespace-pre-line">{renderMarkup(data.cover.headline)}</h1>
+      {data.cover.tickers && data.cover.tickers.length > 0 && (
+        <div className="flex gap-5 flex-wrap justify-center mb-8">
+          {data.cover.tickers.map((t) => (
+            <div key={t.name} className="text-center">
+              <p className="text-xs text-[var(--text-muted)] mb-0.5">{t.name}</p>
+              <p className={`text-lg font-bold ${t.color === "green" ? "text-[#22c55e]" : "text-[#ef4444]"}`}>{t.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-xs text-[var(--text-muted)]/50 mt-4">← → 또는 스와이프로 넘기세요</p>
+    </div>
+  );
+
+  // 2. 지표
+  if (data.indicators && data.indicators.length > 0) {
+    pages.push(
+      <div key="indicators">
+        <p className="text-xs text-[#f0b90b] font-bold tracking-widest mb-2">{data.indicators_label || "ECONOMIC DATA"}</p>
+        <h2 className="text-xl font-bold mb-6">{renderMarkup(data.indicators_title || "경제 지표")}</h2>
+        <div className="space-y-3">
+          {data.indicators.map((ind) => (
+            <div key={ind.num} className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold">{ind.label}</span>
+                {ind.time && <span className="text-xs text-[var(--text-muted)] bg-[var(--bg)] px-2 py-0.5 rounded">{ind.time}</span>}
+              </div>
+              <p className="text-lg">{renderMarkup(ind.values)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 3. 어닝/뉴스
+  for (const [idx, section] of [data.earnings_pre, data.earnings_post].entries()) {
+    if (!section?.items?.length) continue;
+    pages.push(
+      <div key={`earn-${idx}`}>
+        <p className="text-xs text-[#8b5cf6] font-bold tracking-widest mb-2">{section.cat_label || "EARNINGS"}</p>
+        <h2 className="text-xl font-bold mb-2">{renderMarkup(section.title || "실적발표")}</h2>
+        {section.subtitle && <p className="text-sm text-[var(--text-muted)] mb-6">{section.subtitle}</p>}
+        <div className="space-y-3">
+          {section.items.map((item) => (
+            <div key={item.symbol} className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-[#f0b90b] font-bold text-lg">{item.symbol}</span>
+                <span className="font-semibold">{item.name}</span>
+              </div>
+              {item.eps && <p className="text-sm text-[var(--text-muted)] mb-2">{renderMarkup(item.eps)}</p>}
+              {item.why && <p className="text-sm leading-relaxed">{renderMarkup(item.why)}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 4. 설명서 (각각 1페이지)
+  for (const [i, exp] of (data.explainers || []).entries()) {
+    const els: React.ReactNode[] = [];
+
+    els.push(
+      <div key="h" className="mb-6">
+        <span className="text-xs text-[#f0b90b] font-bold">{exp.badge || "주린이 설명서"}</span>
+        <h2 className="text-xl font-bold mt-2 whitespace-pre-line">{renderMarkup(exp.title)}</h2>
+      </div>
+    );
+
+    if (exp.qna?.length) {
+      for (const [qi, qa] of exp.qna.entries()) {
+        els.push(
+          <div key={`q${qi}`} className="mb-5 bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
+            <p className="text-sm font-bold text-[#f0b90b] mb-2">Q. {qa.q}</p>
+            <p className="text-[15px] leading-relaxed">{renderMarkup(qa.a)}</p>
+          </div>
+        );
+      }
+    }
+
+    if (exp.flow?.length) {
+      els.push(
+        <div key="flow" className="mt-4 space-y-3">
+          <p className="text-sm font-bold text-[var(--text-muted)] mb-2">📈 파급 경로</p>
+          {exp.flow.map((step, fi) => (
+            <div key={fi} className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: FLOW_COLORS[step.color] || "#6b7280" }} />
+              <div className="flex-1 bg-[var(--card)] rounded-lg px-4 py-2.5 border border-[var(--border)]">
+                <span className="font-bold text-sm">{step.title}</span>
+                <span className="text-[var(--text-muted)] text-sm ml-2">{step.detail}</span>
+              </div>
+              {fi < (exp.flow?.length || 0) - 1 && <span className="text-[var(--text-muted)] text-xs">→</span>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (exp.impact) {
+      els.push(
+        <div key="impact" className="mt-5 grid grid-cols-2 gap-3">
+          <div className="bg-[#22c55e]/5 border border-[#22c55e]/20 rounded-xl p-4">
+            <p className="text-sm font-bold text-[#22c55e] mb-3">{exp.impact.positive_label || "수혜"}</p>
+            {exp.impact.bullish?.map((b, bi) => <p key={bi} className="text-sm mb-1">• {b}</p>)}
+          </div>
+          <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-xl p-4">
+            <p className="text-sm font-bold text-[#ef4444] mb-3">{exp.impact.negative_label || "피해"}</p>
+            {exp.impact.bearish?.map((b, bi) => <p key={bi} className="text-sm mb-1">• {b}</p>)}
+          </div>
+        </div>
+      );
+    }
+
+    if (exp.history?.length) {
+      els.push(
+        <div key="hist" className="mt-5 space-y-3">
+          <p className="text-sm font-bold text-[var(--text-muted)] mb-2">📚 과거 사례</p>
+          {exp.history.map((h, hi) => (
+            <div key={hi} className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
+              <span className="text-xs text-[#f0b90b] font-bold">{h.year}</span>
+              <p className="font-bold mt-1">{h.title}</p>
+              <p className="text-sm text-[var(--text-muted)] mt-1">{renderMarkup(h.desc)}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    pages.push(<div key={`exp-${i}`}>{els}</div>);
+  }
+
+  // 5. 체크포인트
+  if (data.checkpoints?.length) {
+    pages.push(
+      <div key="cp" className="flex flex-col items-center justify-center min-h-[40vh]">
+        <h2 className="text-xl font-bold mb-8 text-center">✅ 오늘의 체크포인트</h2>
+        <div className="space-y-5 w-full">
+          {data.checkpoints.map((cp) => (
+            <div key={cp.num} className="flex gap-4 items-start">
+              <span className="text-3xl font-black text-[#f0b90b] shrink-0 w-10 text-center">{cp.num}</span>
+              <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--border)] flex-1">
+                <p className="font-bold mb-1">{cp.title}</p>
+                <p className="text-sm text-[var(--text-muted)]">{renderMarkup(cp.desc)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-[var(--text-muted)]/50 mt-8 text-center">본 콘텐츠는 정보 제공 목적이며 투자 조언이 아닙니다</p>
+      </div>
+    );
+  }
+
+  return pages;
 }
