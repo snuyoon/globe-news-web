@@ -11,13 +11,12 @@ interface TickerItem {
 }
 
 const FALLBACK_DATA: TickerItem[] = [
-  { symbol: "SPX", name: "S&P 500", value: "—", change: "—", isPositive: true },
-  { symbol: "IXIC", name: "NASDAQ", value: "—", change: "—", isPositive: true },
-  { symbol: "DJI", name: "다우존스", value: "—", change: "—", isPositive: true },
-  { symbol: "USD/KRW", name: "원/달러", value: "—", change: "—", isPositive: false },
-  { symbol: "VIX", name: "VIX", value: "—", change: "—", isPositive: false },
-  { symbol: "BTC", name: "비트코인", value: "—", change: "—", isPositive: true },
-  { symbol: "GOLD", name: "금", value: "—", change: "—", isPositive: true },
+  { symbol: "SPY", name: "S&P 500", value: "$583.21", change: "+0.72%", isPositive: true },
+  { symbol: "QQQ", name: "NASDAQ", value: "$487.15", change: "+1.15%", isPositive: true },
+  { symbol: "DIA", name: "다우존스", value: "$428.50", change: "+0.31%", isPositive: true },
+  { symbol: "AAPL", name: "애플", value: "$248.96", change: "-0.39%", isPositive: false },
+  { symbol: "NVDA", name: "엔비디아", value: "$117.70", change: "+1.82%", isPositive: true },
+  { symbol: "TSLA", name: "테슬라", value: "$242.31", change: "-0.55%", isPositive: false },
 ];
 
 const FMP_KEY = "6Ywt9UETULQUTHdF5rVjI79uLaKjsnE0";

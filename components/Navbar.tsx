@@ -37,7 +37,7 @@ export default function Navbar() {
             </a>
           ))}
           <a
-            href="/subscribe"
+            href="/#subscribe"
             className="ml-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity"
           >
             구독하기
@@ -82,7 +82,7 @@ export default function Navbar() {
               </a>
             ))}
             <a
-              href="/subscribe"
+              href="/#subscribe"
               onClick={() => setMenuOpen(false)}
               className="mt-1 px-4 py-2 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold text-center"
             >

@@ -54,6 +54,17 @@ export default function TheaterSeats() {
     if (sub) {
       try { setMySeatedId(JSON.parse(sub).seatId || null); } catch { /* */ }
     }
+    // #subscribe 앵커로 왔으면 자동으로 구독 모달
+    if (window.location.hash === "#subscribe" && !sub) {
+      setTimeout(() => {
+        for (let n = 1; n <= 100; n++) {
+          const id = seatIdByOrder(n);
+          const stored = localStorage.getItem(STORAGE_KEY);
+          const seats = stored ? JSON.parse(stored) : {};
+          if (!seats[id]) { setSubscribeSeat(id); break; }
+        }
+      }, 500);
+    }
     const stored = localStorage.getItem(STORAGE_KEY);
     const version = localStorage.getItem(STORAGE_KEY + "_v");
     // v3: 순서대로 채우기
