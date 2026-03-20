@@ -45,16 +45,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       setIsSubscriber(true);
       return;
     }
-    try {
-      const { data } = await supabase
-        .from("subscribers")
-        .select("id")
-        .eq("user_id", u.id)
-        .single();
-      setIsSubscriber(!!data);
-    } catch {
-      setIsSubscriber(false);
-    }
+    const { data } = await supabase
+      .from("subscribers")
+      .select("id")
+      .eq("user_id", u.id)
+      .maybeSingle();
+    setIsSubscriber(!!data);
   }, []);
 
   useEffect(() => {
@@ -68,10 +64,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     // 인증 상태 변경 리스닝
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         const u = session?.user ?? null;
         setUser(u);
-        checkSubscription(u);
+        // INITIAL_SESSION은 getSession에서 이미 처리, TOKEN_REFRESHED는 유저 변경 아님
+        if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+          checkSubscription(u);
+        }
         setLoading(false);
       }
     );
