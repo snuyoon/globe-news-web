@@ -149,13 +149,55 @@ export default function NewsCard({ news, index }: { news: News; index: number })
           </div>
         )}
 
+        {/* Web detail (subscriber only, expanded) */}
+        {expanded && canView && news.web_detail && (
+          <div className="mt-4 pt-3 border-t border-[var(--border)]">
+            <span className="text-[12px] font-bold text-[var(--accent)] mb-2 inline-block">
+              상세 분석
+            </span>
+            <p className="text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line">
+              {news.web_detail}
+            </p>
+          </div>
+        )}
+
+        {/* Web detail teaser for non-subscribers */}
+        {expanded && !canView && news.web_detail && (
+          <div className="relative mt-4 pt-3 border-t border-[var(--border)] rounded-lg overflow-hidden">
+            <span className="text-[12px] font-bold text-[var(--accent)] mb-2 inline-block">
+              상세 분석
+            </span>
+            <p
+              className="text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line line-clamp-3 select-none"
+              style={{ filter: "blur(8px)", WebkitFilter: "blur(8px)" }}
+              aria-hidden="true"
+            >
+              {news.web_detail}
+            </p>
+            <div className="absolute inset-0 top-8 flex items-center justify-center bg-[var(--card)]/60">
+              <a
+                href="/#subscribe"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity shadow-lg"
+              >
+                구독하고 상세 분석 보기
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Expand hint */}
-        {body && canView && !expanded && lines.length > 4 && (
+        {canView && !expanded && (body || news.web_detail) && (
           <span className="text-[11px] text-[var(--accent)] mt-1 inline-block">
             펼쳐서 더 보기
           </span>
         )}
-        {expanded && body && canView && (
+        {!canView && !expanded && body && (
+          <span className="text-[11px] text-[var(--accent)] mt-1 inline-block">
+            펼쳐서 더 보기
+          </span>
+        )}
+        {expanded && (body || news.web_detail) && (
           <span className="text-[11px] text-[var(--accent)] mt-1 inline-block">
             접기
           </span>

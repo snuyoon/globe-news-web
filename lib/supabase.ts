@@ -20,4 +20,5 @@ export type News = {
   is_digest: boolean;
   published_at: string;
   created_at: string;
+  web_detail: string | null;
 };
