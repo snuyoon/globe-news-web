@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TickerBar from "@/components/TickerBar";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "글로벌 금융 속보 AI",
-  description: "AI가 선별한 실시간 글로벌 금융 뉴스를 한국어로 제공합니다.",
+  title: "US속보 - AI 미국 금융 속보",
+  description:
+    "AI가 선별한 실시간 미국 금융 속보. 모닝 브리핑, 장전 브리핑, 카드뉴스를 제공합니다.",
   openGraph: {
-    title: "글로벌 금융 속보 AI",
-    description: "AI가 선별한 실시간 글로벌 금융 뉴스",
+    title: "US속보 - AI 미국 금융 속보",
+    description: "AI가 선별한 실시간 미국 금융 속보",
     type: "website",
   },
 };
@@ -18,7 +21,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <TickerBar />
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

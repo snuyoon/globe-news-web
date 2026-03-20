@@ -7,7 +7,8 @@
   --border: #1e1e2e;
   --text: #e4e4e7;
   --text-muted: #71717a;
-  --accent: #3b82f6;
+  --accent: #f0b90b;
+  --accent-secondary: #ef6d09;
   --red: #ef4444;
   --amber: #f59e0b;
   --green: #22c55e;
@@ -16,11 +17,11 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", sans-serif;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", sans-serif;
 }
 
-/* 스크롤바 스타일링 */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -32,7 +33,7 @@ body {
   border-radius: 3px;
 }
 
-/* 중요도 뱃지 */
+/* Importance badges */
 .badge-5 {
   background: linear-gradient(135deg, #dc2626, #ef4444);
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
@@ -48,7 +49,7 @@ body {
   background: linear-gradient(135deg, #4b5563, #6b7280);
 }
 
-/* 카드 애니메이션 */
+/* Card animation */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -64,7 +65,7 @@ body {
   animation: slideIn 0.3s ease-out;
 }
 
-/* 라이브 인디케이터 */
+/* Live indicator */
 @keyframes pulse-dot {
   0%,
   100% {
@@ -76,4 +77,26 @@ body {
 }
 .live-dot {
   animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Hide scrollbar for ticker */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
