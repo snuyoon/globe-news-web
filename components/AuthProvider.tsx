@@ -45,10 +45,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const signInWithGoogle = async () => {
+    const redirectUrl = window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://globe-news-web.vercel.app";
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: redirectUrl,
       },
     });
   };
