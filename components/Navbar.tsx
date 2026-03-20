@@ -8,7 +8,7 @@ const NAV_LINKS = [
   { label: "홈", href: "/" },
   { label: "뉴스", href: "/news" },
   { label: "카드뉴스", href: "/cardnews" },
-  { label: "기업", href: "/company" },
+  { label: "기업분석", href: "/company" },
 ] as const;
 
 const ADMIN_LINK = { label: "관리", href: "/admin" } as const;

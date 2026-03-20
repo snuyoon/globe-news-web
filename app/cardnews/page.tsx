@@ -10,7 +10,6 @@ import { supabase, type CardNews } from "@/lib/supabase";
 const TABS = [
   { id: "premarket" as const, label: "장전 브리핑", emoji: "🌙", desc: "매일 22:00 · 오늘 밤 미국장 체크포인트" },
   { id: "morning" as const, label: "모닝 브리핑", emoji: "☀️", desc: "매일 08:30 · 어젯밤 시장 결과 해석" },
-  { id: "weekend" as const, label: "주말 특별판", emoji: "📚", desc: "매주 토요일 · 주간 핵심 주제 깊이 분석" },
 ];
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -34,7 +33,6 @@ function getWeekDates(): { label: string; date: string; isToday: boolean }[] {
 const TAB_COLORS: Record<string, { bar: string; badge: string }> = {
   premarket: { bar: "from-[#8b5cf6] to-[#6366f1]", badge: "bg-[#8b5cf6]/10 text-[#8b5cf6]" },
   morning:   { bar: "from-[#f0b90b] to-[#ef6d09]", badge: "bg-[#f0b90b]/10 text-[#f0b90b]" },
-  weekend:   { bar: "from-[#22c55e] to-[#14b8a6]", badge: "bg-[#22c55e]/10 text-[#22c55e]" },
 };
 
 export default function CardNewsPage() {
@@ -137,9 +135,8 @@ export default function CardNewsPage() {
           ))}
         </div>
 
-        {/* 요일 선택 (주말 특별판은 제외) */}
-        {activeTab !== "weekend" && (
-          <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2 no-scrollbar">
+        {/* 요일 선택 */}
+        <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2 no-scrollbar">
             <button
               onClick={() => setSelectedDay(null)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -170,7 +167,6 @@ export default function CardNewsPage() {
               </button>
             ))}
           </div>
-        )}
 
         {/* 카드 목록 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -251,7 +247,6 @@ export default function CardNewsPage() {
               <p className="text-xs text-[var(--text-muted)]/60">
                 {activeTab === "premarket" && "장전 브리핑은 매일 22:00에 발행됩니다"}
                 {activeTab === "morning" && "모닝 브리핑은 매일 08:30에 발행됩니다"}
-                {activeTab === "weekend" && "주말 특별판은 매주 토요일에 발행됩니다"}
               </p>
             </div>
           )}
