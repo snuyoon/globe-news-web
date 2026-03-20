@@ -295,18 +295,12 @@ export default function TheaterSeats() {
               </p>
             </div>
 
-            <div
-              className="overflow-x-auto pb-4"
-            >
+            <div className="overflow-x-auto pb-4">
               <div className="min-w-0 md:min-w-[580px] mx-auto">
-                {ROWS.map((row, rowIdx) => (
+                {ROWS.map((row) => (
                   <div
                     key={row}
-                    className="flex items-end justify-center gap-[2px] md:gap-[4px] mb-[2px] md:mb-[4px]"
-                    style={{
-                      paddingLeft: `${(9 - rowIdx) * 4}px`,
-                      paddingRight: `${(9 - rowIdx) * 4}px`,
-                    }}
+                    className="flex items-center justify-center gap-[3px] md:gap-[5px] mb-[3px] md:mb-[5px]"
                   >
                     {COLS.map((col) => {
                       const seatId = `${row}${col}`;
@@ -314,6 +308,7 @@ export default function TheaterSeats() {
                       const isOccupied = !!data;
                       const lucky = isLuckySeat(row, col);
                       const seatNum = getSeatNumber(row, col);
+                      const glowColor = isOccupied ? data.hoodieColor : "";
 
                       return (
                         <button
@@ -323,70 +318,102 @@ export default function TheaterSeats() {
                             if (mySeatedId) return;
                             handleSeatClick();
                           }}
-                          className={`relative flex items-end justify-center transition-all duration-200 group ${
-                            isOccupied ? "cursor-default" : "cursor-pointer"
+                          className={`relative flex flex-col items-center justify-end transition-all duration-300 group ${
+                            isOccupied ? "cursor-default" : "cursor-pointer hover:scale-105"
                           }`}
-                          style={{ width: "clamp(42px, 8vw, 54px)", height: "clamp(52px, 10vw, 64px)" }}
+                          style={{ width: "clamp(46px, 8.5vw, 58px)", height: "clamp(60px, 11vw, 76px)" }}
                           title={isOccupied ? `${data.initial} (${row}${col})` : lucky ? `${seatNum}번째 — 평생 무료!` : `${row}${col} — 빈 좌석`}
                         >
-                          {/* Lucky seat glow */}
-                          {lucky && (
-                            <div className={`absolute inset-0 rounded-lg border-2 border-[#f0b90b]/50 pointer-events-none z-10 ${!isOccupied ? "animate-pulse" : ""}`}
-                              style={{ boxShadow: "0 0 14px rgba(240,185,11,0.3), inset 0 0 8px rgba(240,185,11,0.1)" }}
+                          {/* Neon glow behind occupied seat */}
+                          {isOccupied && (
+                            <div
+                              className="absolute inset-[-4px] rounded-xl pointer-events-none z-0"
+                              style={{
+                                background: `radial-gradient(ellipse at center, ${glowColor}40 0%, ${glowColor}15 40%, transparent 70%)`,
+                                filter: "blur(3px)",
+                              }}
                             />
                           )}
-                          {/* Lucky badge — inside the seat */}
+
+                          {/* Lucky seat glow */}
+                          {lucky && !isOccupied && (
+                            <div
+                              className="absolute inset-[-2px] rounded-xl pointer-events-none z-0 animate-pulse"
+                              style={{
+                                background: "radial-gradient(ellipse at center, rgba(240,185,11,0.25) 0%, transparent 70%)",
+                                filter: "blur(2px)",
+                              }}
+                            />
+                          )}
+
+                          {/* Seat shell */}
+                          <div
+                            className={`absolute inset-0 rounded-xl overflow-hidden transition-all duration-300 ${
+                              !isOccupied && !lucky ? "group-hover:border-[#f0b90b]/30" : ""
+                            }`}
+                            style={{
+                              background: isOccupied
+                                ? `linear-gradient(180deg, ${glowColor}18 0%, ${glowColor}08 100%)`
+                                : lucky
+                                  ? "linear-gradient(180deg, #1a1510 0%, #0f0f18 100%)"
+                                  : "linear-gradient(180deg, #1a1a25 0%, #111118 100%)",
+                              border: `1.5px solid ${
+                                isOccupied ? `${glowColor}50`
+                                : lucky ? "#f0b90b40"
+                                : "#222233"
+                              }`,
+                              boxShadow: isOccupied
+                                ? `0 0 16px ${glowColor}25, 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 ${glowColor}15`
+                                : lucky
+                                  ? "0 0 12px rgba(240,185,11,0.15), 0 4px 12px rgba(0,0,0,0.4)"
+                                  : "0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
+                            }}
+                          >
+                            {/* Seat back top ridge */}
+                            <div
+                              className="h-[3px]"
+                              style={{
+                                background: isOccupied
+                                  ? `linear-gradient(90deg, transparent, ${glowColor}60, transparent)`
+                                  : lucky
+                                    ? "linear-gradient(90deg, transparent, #f0b90b40, transparent)"
+                                    : "linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)",
+                              }}
+                            />
+                            {/* Seat cushion bottom */}
+                            <div
+                              className="absolute bottom-0 left-0 right-0 h-[30%] rounded-b-xl"
+                              style={{
+                                background: isOccupied
+                                  ? `linear-gradient(0deg, ${glowColor}20 0%, transparent 100%)`
+                                  : "linear-gradient(0deg, rgba(0,0,0,0.3) 0%, transparent 100%)",
+                              }}
+                            />
+                          </div>
+
+                          {/* Lucky badge */}
                           {lucky && (
-                            <div className="absolute bottom-[1px] left-1/2 -translate-x-1/2 z-20 px-1.5 py-[1px] rounded-t bg-[#f0b90b] text-black text-[7px] font-black whitespace-nowrap">
+                            <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 z-20 px-1.5 py-[1px] rounded-t bg-[#f0b90b] text-black text-[7px] font-black whitespace-nowrap">
                               {isOccupied ? "당첨!" : "FREE"}
                             </div>
                           )}
-                          {/* Seat back */}
-                          <div
-                            className={`absolute inset-x-[2px] top-0 bottom-[12px] rounded-t-lg transition-all duration-200 ${
-                              !isOccupied ? "group-hover:border-[#f0b90b]/40 group-hover:bg-[#1a1a2e]" : ""
-                            }`}
-                            style={{
-                              backgroundColor: isOccupied
-                                ? lucky ? `${data.hoodieColor}20` : `${data.hoodieColor}15`
-                                : lucky ? "#1a1510" : "#111118",
-                              border: `1px solid ${
-                                lucky ? "#f0b90b40"
-                                : isOccupied ? `${data.hoodieColor}30` : "#1e1e2e"
-                              }`,
-                              boxShadow: lucky
-                                ? `0 0 12px rgba(240,185,11,0.25), inset 0 -4px 8px rgba(240,185,11,0.05)`
-                                : isOccupied
-                                  ? `0 0 8px ${data.hoodieColor}15, inset 0 -4px 8px ${data.hoodieColor}10`
-                                  : "inset 0 -4px 8px rgba(0,0,0,0.3)",
-                            }}
-                          />
-                          {/* Seat bottom cushion */}
-                          <div
-                            className="absolute inset-x-[1px] bottom-0 h-[14px] rounded-b-md"
-                            style={{
-                              backgroundColor: isOccupied ? `${data.hoodieColor}25` : "#0d0d15",
-                              borderLeft: `1px solid ${isOccupied ? `${data.hoodieColor}20` : "#1a1a25"}`,
-                              borderRight: `1px solid ${isOccupied ? `${data.hoodieColor}20` : "#1a1a25"}`,
-                              borderBottom: `1px solid ${isOccupied ? `${data.hoodieColor}20` : "#1a1a25"}`,
-                            }}
-                          />
+
                           {/* Character or empty */}
                           {isOccupied ? (
-                            <div className="relative z-10 mb-[10px]">
+                            <div className="relative z-10 mb-[4px]">
                               <Character
                                 hoodieColor={data.hoodieColor}
                                 eyeStyle={data.eyeStyle}
                                 hairStyle={data.hairStyle}
                                 initial={data.initial}
-                                size={42}
+                                size={38}
                               />
                             </div>
                           ) : (
-                            <div className="relative z-10 mb-[16px] opacity-20 group-hover:opacity-50 transition-opacity">
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="10" stroke="#555" strokeWidth="1" strokeDasharray="3 3" />
-                                <path d="M12 8v8M8 12h8" stroke="#555" strokeWidth="1" strokeLinecap="round" />
+                            <div className="relative z-10 mb-[14px] opacity-15 group-hover:opacity-40 transition-opacity">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="8" r="4" stroke="#555" strokeWidth="1" />
+                                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#555" strokeWidth="1" strokeLinecap="round" />
                               </svg>
                             </div>
                           )}
