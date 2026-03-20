@@ -191,7 +191,7 @@ export default function CardNewsPage() {
                     loading="lazy"
                   />
                   <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-xs font-medium">
-                    {card.slides}장
+                    {card.slide_count}장
                   </span>
                 </div>
 
@@ -251,7 +251,7 @@ export default function CardNewsPage() {
       {viewerCard && (
         <CardViewer
           title={viewerCard.title}
-          slideCount={viewerCard.slides}
+          slideCount={viewerCard.slide_count}
           baseUrl={viewerCard.base_url}
           onClose={() => setViewerCard(null)}
         />

@@ -11,7 +11,7 @@ export type CardNews = {
   type: "premarket" | "morning" | "weekend";
   date: string;
   title: string;
-  slides: number;
+  slide_count: number;
   base_url: string;
   created_at: string;
 };
