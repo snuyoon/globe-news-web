@@ -28,44 +28,48 @@ function lightenColor(hex: string, amount: number): string {
 }
 
 function Eyes({ style, cx, cy, s }: { style: EyeStyle; cx: number; cy: number; s: number }) {
-  const gap = 5 * s;
+  const gap = 8 * s;
   switch (style) {
     case "dot":
       return (
         <>
-          <ellipse cx={cx - gap} cy={cy} rx={2.2 * s} ry={2.5 * s} fill="#1a1a2e" />
-          <ellipse cx={cx + gap} cy={cy} rx={2.2 * s} ry={2.5 * s} fill="#1a1a2e" />
+          <ellipse cx={cx - gap} cy={cy} rx={3.5 * s} ry={4 * s} fill="#1a1a2e" />
+          <ellipse cx={cx + gap} cy={cy} rx={3.5 * s} ry={4 * s} fill="#1a1a2e" />
+          <circle cx={cx - gap + 1.2 * s} cy={cy - 1.5 * s} r={1.3 * s} fill="white" opacity={0.9} />
+          <circle cx={cx + gap + 1.2 * s} cy={cy - 1.5 * s} r={1.3 * s} fill="white" opacity={0.9} />
         </>
       );
     case "round":
       return (
         <>
-          <ellipse cx={cx - gap} cy={cy} rx={3 * s} ry={3.5 * s} fill="white" stroke="#1a1a2e" strokeWidth={0.8 * s} />
-          <ellipse cx={cx - gap + 0.5 * s} cy={cy + 0.5 * s} rx={1.5 * s} ry={2 * s} fill="#1a1a2e" />
-          <circle cx={cx - gap + 1 * s} cy={cy - 1 * s} r={0.8 * s} fill="white" />
-          <ellipse cx={cx + gap} cy={cy} rx={3 * s} ry={3.5 * s} fill="white" stroke="#1a1a2e" strokeWidth={0.8 * s} />
-          <ellipse cx={cx + gap + 0.5 * s} cy={cy + 0.5 * s} rx={1.5 * s} ry={2 * s} fill="#1a1a2e" />
-          <circle cx={cx + gap + 1 * s} cy={cy - 1 * s} r={0.8 * s} fill="white" />
+          <ellipse cx={cx - gap} cy={cy} rx={5 * s} ry={5.5 * s} fill="white" stroke="#1a1a2e" strokeWidth={0.8 * s} />
+          <ellipse cx={cx - gap + 1 * s} cy={cy + 0.5 * s} rx={3 * s} ry={3.5 * s} fill="#1a1a2e" />
+          <circle cx={cx - gap + 2 * s} cy={cy - 1.5 * s} r={1.5 * s} fill="white" opacity={0.9} />
+          <ellipse cx={cx + gap} cy={cy} rx={5 * s} ry={5.5 * s} fill="white" stroke="#1a1a2e" strokeWidth={0.8 * s} />
+          <ellipse cx={cx + gap + 1 * s} cy={cy + 0.5 * s} rx={3 * s} ry={3.5 * s} fill="#1a1a2e" />
+          <circle cx={cx + gap + 2 * s} cy={cy - 1.5 * s} r={1.5 * s} fill="white" opacity={0.9} />
         </>
       );
     case "happy":
       return (
         <>
           <path
-            d={`M${cx - gap - 2.5 * s},${cy} Q${cx - gap},${cy - 3 * s} ${cx - gap + 2.5 * s},${cy}`}
-            fill="none" stroke="#1a1a2e" strokeWidth={1.5 * s} strokeLinecap="round"
+            d={`M${cx - gap - 4 * s},${cy + 1 * s} Q${cx - gap},${cy - 5 * s} ${cx - gap + 4 * s},${cy + 1 * s}`}
+            fill="none" stroke="#1a1a2e" strokeWidth={2 * s} strokeLinecap="round"
           />
           <path
-            d={`M${cx + gap - 2.5 * s},${cy} Q${cx + gap},${cy - 3 * s} ${cx + gap + 2.5 * s},${cy}`}
-            fill="none" stroke="#1a1a2e" strokeWidth={1.5 * s} strokeLinecap="round"
+            d={`M${cx + gap - 4 * s},${cy + 1 * s} Q${cx + gap},${cy - 5 * s} ${cx + gap + 4 * s},${cy + 1 * s}`}
+            fill="none" stroke="#1a1a2e" strokeWidth={2 * s} strokeLinecap="round"
           />
         </>
       );
     case "star":
       return (
         <>
-          <StarShape cx={cx - gap} cy={cy} r={3 * s} />
-          <StarShape cx={cx + gap} cy={cy} r={3 * s} />
+          <StarShape cx={cx - gap} cy={cy} r={5 * s} />
+          <StarShape cx={cx + gap} cy={cy} r={5 * s} />
+          <circle cx={cx - gap + 1.5 * s} cy={cy - 2 * s} r={1.2 * s} fill="white" opacity={0.8} />
+          <circle cx={cx + gap + 1.5 * s} cy={cy - 2 * s} r={1.2 * s} fill="white" opacity={0.8} />
         </>
       );
   }
@@ -88,25 +92,24 @@ function HairBangs({ style, cx, cy, s, color }: { style: HairStyle; cx: number; 
     case "none":
       return null;
     case "bangs":
-      // 이미지처럼 이마에 삐쭉 나온 앞머리
       return (
         <g fill={dark}>
-          <path d={`M${cx - 4 * s},${cy} L${cx - 5 * s},${cy - 6 * s} L${cx - 2 * s},${cy - 1 * s} L${cx - 1 * s},${cy - 7 * s} L${cx + 1 * s},${cy - 1 * s} L${cx + 2 * s},${cy - 6 * s} L${cx + 4 * s},${cy} Z`} />
+          <path d={`M${cx - 6 * s},${cy + 2 * s} L${cx - 7 * s},${cy - 7 * s} L${cx - 3 * s},${cy} L${cx - 1 * s},${cy - 9 * s} L${cx + 1 * s},${cy} L${cx + 4 * s},${cy - 8 * s} L${cx + 6 * s},${cy + 2 * s} Z`} />
         </g>
       );
     case "parted":
       return (
         <g fill={dark}>
-          <path d={`M${cx - 7 * s},${cy} L${cx - 6 * s},${cy - 5 * s} L${cx - 2 * s},${cy - 1 * s} L${cx},${cy - 3 * s} L${cx},${cy} Z`} />
-          <path d={`M${cx + 7 * s},${cy} L${cx + 6 * s},${cy - 5 * s} L${cx + 2 * s},${cy - 1 * s} L${cx},${cy - 3 * s} L${cx},${cy} Z`} />
+          <path d={`M${cx - 9 * s},${cy + 2 * s} L${cx - 8 * s},${cy - 6 * s} L${cx - 3 * s},${cy} L${cx},${cy - 4 * s} L${cx},${cy + 2 * s} Z`} />
+          <path d={`M${cx + 9 * s},${cy + 2 * s} L${cx + 8 * s},${cy - 6 * s} L${cx + 3 * s},${cy} L${cx},${cy - 4 * s} L${cx},${cy + 2 * s} Z`} />
         </g>
       );
     case "curly":
       return (
         <g fill={dark}>
-          <circle cx={cx - 5 * s} cy={cy - 3 * s} r={3 * s} />
-          <circle cx={cx} cy={cy - 4 * s} r={3 * s} />
-          <circle cx={cx + 5 * s} cy={cy - 3 * s} r={3 * s} />
+          <circle cx={cx - 7 * s} cy={cy - 2 * s} r={4 * s} />
+          <circle cx={cx} cy={cy - 4 * s} r={4 * s} />
+          <circle cx={cx + 7 * s} cy={cy - 2 * s} r={4 * s} />
         </g>
       );
   }
@@ -118,62 +121,68 @@ export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, s
   const darker = darkenColor(hoodieColor, 30);
   const lighter = lightenColor(hoodieColor, 30);
 
+  // 가분수 비율: 머리(후드) 거대, 몸통 작음
+  const headCy = 38 * s;
+  const headR = 32 * s;
+  const bodyCy = 85 * s;
+
   return (
-    <svg width={size} height={size * 1.15} viewBox={`0 0 ${100 * s} ${115 * s}`} fill="none">
+    <svg width={size} height={size * 1.1} viewBox={`0 0 ${100 * s} ${110 * s}`} fill="none">
       {/* Shadow */}
-      <ellipse cx={cx} cy={110 * s} rx={20 * s} ry={3 * s} fill="black" opacity={0.15} />
+      <ellipse cx={cx} cy={106 * s} rx={16 * s} ry={2.5 * s} fill="black" opacity={0.15} />
 
-      {/* Feet */}
-      <rect x={35 * s} y={96 * s} width={10 * s} height={10 * s} rx={3 * s} fill={darker} />
-      <rect x={55 * s} y={96 * s} width={10 * s} height={10 * s} rx={3 * s} fill={darker} />
+      {/* Tiny feet */}
+      <rect x={38 * s} y={97 * s} width={8 * s} height={7 * s} rx={3 * s} fill={darker} />
+      <rect x={54 * s} y={97 * s} width={8 * s} height={7 * s} rx={3 * s} fill={darker} />
 
-      {/* Body — round puffy hoodie */}
-      <ellipse cx={cx} cy={78 * s} rx={24 * s} ry={26 * s} fill={hoodieColor} />
-      {/* Body highlight */}
-      <ellipse cx={cx - 8 * s} cy={72 * s} rx={8 * s} ry={14 * s} fill={lighter} opacity={0.12} />
+      {/* Small body */}
+      <ellipse cx={cx} cy={bodyCy} rx={16 * s} ry={16 * s} fill={hoodieColor} />
+      <ellipse cx={cx - 5 * s} cy={bodyCy - 4 * s} rx={5 * s} ry={8 * s} fill={lighter} opacity={0.1} />
 
-      {/* Zipper line */}
-      <line x1={cx} y1={60 * s} x2={cx} y2={100 * s} stroke={darker} strokeWidth={1.5 * s} strokeLinecap="round" />
+      {/* Zipper */}
+      <line x1={cx} y1={74 * s} x2={cx} y2={98 * s} stroke={darker} strokeWidth={1.2 * s} strokeLinecap="round" />
 
-      {/* Arms — small bumps on sides */}
-      <ellipse cx={26 * s} cy={76 * s} rx={6 * s} ry={10 * s} fill={hoodieColor} />
-      <ellipse cx={74 * s} cy={76 * s} rx={6 * s} ry={10 * s} fill={hoodieColor} />
+      {/* Tiny arms */}
+      <ellipse cx={33 * s} cy={84 * s} rx={5 * s} ry={7 * s} fill={hoodieColor} />
+      <ellipse cx={67 * s} cy={84 * s} rx={5 * s} ry={7 * s} fill={hoodieColor} />
 
-      {/* Hood — big round */}
-      <ellipse cx={cx} cy={34 * s} rx={28 * s} ry={28 * s} fill={hoodieColor} />
+      {/* === BIG HEAD (hood) === */}
+      <circle cx={cx} cy={headCy} r={headR} fill={hoodieColor} />
       {/* Hood highlight */}
-      <ellipse cx={cx - 10 * s} cy={24 * s} rx={10 * s} ry={14 * s} fill={lighter} opacity={0.15} />
+      <ellipse cx={cx - 12 * s} cy={headCy - 14 * s} rx={12 * s} ry={10 * s} fill={lighter} opacity={0.15} />
 
-      {/* Hood opening — face area (darker inner shadow) */}
-      <ellipse cx={cx} cy={38 * s} rx={17 * s} ry={18 * s} fill={darker} opacity={0.2} />
+      {/* Hood inner shadow */}
+      <ellipse cx={cx} cy={headCy + 4 * s} rx={22 * s} ry={22 * s} fill={darker} opacity={0.15} />
 
-      {/* Face — white/cream round */}
-      <ellipse cx={cx} cy={40 * s} rx={14 * s} ry={14 * s} fill="#fce4c8" />
+      {/* Face — big round cream */}
+      <circle cx={cx} cy={headCy + 5 * s} r={19 * s} fill="#fce4c8" />
+      {/* Face highlight */}
+      <ellipse cx={cx - 5 * s} cy={headCy} rx={8 * s} ry={10 * s} fill="#fdecd5" opacity={0.5} />
 
-      {/* Hair bangs inside hood */}
-      <HairBangs style={hairStyle} cx={cx} cy={30 * s} s={s} color={hoodieColor} />
+      {/* Hair */}
+      <HairBangs style={hairStyle} cx={cx} cy={headCy - 12 * s} s={s} color={hoodieColor} />
 
-      {/* Eyes */}
-      <Eyes style={eyeStyle} cx={cx} cy={40 * s} s={s} />
+      {/* Big eyes */}
+      <Eyes style={eyeStyle} cx={cx} cy={headCy + 5 * s} s={s} />
 
-      {/* Mouth — tiny smile */}
+      {/* Blush */}
+      <ellipse cx={cx - 14 * s} cy={headCy + 12 * s} rx={4 * s} ry={2.2 * s} fill="#ffb3b3" opacity={0.35} />
+      <ellipse cx={cx + 14 * s} cy={headCy + 12 * s} rx={4 * s} ry={2.2 * s} fill="#ffb3b3" opacity={0.35} />
+
+      {/* Mouth */}
       <path
-        d={`M${cx - 2.5 * s},${46 * s} Q${cx},${48.5 * s} ${cx + 2.5 * s},${46 * s}`}
+        d={`M${cx - 3 * s},${headCy + 14 * s} Q${cx},${headCy + 17 * s} ${cx + 3 * s},${headCy + 14 * s}`}
         stroke="#c4956a" strokeWidth={1 * s} fill="none" strokeLinecap="round"
       />
 
-      {/* Blush */}
-      <ellipse cx={cx - 10 * s} cy={43 * s} rx={3 * s} ry={1.8 * s} fill="#ffb3b3" opacity={0.3} />
-      <ellipse cx={cx + 10 * s} cy={43 * s} rx={3 * s} ry={1.8 * s} fill="#ffb3b3" opacity={0.3} />
-
-      {/* Initial on hoodie body */}
+      {/* Initial on body */}
       <text
         x={cx}
-        y={82 * s}
+        y={bodyCy + 1 * s}
         textAnchor="middle"
         dominantBaseline="middle"
         fill="white"
-        fontSize={16 * s}
+        fontSize={13 * s}
         fontWeight="900"
         fontFamily="sans-serif"
         opacity={0.85}
