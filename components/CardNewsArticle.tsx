@@ -136,18 +136,18 @@ export default function CardNewsArticle({ data, onClose }: { data: SampleJSON; o
 function buildPages(data: SampleJSON): React.ReactNode[] {
   const pages: React.ReactNode[] = [];
 
-  // 1. 커버
+  // 1. 커버 — 크게
   pages.push(
-    <div className="flex flex-col items-center justify-center min-h-[50vh] text-center" key="cover">
-      <div className="text-xs text-[#f0b90b] font-bold tracking-[0.3em] mb-3">{data.meta.brief_label || "BRIEFING"}</div>
-      <p className="text-sm text-[var(--text-muted)] mb-6">{data.meta.date} {data.meta.day}</p>
-      <h1 className="text-2xl md:text-3xl font-black leading-tight mb-8 whitespace-pre-line">{renderMarkup(data.cover.headline)}</h1>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center" key="cover">
+      <div className="text-sm text-[#f0b90b] font-bold tracking-[0.3em] mb-4">{data.meta.brief_label || "BRIEFING"}</div>
+      <p className="text-lg text-[var(--text-muted)] mb-8">{data.meta.date} {data.meta.day}</p>
+      <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight mb-10 whitespace-pre-line">{renderMarkup(data.cover.headline)}</h1>
       {data.cover.tickers && data.cover.tickers.length > 0 && (
-        <div className="flex gap-5 flex-wrap justify-center mb-8">
+        <div className="flex gap-8 flex-wrap justify-center mb-10">
           {data.cover.tickers.map((t) => (
             <div key={t.name} className="text-center">
-              <p className="text-xs text-[var(--text-muted)] mb-0.5">{t.name}</p>
-              <p className={`text-lg font-bold ${t.color === "green" ? "text-[#22c55e]" : "text-[#ef4444]"}`}>{t.value}</p>
+              <p className="text-sm text-[var(--text-muted)] mb-1">{t.name}</p>
+              <p className={`text-2xl font-bold ${t.color === "green" ? "text-[#22c55e]" : "text-[#ef4444]"}`}>{t.value}</p>
             </div>
           ))}
         </div>
@@ -177,115 +177,137 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
     );
   }
 
-  // 3. 어닝/뉴스
+  // 3. 어닝/뉴스 — 종목별 1페이지
   for (const [idx, section] of [data.earnings_pre, data.earnings_post].entries()) {
     if (!section?.items?.length) continue;
+    // 섹션 타이틀 페이지
     pages.push(
-      <div key={`earn-${idx}`}>
-        <p className="text-xs text-[#8b5cf6] font-bold tracking-widest mb-2">{section.cat_label || "EARNINGS"}</p>
-        <h2 className="text-xl font-bold mb-2">{renderMarkup(section.title || "실적발표")}</h2>
-        {section.subtitle && <p className="text-sm text-[var(--text-muted)] mb-6">{section.subtitle}</p>}
-        <div className="space-y-3">
-          {section.items.map((item) => (
-            <div key={item.symbol} className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[#f0b90b] font-bold text-lg">{item.symbol}</span>
-                <span className="font-semibold">{item.name}</span>
-              </div>
-              {item.eps && <p className="text-sm text-[var(--text-muted)] mb-2">{renderMarkup(item.eps)}</p>}
-              {item.why && <p className="text-sm leading-relaxed">{renderMarkup(item.why)}</p>}
-            </div>
-          ))}
-        </div>
+      <div key={`earn-title-${idx}`} className="flex flex-col items-center justify-center min-h-[40vh] text-center">
+        <p className="text-sm text-[#8b5cf6] font-bold tracking-widest mb-3">{section.cat_label || "EARNINGS"}</p>
+        <h2 className="text-3xl font-bold mb-3">{renderMarkup(section.title || "실적발표")}</h2>
+        {section.subtitle && <p className="text-base text-[var(--text-muted)]">{section.subtitle}</p>}
+        <p className="text-sm text-[var(--text-muted)] mt-6">{section.items.length}개 종목 →</p>
       </div>
     );
+    // 종목별 페이지
+    for (const [ii, item] of section.items.entries()) {
+      pages.push(
+        <div key={`earn-${idx}-${ii}`} className="flex flex-col justify-center min-h-[40vh]">
+          <p className="text-xs text-[var(--text-muted)] mb-2">{ii + 1} / {section.items.length}</p>
+          <div className="bg-[var(--card)] rounded-2xl p-8 border border-[var(--border)]">
+            <div className="flex items-center gap-4 mb-5">
+              <span className="text-3xl font-black text-[#f0b90b]">{item.symbol}</span>
+              <span className="text-xl font-bold">{item.name}</span>
+            </div>
+            {item.eps && <p className="text-lg text-[var(--text-muted)] mb-4">{renderMarkup(item.eps)}</p>}
+            {item.why && <p className="text-base leading-relaxed">{renderMarkup(item.why)}</p>}
+          </div>
+        </div>
+      );
+    }
   }
 
-  // 4. 설명서 (각각 1페이지)
+  // 4. 설명서 — Q&A/flow/impact/history 각각 별도 페이지
   for (const [i, exp] of (data.explainers || []).entries()) {
-    const els: React.ReactNode[] = [];
-
-    els.push(
-      <div key="h" className="mb-6">
-        <span className="text-xs text-[#f0b90b] font-bold">{exp.badge || "주린이 설명서"}</span>
-        <h2 className="text-xl font-bold mt-2 whitespace-pre-line">{renderMarkup(exp.title)}</h2>
+    const header = (
+      <div className="mb-6">
+        <span className="text-sm text-[#f0b90b] font-bold">{exp.badge || "주린이 설명서"}</span>
+        <h2 className="text-2xl md:text-3xl font-bold mt-2 whitespace-pre-line">{renderMarkup(exp.title)}</h2>
       </div>
     );
 
+    // Q&A — 질문 하나당 1페이지
     if (exp.qna?.length) {
       for (const [qi, qa] of exp.qna.entries()) {
-        els.push(
-          <div key={`q${qi}`} className="mb-5 bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
-            <p className="text-sm font-bold text-[#f0b90b] mb-2">Q. {qa.q}</p>
-            <p className="text-[15px] leading-relaxed">{renderMarkup(qa.a)}</p>
+        pages.push(
+          <div key={`exp${i}-q${qi}`}>
+            {qi === 0 && header}
+            {qi > 0 && <p className="text-xs text-[var(--text-muted)] mb-4">{exp.badge || "주린이 설명서"} · 계속</p>}
+            <div className="bg-[var(--card)] rounded-2xl p-6 md:p-8 border border-[var(--border)]">
+              <p className="text-lg md:text-xl font-bold text-[#f0b90b] mb-4">Q. {qa.q}</p>
+              <p className="text-base md:text-lg leading-relaxed">{renderMarkup(qa.a)}</p>
+            </div>
           </div>
         );
       }
     }
 
+    // Flow — 별도 1페이지
     if (exp.flow?.length) {
-      els.push(
-        <div key="flow" className="mt-4 space-y-3">
-          <p className="text-sm font-bold text-[var(--text-muted)] mb-2">📈 파급 경로</p>
-          {exp.flow.map((step, fi) => (
-            <div key={fi} className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: FLOW_COLORS[step.color] || "#6b7280" }} />
-              <div className="flex-1 bg-[var(--card)] rounded-lg px-4 py-2.5 border border-[var(--border)]">
-                <span className="font-bold text-sm">{step.title}</span>
-                <span className="text-[var(--text-muted)] text-sm ml-2">{step.detail}</span>
+      pages.push(
+        <div key={`exp${i}-flow`}>
+          <p className="text-sm text-[#f0b90b] font-bold mb-2">{exp.badge || "주린이 설명서"}</p>
+          <h3 className="text-2xl font-bold mb-6">📈 파급 경로</h3>
+          <div className="space-y-4">
+            {exp.flow.map((step, fi) => (
+              <div key={fi} className="flex items-start gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: FLOW_COLORS[step.color] || "#6b7280" }} />
+                  {fi < (exp.flow?.length || 0) - 1 && <div className="w-0.5 h-8 bg-[var(--border)]" />}
+                </div>
+                <div className="flex-1 bg-[var(--card)] rounded-xl px-5 py-4 border border-[var(--border)]">
+                  <p className="font-bold text-lg">{step.title}</p>
+                  <p className="text-[var(--text-muted)] text-base">{step.detail}</p>
+                </div>
               </div>
-              {fi < (exp.flow?.length || 0) - 1 && <span className="text-[var(--text-muted)] text-xs">→</span>}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       );
     }
 
+    // Impact — 별도 1페이지
     if (exp.impact) {
-      els.push(
-        <div key="impact" className="mt-5 grid grid-cols-2 gap-3">
-          <div className="bg-[#22c55e]/5 border border-[#22c55e]/20 rounded-xl p-4">
-            <p className="text-sm font-bold text-[#22c55e] mb-3">{exp.impact.positive_label || "수혜"}</p>
-            {exp.impact.bullish?.map((b, bi) => <p key={bi} className="text-sm mb-1">• {b}</p>)}
-          </div>
-          <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-xl p-4">
-            <p className="text-sm font-bold text-[#ef4444] mb-3">{exp.impact.negative_label || "피해"}</p>
-            {exp.impact.bearish?.map((b, bi) => <p key={bi} className="text-sm mb-1">• {b}</p>)}
-          </div>
-        </div>
-      );
-    }
-
-    if (exp.history?.length) {
-      els.push(
-        <div key="hist" className="mt-5 space-y-3">
-          <p className="text-sm font-bold text-[var(--text-muted)] mb-2">📚 과거 사례</p>
-          {exp.history.map((h, hi) => (
-            <div key={hi} className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
-              <span className="text-xs text-[#f0b90b] font-bold">{h.year}</span>
-              <p className="font-bold mt-1">{h.title}</p>
-              <p className="text-sm text-[var(--text-muted)] mt-1">{renderMarkup(h.desc)}</p>
+      pages.push(
+        <div key={`exp${i}-impact`}>
+          <p className="text-sm text-[#f0b90b] font-bold mb-2">{exp.badge || "주린이 설명서"}</p>
+          <h3 className="text-2xl font-bold mb-6">⚖️ 수혜 vs 리스크</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-[#22c55e]/5 border border-[#22c55e]/20 rounded-2xl p-6">
+              <p className="text-lg font-bold text-[#22c55e] mb-4">{exp.impact.positive_label || "수혜 섹터"}</p>
+              {exp.impact.bullish?.map((b, bi) => <p key={bi} className="text-base mb-2">✅ {b}</p>)}
             </div>
-          ))}
+            <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-2xl p-6">
+              <p className="text-lg font-bold text-[#ef4444] mb-4">{exp.impact.negative_label || "피해 섹터"}</p>
+              {exp.impact.bearish?.map((b, bi) => <p key={bi} className="text-base mb-2">⚠️ {b}</p>)}
+            </div>
+          </div>
         </div>
       );
     }
 
-    pages.push(<div key={`exp-${i}`}>{els}</div>);
+    // History — 별도 1페이지
+    if (exp.history?.length) {
+      pages.push(
+        <div key={`exp${i}-hist`}>
+          <p className="text-sm text-[#f0b90b] font-bold mb-2">{exp.badge || "주린이 설명서"}</p>
+          <h3 className="text-2xl font-bold mb-6">📚 과거에는 어땠나?</h3>
+          <div className="space-y-4">
+            {exp.history.map((h, hi) => (
+              <div key={hi} className="bg-[var(--card)] rounded-2xl p-6 md:p-8 border border-[var(--border)]">
+                <span className="text-sm text-[#f0b90b] font-bold">{h.year}</span>
+                <p className="text-xl font-bold mt-2 mb-3">{h.title}</p>
+                <p className="text-base text-[var(--text-muted)] leading-relaxed">{renderMarkup(h.desc)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
   }
 
   // 5. 체크포인트
   if (data.checkpoints?.length) {
     pages.push(
-      <div key="cp" className="flex flex-col items-center justify-center min-h-[40vh]">
-        <h2 className="text-xl font-bold mb-8 text-center">✅ 오늘의 체크포인트</h2>
+      <div key="cp" className="flex flex-col items-center justify-center min-h-[50vh]">
+        <h2 className="text-2xl md:text-3xl font-bold mb-10 text-center">✅ 오늘의 체크포인트</h2>
         <div className="space-y-5 w-full">
           {data.checkpoints.map((cp) => (
-            <div key={cp.num} className="flex gap-4 items-start">
-              <span className="text-3xl font-black text-[#f0b90b] shrink-0 w-10 text-center">{cp.num}</span>
-              <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--border)] flex-1">
-                <p className="font-bold mb-1">{cp.title}</p>
-                <p className="text-sm text-[var(--text-muted)]">{renderMarkup(cp.desc)}</p>
+            <div key={cp.num} className="flex gap-5 items-start">
+              <span className="text-4xl font-black text-[#f0b90b] shrink-0 w-12 text-center">{cp.num}</span>
+              <div className="bg-[var(--card)] rounded-2xl p-5 border border-[var(--border)] flex-1">
+                <p className="text-lg font-bold mb-1">{cp.title}</p>
+                <p className="text-base text-[var(--text-muted)]">{renderMarkup(cp.desc)}</p>
               </div>
             </div>
           ))}
