@@ -113,18 +113,18 @@ export default function CardNewsArticle({ data, onClose }: { data: SampleJSON; o
       <div className="flex-1 relative overflow-hidden">
         {/* 좌측 화살표 */}
         {current > 0 && (
-          <button onClick={goPrev} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+          <button onClick={goPrev} className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 md:bg-white/10 backdrop-blur flex items-center justify-center text-white/60 md:text-white hover:bg-white/20 transition-colors text-sm md:text-base">
             ←
           </button>
         )}
         {/* 우측 화살표 */}
         {current < pages.length - 1 && (
-          <button onClick={goNext} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-[#f0b90b]/20 backdrop-blur flex items-center justify-center text-[#f0b90b] hover:bg-[#f0b90b]/30 transition-colors">
+          <button onClick={goNext} className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#f0b90b]/10 md:bg-[#f0b90b]/20 backdrop-blur flex items-center justify-center text-[#f0b90b]/60 md:text-[#f0b90b] hover:bg-[#f0b90b]/30 transition-colors text-sm md:text-base">
             →
           </button>
         )}
 
-        <div className="h-full overflow-y-auto flex items-start justify-center px-12 md:px-16 py-8">
+        <div className="h-full overflow-y-auto flex items-start justify-center px-4 md:px-16 py-4 md:py-8">
           <div className="w-full max-w-xl">
             {pages[current]}
           </div>
@@ -150,7 +150,7 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center" key="cover">
       <div className="text-sm text-[#f0b90b] font-bold tracking-[0.3em] mb-4">{data.meta.brief_label || "BRIEFING"}</div>
       <p className="text-lg text-[var(--text-muted)] mb-8">{data.meta.date} {data.meta.day}</p>
-      <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight mb-10 whitespace-pre-line">{renderMarkup(data.cover.headline)}</h1>
+      <h1 className="text-2xl md:text-4xl lg:text-6xl font-black leading-tight mb-6 md:mb-10 whitespace-pre-line">{renderMarkup(data.cover.headline)}</h1>
       {data.cover.tickers && data.cover.tickers.length > 0 && (
         <div className="flex gap-8 flex-wrap justify-center mb-10">
           {data.cover.tickers.map((t) => (
@@ -232,8 +232,8 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
           <div key={`exp${i}-q${qi}`}>
             {qi === 0 && header}
             {qi > 0 && <p className="text-xs text-[var(--text-muted)] mb-4">{exp.badge || "주린이 설명서"} · 계속</p>}
-            <div className="bg-[var(--card)] rounded-2xl p-6 md:p-8 border border-[var(--border)]">
-              <p className="text-lg md:text-xl font-bold text-[#f0b90b] mb-4">Q. {qa.q}</p>
+            <div className="bg-[var(--card)] rounded-2xl p-4 md:p-8 border border-[var(--border)]">
+              <p className="text-base md:text-xl font-bold text-[#f0b90b] mb-3 md:mb-4">Q. {qa.q}</p>
               <p className="text-base md:text-lg leading-relaxed">{renderMarkup(qa.a)}</p>
             </div>
 
@@ -242,7 +242,7 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
               <div className="mt-4 space-y-3">
                 {/* 심화 해설 */}
                 {qa.web_extended.deep_dive && (
-                  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-[#2a2a4a]">
+                  <div className="bg-[#1a1a2e] rounded-2xl p-4 md:p-6 border border-[#2a2a4a]">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-base">🔍</span>
                       <span className="text-sm font-bold text-[#a78bfa] tracking-wider">심화 해설</span>
@@ -253,7 +253,7 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
 
                 {/* 데이터 포인트 */}
                 {qa.web_extended.data_points?.length > 0 && (
-                  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-[#2a2a4a]">
+                  <div className="bg-[#1a1a2e] rounded-2xl p-4 md:p-6 border border-[#2a2a4a]">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-base">📊</span>
                       <span className="text-sm font-bold text-[#60a5fa] tracking-wider">데이터</span>
@@ -271,7 +271,7 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
 
                 {/* 실전 체크 */}
                 {qa.web_extended.action_items?.length > 0 && (
-                  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-[#2a2a4a]">
+                  <div className="bg-[#1a1a2e] rounded-2xl p-4 md:p-6 border border-[#2a2a4a]">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-base">💡</span>
                       <span className="text-sm font-bold text-[#34d399] tracking-wider">실전 체크</span>

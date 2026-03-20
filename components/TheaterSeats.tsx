@@ -225,7 +225,7 @@ export default function TheaterSeats() {
                 <span className="px-2.5 py-1 rounded bg-[#ef4444]/15 text-[#ef4444] text-sm font-bold">50% OFF</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
+                <span className="text-3xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
                   4,990원
                 </span>
                 <span className="text-[var(--text-muted)] text-lg">/ 월</span>
@@ -278,7 +278,7 @@ export default function TheaterSeats() {
             {/* 좌석 상단 안내 */}
             <div className="text-center mb-5">
               <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
+                <span className="text-3xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
                   {occupiedCount}
                 </span>
                 <span className="text-2xl text-[var(--text-muted)]">/</span>
@@ -298,14 +298,14 @@ export default function TheaterSeats() {
             <div
               className="overflow-x-auto pb-4"
             >
-              <div className="min-w-[580px] mx-auto">
+              <div className="min-w-0 md:min-w-[580px] mx-auto">
                 {ROWS.map((row, rowIdx) => (
                   <div
                     key={row}
-                    className="flex items-end justify-center gap-[4px] mb-[4px]"
+                    className="flex items-end justify-center gap-[2px] md:gap-[4px] mb-[2px] md:mb-[4px]"
                     style={{
-                      paddingLeft: `${(9 - rowIdx) * 8}px`,
-                      paddingRight: `${(9 - rowIdx) * 8}px`,
+                      paddingLeft: `${(9 - rowIdx) * 4}px`,
+                      paddingRight: `${(9 - rowIdx) * 4}px`,
                     }}
                   >
                     {COLS.map((col) => {
@@ -326,7 +326,7 @@ export default function TheaterSeats() {
                           className={`relative flex items-end justify-center transition-all duration-200 group ${
                             isOccupied ? "cursor-default" : "cursor-pointer"
                           }`}
-                          style={{ width: "54px", height: "64px" }}
+                          style={{ width: "clamp(42px, 8vw, 54px)", height: "clamp(52px, 10vw, 64px)" }}
                           title={isOccupied ? `${data.initial} (${row}${col})` : lucky ? `${seatNum}번째 — 평생 무료!` : `${row}${col} — 빈 좌석`}
                         >
                           {/* Lucky seat glow */}

@@ -41,6 +41,7 @@ export default function NewsFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
   const [hasMore, setHasMore] = useState(true);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const fetchNews = useCallback(async (append = false) => {
     if (append) {
@@ -118,58 +119,79 @@ export default function NewsFeed() {
   return (
     <div className="max-w-5xl mx-auto px-4 pb-8">
       {/* Filter bar */}
-      <div className="sticky top-0 z-20 bg-[var(--bg)]/95 backdrop-blur-sm pb-4 pt-2 border-b border-[var(--border)] mb-6">
-        {/* Importance filter */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <span className="text-[11px] text-[var(--text-muted)] font-medium mr-1 shrink-0">중요도</span>
-          {IMPORTANCE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => toggleImportance(opt.value)}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                isImportanceActive(opt.value)
-                  ? "bg-[var(--card-hover)] text-white ring-1 ring-[var(--accent)]"
-                  : "text-[var(--text-muted)] hover:text-white hover:bg-[var(--card)]"
-              }`}
-            >
-              {opt.stars ? (
-                <span>
-                  <span className={`mr-1 ${
-                    opt.value === 5 ? "text-red-500" :
-                    opt.value === 4 ? "text-orange-400" :
-                    opt.value === 3 ? "text-blue-400" :
-                    opt.value === 2 ? "text-gray-400" :
-                    "text-gray-600"
-                  }`}>{renderStars(opt.stars)}</span>
-                  {opt.label}
-                </span>
-              ) : (
-                opt.label
-              )}
-            </button>
-          ))}
-          <div className="ml-auto flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+      <div className="sticky top-0 z-20 bg-[var(--bg)]/95 backdrop-blur-sm pb-2 md:pb-4 pt-2 border-b border-[var(--border)] mb-4 md:mb-6">
+        {/* Mobile: compact toggle + LIVE */}
+        <div className="flex items-center justify-between md:hidden mb-2">
+          <button
+            onClick={() => setFilterOpen(!filterOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card)] text-[12px] font-semibold text-[var(--text-muted)]"
+          >
+            <svg className={`w-3.5 h-3.5 transition-transform ${filterOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            필터
+            {(importanceFilter.size > 0 || themeFilter !== "all") && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f0b90b]" />
+            )}
+          </button>
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
             <span className="live-dot w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
             LIVE
           </div>
         </div>
 
-        {/* Theme filter */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] text-[var(--text-muted)] font-medium mr-1 shrink-0">테마</span>
-          {THEME_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setThemeFilter(opt.value)}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold whitespace-nowrap transition-all shrink-0 ${
-                themeFilter === opt.value
-                  ? "bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black"
-                  : "text-[var(--text-muted)] hover:text-white hover:bg-[var(--card)]"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+        {/* Desktop: always show / Mobile: collapsible */}
+        <div className={`${filterOpen ? "block" : "hidden"} md:block`}>
+          {/* Importance filter */}
+          <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3 flex-wrap">
+            <span className="text-[11px] text-[var(--text-muted)] font-medium mr-1 shrink-0">중요도</span>
+            {IMPORTANCE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => toggleImportance(opt.value)}
+                className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[11px] md:text-[12px] font-semibold transition-all ${
+                  isImportanceActive(opt.value)
+                    ? "bg-[var(--card-hover)] text-white ring-1 ring-[var(--accent)]"
+                    : "text-[var(--text-muted)] hover:text-white hover:bg-[var(--card)]"
+                }`}
+              >
+                {opt.stars ? (
+                  <span>
+                    <span className={`mr-1 ${
+                      opt.value === 5 ? "text-red-500" :
+                      opt.value === 4 ? "text-orange-400" :
+                      opt.value === 3 ? "text-blue-400" :
+                      opt.value === 2 ? "text-gray-400" :
+                      "text-gray-600"
+                    }`}>{renderStars(opt.stars)}</span>
+                    {opt.label}
+                  </span>
+                ) : (
+                  opt.label
+                )}
+              </button>
+            ))}
+            <div className="ml-auto hidden md:flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+              <span className="live-dot w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+              LIVE
+            </div>
+          </div>
+
+          {/* Theme filter */}
+          <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto no-scrollbar">
+            <span className="text-[11px] text-[var(--text-muted)] font-medium mr-1 shrink-0">테마</span>
+            {THEME_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setThemeFilter(opt.value)}
+                className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[11px] md:text-[12px] font-semibold whitespace-nowrap transition-all shrink-0 ${
+                  themeFilter === opt.value
+                    ? "bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black"
+                    : "text-[var(--text-muted)] hover:text-white hover:bg-[var(--card)]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

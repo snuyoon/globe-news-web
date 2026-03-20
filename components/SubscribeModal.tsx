@@ -39,13 +39,13 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className="relative bg-[#12121a] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden"
+        className="relative bg-[#12121a] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header gradient */}
         <div className="h-2 bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]" />
 
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {step === "info" && (
             <>
               {/* Seat info */}

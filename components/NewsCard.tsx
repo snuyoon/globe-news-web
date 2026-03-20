@@ -8,7 +8,7 @@ function OgImage({ src, alt }: { src: string; alt: string }) {
   const [error, setError] = useState(false);
   if (error) return null;
   return (
-    <div className="w-full h-40 md:h-48 overflow-hidden bg-black/20">
+    <div className="w-full h-32 md:h-48 overflow-hidden bg-black/20">
       <img
         src={src}
         alt={alt}
@@ -103,7 +103,7 @@ export default function NewsCard({ news, index }: { news: News; index: number })
       {/* OG Image thumbnail */}
       {news.og_image && <OgImage src={news.og_image} alt={headline} />}
 
-      <div className="p-4">
+      <div className="p-3 md:p-4">
         {/* Top row: theme + importance */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

@@ -173,10 +173,15 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* Mobile menu backdrop */}
+      {menuOpen && (
+        <div className="fixed inset-0 top-[57px] z-40 bg-black/50 md:hidden" onClick={() => setMenuOpen(false)} />
+      )}
+
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-[var(--border)] bg-[var(--bg)]">
-          <div className="px-4 py-3 flex flex-col gap-3">
+        <div className="md:hidden border-t border-[var(--border)] bg-[var(--bg)] relative z-50">
+          <div className="px-4 py-4 flex flex-col gap-4">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.label}
@@ -184,7 +189,7 @@ export default function Navbar() {
                 target={link.href.startsWith("http") ? "_blank" : undefined}
                 rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                 onClick={() => setMenuOpen(false)}
-                className="text-[14px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors font-medium py-1"
+                className="text-[14px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors font-medium py-2"
               >
                 {link.label}
               </a>
@@ -193,7 +198,7 @@ export default function Navbar() {
               <a
                 href={ADMIN_LINK.href}
                 onClick={() => setMenuOpen(false)}
-                className="text-[14px] text-[#f0b90b] hover:text-[#ef6d09] transition-colors font-semibold py-1"
+                className="text-[14px] text-[#f0b90b] hover:text-[#ef6d09] transition-colors font-semibold py-2"
               >
                 {ADMIN_LINK.label}
               </a>

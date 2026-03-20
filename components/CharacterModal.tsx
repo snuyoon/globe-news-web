@@ -74,7 +74,7 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[#16161e] p-6 md:p-8 overflow-y-auto max-h-[90vh]"
+        className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[#16161e] p-4 md:p-8 overflow-y-auto max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white transition-colors">
