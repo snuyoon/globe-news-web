@@ -35,18 +35,8 @@ function seatIdByOrder(n: number): string {
 }
 
 function generateDemoSeats(): Record<string, SeatData> {
-  const seats: Record<string, SeatData> = {};
-  // 앞에서부터 순서대로 26명 채우기 (1번~26번)
-  for (let i = 0; i < 26; i++) {
-    const seatId = seatIdByOrder(i + 1);
-    seats[seatId] = {
-      initial: DEMO_INITIALS[i % DEMO_INITIALS.length],
-      hoodieColor: SEAT_COLORS[i % SEAT_COLORS.length],
-      eyeStyle: DEMO_EYES[i % DEMO_EYES.length],
-      hairStyle: DEMO_HAIR[(i * 2) % DEMO_HAIR.length],
-    };
-  }
-  return seats;
+  // 0명 — 실제 구독자만 착석
+  return {};
 }
 
 export default function TheaterSeats() {
@@ -62,24 +52,38 @@ export default function TheaterSeats() {
     const stored = localStorage.getItem(STORAGE_KEY);
     const version = localStorage.getItem(STORAGE_KEY + "_v");
     // v3: 순서대로 채우기
-    if (stored && version === "3") {
+    if (stored && version === "4") {
       try { setSeats(JSON.parse(stored)); }
       catch { const d = generateDemoSeats(); setSeats(d); localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
     } else {
       const d = generateDemoSeats(); setSeats(d);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-      localStorage.setItem(STORAGE_KEY + "_v", "3");
+      localStorage.setItem(STORAGE_KEY + "_v", "4");
     }
   }, []);
 
   const handleSave = useCallback((seatId: string, data: SeatData) => {
+    // 이미 착석한 사람은 추가 착석 불가
+    const sub = localStorage.getItem("us_sokbo_subscription");
+    if (sub) {
+      const existing = Object.keys(seats).find((id) => {
+        const s = seats[id];
+        const subData = JSON.parse(sub);
+        return s.initial === data.initial && subData.seatId === id;
+      });
+      if (existing && existing !== seatId) {
+        alert("이미 착석한 좌석이 있습니다!");
+        setSelectedSeat(null);
+        return;
+      }
+    }
     setSeats((prev) => {
       const next = { ...prev, [seatId]: data };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
     setSelectedSeat(null);
-  }, []);
+  }, [seats]);
 
   const occupiedCount = Object.keys(seats).length;
   const remaining = 100 - occupiedCount;
