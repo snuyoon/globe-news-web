@@ -50,7 +50,7 @@ function renderStars(importance: number) {
 }
 
 export default function NewsCard({ news, index }: { news: News; index: number }) {
-  const [expanded, setExpanded] = useState(false);
+  const expanded = false; // 모달로 대체
   const { isSubscriber, isAdmin } = useAuth();
   const canView = isSubscriber || isAdmin;
 
@@ -79,7 +79,7 @@ export default function NewsCard({ news, index }: { news: News; index: number })
         animationFillMode: "both",
         ...(isUrgent ? { boxShadow: "0 0 20px rgba(239,68,68,0.15)" } : {}),
       }}
-      onClick={() => setExpanded(!expanded)}
+      // 클릭은 부모(NewsFeed)에서 모달로 처리
     >
       {/* Theme color bar */}
       <div style={{ height: "4px", background: themeConf.color }} />

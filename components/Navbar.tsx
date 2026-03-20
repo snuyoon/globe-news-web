@@ -9,7 +9,9 @@ const NAV_LINKS = [
   { label: "뉴스", href: "/news" },
   { label: "카드뉴스", href: "/cardnews" },
   { label: "기업", href: "/company" },
-];
+] as const;
+
+const ADMIN_LINK = { label: "관리", href: "/admin" } as const;
 
 function GoogleIcon() {
   return (
@@ -37,7 +39,7 @@ function GoogleIcon() {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, isAdmin, signInWithGoogle, signOut } = useAuth();
   const pathname = usePathname();
 
   const handleSubscribeClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -72,6 +74,14 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+          {isAdmin && (
+            <a
+              href={ADMIN_LINK.href}
+              className="text-[13px] text-[#f0b90b] hover:text-[#ef6d09] transition-colors font-semibold"
+            >
+              {ADMIN_LINK.label}
+            </a>
+          )}
           <a
             href="/#subscribe"
             onClick={handleSubscribeClick}
@@ -179,6 +189,15 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
+            {isAdmin && (
+              <a
+                href={ADMIN_LINK.href}
+                onClick={() => setMenuOpen(false)}
+                className="text-[14px] text-[#f0b90b] hover:text-[#ef6d09] transition-colors font-semibold py-1"
+              >
+                {ADMIN_LINK.label}
+              </a>
+            )}
             <a
               href="/#subscribe"
               onClick={(e) => {

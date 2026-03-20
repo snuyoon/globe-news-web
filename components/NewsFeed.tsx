@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase, type News } from "@/lib/supabase";
 import NewsCard from "./NewsCard";
+import NewsDetailModal from "./NewsDetailModal";
 
 const POLL_INTERVAL = 30_000;
 const PAGE_SIZE = 100;
@@ -38,6 +39,7 @@ export default function NewsFeed() {
   const [themeFilter, setThemeFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<News | null>(null);
   const [hasMore, setHasMore] = useState(true);
 
   const fetchNews = useCallback(async (append = false) => {
@@ -195,7 +197,9 @@ export default function NewsFeed() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {news.map((item, i) => (
-              <NewsCard key={item.id} news={item} index={i} />
+              <div key={item.id} onClick={() => setSelectedNews(item)} className="cursor-pointer">
+                <NewsCard news={item} index={i} />
+              </div>
             ))}
           </div>
 
@@ -222,6 +226,10 @@ export default function NewsFeed() {
             </div>
           )}
         </>
+      )}
+      {/* 뉴스 상세 모달 */}
+      {selectedNews && (
+        <NewsDetailModal news={selectedNews} onClose={() => setSelectedNews(null)} />
       )}
     </div>
   );
