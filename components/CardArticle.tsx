@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import type { CardNews } from "@/lib/supabase";
 
 /* ── SampleJson 타입 ── */
@@ -89,13 +89,69 @@ const FLOW_COLORS: Record<string, string> = {
   red: "#ef4444", yellow: "#f0b90b", green: "#22c55e", purple: "#8b5cf6", pink: "#ec4899", blue: "#3b82f6", orange: "#f97316",
 };
 
+/* ── 페이지 빌더: sample_json → 페이지 배열 ── */
+function buildPages(data: SampleJson): { label: string; render: () => React.ReactNode }[] {
+  const pages: { label: string; render: () => React.ReactNode }[] = [];
+
+  // 1. 커버
+  pages.push({ label: "커버", render: () => <HeroHeader data={data} /> });
+
+  // 2. 지수
+  if (data.indicators?.length > 0) {
+    pages.push({ label: "지수", render: () => <IndicatorsSection data={data} /> });
+  }
+
+  // 3. 어닝
+  if (data.earnings_pre?.items?.length > 0) {
+    pages.push({ label: "어닝", render: () => <EarningsSection section={data.earnings_pre} /> });
+  }
+  if (data.earnings_post?.items?.length > 0) {
+    pages.push({ label: "어닝", render: () => <EarningsSection section={data.earnings_post as EarningsSection} /> });
+  }
+
+  // 4. 설명서 각각 1페이지
+  data.explainers?.forEach((exp, i) => {
+    const typeLabel = { qna: "Q&A", flow: "흐름", impact: "분석", history: "사례", checklist: "체크" }[exp.type] || "설명";
+    pages.push({ label: typeLabel, render: () => <ExplainerSection explainer={exp} key={`exp-${i}`} /> });
+  });
+
+  // 5. 체크포인트
+  if (data.checkpoints?.length > 0) {
+    pages.push({ label: "포인트", render: () => <CheckpointsSection checkpoints={data.checkpoints} /> });
+  }
+
+  // 6. CTA
+  pages.push({ label: "마무리", render: () => <BottomCTA handle={data.meta.handle} /> });
+
+  return pages;
+}
+
 /* ── 메인 컴포넌트 ── */
 export default function CardArticle({ card, onClose }: CardArticleProps) {
   const data = (card as CardNews & { sample_json?: SampleJson }).sample_json;
+  const [current, setCurrent] = useState(0);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  // ESC 닫기 + body 스크롤 잠금
+  const pages = data ? buildPages(data) : [];
+  const total = pages.length;
+
+  const goPrev = useCallback(() => setCurrent((c) => Math.max(0, c - 1)), []);
+  const goNext = useCallback(() => setCurrent((c) => Math.min(total - 1, c + 1)), [total]);
+
+  // 페이지 바뀔 때 스크롤 맨 위로
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    contentRef.current?.scrollTo(0, 0);
+  }, [current]);
+
+  // ESC/방향키 + body 스크롤 잠금
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
     window.addEventListener("keydown", handleKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -103,69 +159,110 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
       window.removeEventListener("keydown", handleKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose]);
+  }, [onClose, goPrev, goNext]);
 
-  if (!data) return null;
+  // 터치 스와이프
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) goNext(); else goPrev();
+    }
+  };
+
+  if (!data || total === 0) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a12] overflow-y-auto">
-      {/* 닫기 버튼 */}
-      <button
-        onClick={onClose}
-        className="fixed top-4 right-4 z-[101] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors backdrop-blur-sm"
-        aria-label="닫기"
+    <div className="fixed inset-0 z-[100] bg-[#0a0a12] flex flex-col">
+      {/* 상단 바: 닫기 + 페이지 번호 + 프로그레스 */}
+      <div className="flex-shrink-0 relative z-[101]">
+        {/* 프로그레스 바 */}
+        <div className="h-0.5 bg-[#1a1a2e]">
+          <div
+            className="h-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] transition-all duration-300"
+            style={{ width: `${((current + 1) / total) * 100}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+            aria-label="닫기"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" /></svg>
+          </button>
+          <span className="text-xs text-[var(--text-muted)] font-medium">
+            {current + 1} / {total}
+          </span>
+          <span className="text-xs text-[#f0b90b] font-semibold w-8 text-right">
+            {pages[current].label}
+          </span>
+        </div>
+      </div>
+
+      {/* 콘텐츠 영역 */}
+      <div
+        ref={contentRef}
+        className="flex-1 overflow-y-auto"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" /></svg>
-      </button>
+        <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 pb-24 min-h-full">
+          {pages[current].render()}
+        </div>
+      </div>
 
-      <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 pb-20">
-        {/* A. 히어로 헤더 */}
-        <HeroHeader data={data} />
+      {/* 하단 네비게이션 */}
+      <div className="flex-shrink-0 border-t border-[#1a1a2e] bg-[#0a0a12]/95 backdrop-blur-sm">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          {/* 이전 */}
+          <button
+            onClick={goPrev}
+            disabled={current === 0}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-20 disabled:cursor-default text-[var(--text-muted)] hover:text-white hover:bg-white/5"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            이전
+          </button>
 
-        {/* 구분선 */}
-        <Divider />
+          {/* 도트 인디케이터 */}
+          <div className="flex gap-1">
+            {pages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`rounded-full transition-all ${
+                  i === current
+                    ? "w-5 h-1.5 bg-[#f0b90b]"
+                    : "w-1.5 h-1.5 bg-white/20 hover:bg-white/40"
+                }`}
+                aria-label={`${i + 1}페이지`}
+              />
+            ))}
+          </div>
 
-        {/* B. 지수 카드 */}
-        {data.indicators?.length > 0 && (
-          <>
-            <IndicatorsSection data={data} />
-            <Divider />
-          </>
-        )}
-
-        {/* C. 어닝 섹션 */}
-        {data.earnings_pre?.items?.length > 0 && (
-          <>
-            <EarningsSection section={data.earnings_pre} />
-            <Divider />
-          </>
-        )}
-
-        {data.earnings_post?.items?.length > 0 && (
-          <>
-            <EarningsSection section={data.earnings_post as EarningsSection} />
-            <Divider />
-          </>
-        )}
-
-        {/* D. 주린이 설명서 */}
-        {data.explainers?.map((exp, i) => (
-          <React.Fragment key={`exp-${i}`}>
-            <ExplainerSection explainer={exp} />
-            <Divider />
-          </React.Fragment>
-        ))}
-
-        {/* E. 체크포인트 */}
-        {data.checkpoints?.length > 0 && (
-          <>
-            <CheckpointsSection checkpoints={data.checkpoints} />
-            <Divider />
-          </>
-        )}
-
-        {/* F. 하단 CTA */}
-        <BottomCTA handle={data.meta.handle} />
+          {/* 다음 */}
+          {current < total - 1 ? (
+            <button
+              onClick={goNext}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold bg-[#f0b90b]/10 text-[#f0b90b] hover:bg-[#f0b90b]/20 transition-colors"
+            >
+              다음
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold bg-[#f0b90b] text-black hover:opacity-90 transition-opacity"
+            >
+              완료
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
