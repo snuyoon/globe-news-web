@@ -44,11 +44,16 @@ export default function TheaterSeats() {
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
   const [subscribeSeat, setSubscribeSeat] = useState<string | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [mySeatedId, setMySeatedId] = useState<string | null>(null); // 이미 앉은 좌석
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setIsSubscribed(!!localStorage.getItem("us_sokbo_subscription"));
+    const sub = localStorage.getItem("us_sokbo_subscription");
+    setIsSubscribed(!!sub);
+    if (sub) {
+      try { setMySeatedId(JSON.parse(sub).seatId || null); } catch { /* */ }
+    }
     const stored = localStorage.getItem(STORAGE_KEY);
     const version = localStorage.getItem(STORAGE_KEY + "_v");
     // v3: 순서대로 채우기
@@ -63,27 +68,23 @@ export default function TheaterSeats() {
   }, []);
 
   const handleSave = useCallback((seatId: string, data: SeatData) => {
-    // 이미 착석한 사람은 추가 착석 불가
-    const sub = localStorage.getItem("us_sokbo_subscription");
-    if (sub) {
-      const existing = Object.keys(seats).find((id) => {
-        const s = seats[id];
-        const subData = JSON.parse(sub);
-        return s.initial === data.initial && subData.seatId === id;
-      });
-      if (existing && existing !== seatId) {
-        alert("이미 착석한 좌석이 있습니다!");
-        setSelectedSeat(null);
-        return;
-      }
-    }
     setSeats((prev) => {
       const next = { ...prev, [seatId]: data };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
+    setMySeatedId(seatId);
+    // 구독 정보에 seatId 기록
+    const sub = localStorage.getItem("us_sokbo_subscription");
+    if (sub) {
+      try {
+        const parsed = JSON.parse(sub);
+        parsed.seatId = seatId;
+        localStorage.setItem("us_sokbo_subscription", JSON.stringify(parsed));
+      } catch { /* */ }
+    }
     setSelectedSeat(null);
-  }, [seats]);
+  }, []);
 
   const occupiedCount = Object.keys(seats).length;
   const remaining = 100 - occupiedCount;
@@ -239,7 +240,8 @@ export default function TheaterSeats() {
                           key={seatId}
                           onClick={() => {
                             if (isOccupied) return;
-                            // 항상 다음 순번 좌석으로 배정
+                            if (mySeatedId) return; // 이미 착석함
+                            // 다음 순번 좌석 배정
                             let nextSeat = seatId;
                             for (let n = 1; n <= 100; n++) {
                               const id = seatIdByOrder(n);
@@ -336,7 +338,7 @@ export default function TheaterSeats() {
           </div>
           <button
             onClick={() => {
-              // 순번대로 첫 빈 좌석 찾기
+              if (mySeatedId) return; // 이미 착석
               for (let n = 1; n <= 100; n++) {
                 const id = seatIdByOrder(n);
                 if (!seats[id]) {
@@ -346,9 +348,13 @@ export default function TheaterSeats() {
                 }
               }
             }}
-            className="mx-auto sm:mx-0 px-8 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black font-bold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-[#f0b90b]/20"
+            className={`mx-auto sm:mx-0 px-8 py-2.5 rounded-lg font-bold text-sm transition-opacity shadow-lg ${
+              mySeatedId
+                ? "bg-[var(--card)] text-[var(--text-muted)] cursor-default shadow-none"
+                : "bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90 shadow-[#f0b90b]/20"
+            }`}
           >
-            {isSubscribed ? "내 자리 꾸미기" : "구독하고 착석하기"}
+            {mySeatedId ? "✅ 착석 완료" : isSubscribed ? "내 자리 꾸미기" : "구독하고 착석하기"}
           </button>
           <div className="hidden sm:block">
             <span className="text-xs text-[var(--text-muted)]">{remaining}석 남음</span>
