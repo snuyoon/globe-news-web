@@ -14,7 +14,16 @@ export interface SampleJSON {
   earnings_post?: { subtitle?: string; cat_label?: string; title?: string; items: { symbol: string; name: string; eps?: string; why?: string; color?: string; quarter?: string; status?: string }[] };
   explainers?: {
     badge?: string; type?: string; title: string;
-    qna?: { q: string; a: string }[];
+    qna?: {
+      q: string;
+      a: string;
+      web_extended?: {
+        deep_dive: string;
+        data_points: string[];
+        action_items: string[];
+        related: string[];
+      };
+    }[];
     flow?: { title: string; detail: string; color: string }[];
     impact?: { positive_label?: string; negative_label?: string; bullish?: string[]; bearish?: string[] };
     history?: { year: string; title: string; desc: string }[];
@@ -216,7 +225,7 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
       </div>
     );
 
-    // Q&A — 질문 하나당 1페이지
+    // Q&A — 질문 하나당 1페이지 (web_extended 포함)
     if (exp.qna?.length) {
       for (const [qi, qa] of exp.qna.entries()) {
         pages.push(
@@ -227,6 +236,71 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
               <p className="text-lg md:text-xl font-bold text-[#f0b90b] mb-4">Q. {qa.q}</p>
               <p className="text-base md:text-lg leading-relaxed">{renderMarkup(qa.a)}</p>
             </div>
+
+            {/* 웹 VIP 심화 콘텐츠 */}
+            {qa.web_extended && (
+              <div className="mt-4 space-y-3">
+                {/* 심화 해설 */}
+                {qa.web_extended.deep_dive && (
+                  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-[#2a2a4a]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base">🔍</span>
+                      <span className="text-sm font-bold text-[#a78bfa] tracking-wider">심화 해설</span>
+                    </div>
+                    <p className="text-sm md:text-base leading-relaxed text-[var(--text-muted)]">{renderMarkup(qa.web_extended.deep_dive)}</p>
+                  </div>
+                )}
+
+                {/* 데이터 포인트 */}
+                {qa.web_extended.data_points?.length > 0 && (
+                  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-[#2a2a4a]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base">📊</span>
+                      <span className="text-sm font-bold text-[#60a5fa] tracking-wider">데이터</span>
+                    </div>
+                    <ul className="space-y-2">
+                      {qa.web_extended.data_points.map((dp, dpi) => (
+                        <li key={dpi} className="flex items-start gap-2 text-sm md:text-base text-[var(--text-muted)]">
+                          <span className="text-[#60a5fa] shrink-0 mt-0.5">•</span>
+                          <span>{renderMarkup(dp)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 실전 체크 */}
+                {qa.web_extended.action_items?.length > 0 && (
+                  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-[#2a2a4a]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base">💡</span>
+                      <span className="text-sm font-bold text-[#34d399] tracking-wider">실전 체크</span>
+                    </div>
+                    <ul className="space-y-2">
+                      {qa.web_extended.action_items.map((ai, aii) => (
+                        <li key={aii} className="flex items-start gap-2 text-sm md:text-base text-[var(--text-muted)]">
+                          <span className="text-[#34d399] shrink-0">✅</span>
+                          <span>{renderMarkup(ai)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 관련 */}
+                {qa.web_extended.related?.length > 0 && (
+                  <div className="bg-[#1a1a2e] rounded-xl px-6 py-4 border border-[#2a2a4a]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🔗</span>
+                      <span className="text-xs font-bold text-[var(--text-muted)] tracking-wider mr-2">관련</span>
+                      <span className="text-sm text-[var(--text-muted)]">
+                        {qa.web_extended.related.join(" · ")}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       }
