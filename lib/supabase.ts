@@ -6,6 +6,16 @@ const supabaseAnonKey =
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+export type CardNews = {
+  id: number;
+  type: "premarket" | "morning" | "weekend";
+  date: string;
+  title: string;
+  slides: number;
+  base_url: string;
+  created_at: string;
+};
+
 export type News = {
   id: number;
   tweet_id: string | null;
