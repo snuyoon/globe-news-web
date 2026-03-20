@@ -1,8 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
+
+function ModalOgImage({ src, alt }: { src: string; alt: string }) {
+  const [error, setError] = useState(false);
+  if (error) return null;
+  return (
+    <div className="w-full max-h-80 overflow-hidden bg-black/20">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onError={() => setError(true)}
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+}
 
 const THEME_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
   "실적":     { icon: "📊", color: "#8b5cf6", label: "실적" },
@@ -60,6 +76,9 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
       >
         {/* 테마 컬러 바 */}
         <div style={{ height: "4px", background: themeConf.color }} />
+
+        {/* OG Image */}
+        {news.og_image && <ModalOgImage src={news.og_image} alt={headline} />}
 
         {/* 닫기 버튼 */}
         <button onClick={onClose} className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-colors">

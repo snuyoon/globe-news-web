@@ -21,4 +21,5 @@ export type News = {
   published_at: string;
   created_at: string;
   web_detail: string | null;
+  og_image: string | null;
 };

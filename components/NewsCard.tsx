@@ -4,6 +4,22 @@ import { useState } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
 
+function OgImage({ src, alt }: { src: string; alt: string }) {
+  const [error, setError] = useState(false);
+  if (error) return null;
+  return (
+    <div className="w-full h-40 md:h-48 overflow-hidden bg-black/20">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onError={() => setError(true)}
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+}
+
 const THEME_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
   "실적":     { icon: "📊", color: "#8b5cf6", label: "실적" },
   "경제지표": { icon: "🏦", color: "#3b82f6", label: "경제지표" },
@@ -83,6 +99,9 @@ export default function NewsCard({ news, index }: { news: News; index: number })
     >
       {/* Theme color bar */}
       <div style={{ height: "4px", background: themeConf.color }} />
+
+      {/* OG Image thumbnail */}
+      {news.og_image && <OgImage src={news.og_image} alt={headline} />}
 
       <div className="p-4">
         {/* Top row: theme + importance */}
