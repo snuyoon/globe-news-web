@@ -321,7 +321,7 @@ export default function TheaterSeats() {
                           className={`relative flex flex-col items-center justify-end transition-all duration-300 group ${
                             isOccupied ? "cursor-default" : "cursor-pointer hover:scale-105"
                           }`}
-                          style={{ width: "clamp(50px, 9vw, 62px)", height: "clamp(70px, 13vw, 88px)" }}
+                          style={{ width: "clamp(56px, 9.5vw, 70px)", height: "clamp(78px, 14vw, 96px)" }}
                           title={isOccupied ? `${data.initial} (${row}${col})` : lucky ? `${seatNum}번째 — 평생 무료!` : `${row}${col} — 빈 좌석`}
                         >
                           {/* Neon glow behind occupied seat */}
@@ -400,13 +400,13 @@ export default function TheaterSeats() {
 
                           {/* Character or empty */}
                           {isOccupied ? (
-                            <div className="relative z-10 mb-[2px]">
+                            <div className="relative z-10 mb-[1px]">
                               <Character
                                 hoodieColor={data.hoodieColor}
                                 eyeStyle={data.eyeStyle}
                                 hairStyle={data.hairStyle}
                                 initial={data.initial}
-                                size={52}
+                                size={66}
                               />
                             </div>
                           ) : (
