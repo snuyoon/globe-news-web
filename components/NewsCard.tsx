@@ -129,24 +129,21 @@ export default function NewsCard({ news, index }: { news: News; index: number })
 
         {/* 비구독자 모자이크 */}
         {body && !canView && (
-          <div className="relative mt-2">
+          <div className="relative mt-3 rounded-lg overflow-hidden">
             <p
               className="text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line line-clamp-3 select-none"
-              style={{ filter: "blur(6px)", WebkitFilter: "blur(6px)" }}
+              style={{ filter: "blur(8px)", WebkitFilter: "blur(8px)" }}
               aria-hidden="true"
             >
               {body}
             </p>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-[13px] text-[var(--text-muted)] font-medium mb-1">
-                내용을 보시려면 구독해주세요
-              </p>
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--card)]/60">
               <a
                 href="/#subscribe"
                 onClick={(e) => e.stopPropagation()}
-                className="text-[12px] text-[#f0b90b] font-bold hover:underline"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity shadow-lg"
               >
-                구독하기
+                🔒 구독하고 전체 내용 보기
               </a>
             </div>
           </div>
@@ -186,17 +183,6 @@ export default function NewsCard({ news, index }: { news: News; index: number })
         <div className="mt-3 flex items-center gap-2 text-[11px] text-[var(--text-muted)] flex-wrap">
           {news.source && <span className="opacity-70">{news.source}</span>}
           <span>{timeAgo(news.published_at)}</span>
-          {tweetUrl && (
-            <a
-              href={tweetUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--accent)] hover:underline ml-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              X에서 보기 &rarr;
-            </a>
-          )}
         </div>
       </div>
     </article>

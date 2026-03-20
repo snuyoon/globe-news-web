@@ -17,8 +17,6 @@ const FALLBACK_DATA: TickerItem[] = [
   { name: "애플", value: "$248.96", change: "-0.39%", isPositive: false },
   { name: "엔비디아", value: "$117.70", change: "+1.82%", isPositive: true },
   { name: "테슬라", value: "$242.31", change: "-0.55%", isPositive: false },
-  { name: "코스피", value: "2,612", change: "+0.45%", isPositive: true },
-  { name: "코스닥", value: "738", change: "-0.32%", isPositive: false },
 ];
 
 const FMP_KEY = "6Ywt9UETULQUTHdF5rVjI79uLaKjsnE0";
@@ -69,12 +67,6 @@ export default function TickerBar() {
             isPositive: changePct >= 0,
           });
         });
-
-        // 코스피/코스닥은 fallback 유지
-        items.push(
-          { name: "코스피", value: "2,612", change: "+0.45%", isPositive: true },
-          { name: "코스닥", value: "738", change: "-0.32%", isPositive: false },
-        );
 
         if (items.length > 0) setTickers(items);
       } catch { /* fallback 유지 */ }
