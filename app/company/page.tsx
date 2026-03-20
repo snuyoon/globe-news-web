@@ -1,247 +1,249 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
-import CardViewer from "@/components/CardViewer";
+import { supabase, type News } from "@/lib/supabase";
 
-const COMPANIES = [
-  { ticker: "TSLA", name: "테슬라", domain: "tesla.com", color: "#ef4444", cardCount: 1 },
-  { ticker: "AAPL", name: "애플", domain: "apple.com", color: "#6b7280", cardCount: 0 },
-  { ticker: "NVDA", name: "엔비디아", domain: "nvidia.com", color: "#76b900", cardCount: 0 },
-  { ticker: "MSFT", name: "마이크로소프트", domain: "microsoft.com", color: "#00a4ef", cardCount: 0 },
-  { ticker: "AMZN", name: "아마존", domain: "amazon.com", color: "#ff9900", cardCount: 0 },
-  { ticker: "GOOGL", name: "구글", domain: "google.com", color: "#4285f4", cardCount: 0 },
-  { ticker: "META", name: "메타", domain: "meta.com", color: "#1877f2", cardCount: 0 },
-  { ticker: "MU", name: "마이크론", domain: "micron.com", color: "#00b4d8", cardCount: 0 },
+const POPULAR_TICKERS = [
+  { ticker: "NVDA", name: "엔비디아", color: "#76b900" },
+  { ticker: "TSLA", name: "테슬라", color: "#ef4444" },
+  { ticker: "SMCI", name: "슈퍼마이크로", color: "#8b5cf6" },
+  { ticker: "MSFT", name: "마이크로소프트", color: "#00a4ef" },
+  { ticker: "AAPL", name: "애플", color: "#a3a3a3" },
+  { ticker: "AMZN", name: "아마존", color: "#ff9900" },
+  { ticker: "META", name: "메타", color: "#1877f2" },
+  { ticker: "GOOGL", name: "구글", color: "#4285f4" },
 ];
 
-const CARD_NEWS_DATA: Record<string, { title: string; baseUrl: string; slideCount: number }[]> = {
-  TSLA: [
-    {
-      title: "테슬라 심층 분석 카드뉴스",
-      baseUrl: "https://bjdlyjeltwjukuthxkti.supabase.co/storage/v1/object/public/card-images/archive/company-tesla",
-      slideCount: 10,
-    },
-  ],
+const IMPORTANCE_STYLES: Record<number, { color: string }> = {
+  5: { color: "#ef4444" },
+  4: { color: "#f97316" },
+  3: { color: "#3b82f6" },
+  2: { color: "#6b7280" },
+  1: { color: "#4b5563" },
 };
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "방금 전";
+  if (mins < 60) return `${mins}분 전`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}시간 전`;
+  const days = Math.floor(hours / 24);
+  return `${days}일 전`;
+}
 
 export default function CompanyPage() {
   const { isSubscriber, isAdmin } = useAuth();
   const canView = isSubscriber || isAdmin;
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
-  const [viewerData, setViewerData] = useState<{ title: string; baseUrl: string; slideCount: number } | null>(null);
-  const [showVipModal, setShowVipModal] = useState(false);
+  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+  const [news, setNews] = useState<News[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  const handleCompanyClick = (ticker: string, cardCount: number) => {
-    if (!canView) {
-      setShowVipModal(true);
-      return;
+  const fetchTickerNews = useCallback(async (ticker: string) => {
+    setLoading(true);
+    setNews([]);
+    const { data } = await supabase
+      .from("news")
+      .select("*")
+      .contains("tickers", [ticker])
+      .order("published_at", { ascending: false })
+      .limit(30);
+    if (data) setNews(data as News[]);
+    setLoading(false);
+  }, []);
+
+  const fetchAllCompanyNews = useCallback(async () => {
+    setLoading(true);
+    const allTickers = POPULAR_TICKERS.map((t) => t.ticker);
+    const { data } = await supabase
+      .from("news")
+      .select("*")
+      .overlaps("tickers", allTickers)
+      .order("published_at", { ascending: false })
+      .limit(50);
+    if (data) setNews(data as News[]);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (selectedTicker) {
+      fetchTickerNews(selectedTicker);
+    } else {
+      fetchAllCompanyNews();
     }
-    if (cardCount === 0) return;
-    setSelectedCompany(selectedCompany === ticker ? null : ticker);
-  };
+  }, [selectedTicker, fetchTickerNews, fetchAllCompanyNews]);
 
-  const handleCardNewsClick = (data: { title: string; baseUrl: string; slideCount: number }) => {
-    setViewerData(data);
-  };
+  const selectedInfo = POPULAR_TICKERS.find((t) => t.ticker === selectedTicker);
 
   return (
     <div className="min-h-screen">
       <div className="max-w-5xl mx-auto px-4 pt-8 pb-4">
-        {/* Header */}
         <h1 className="text-2xl md:text-3xl font-extrabold mb-1">
           기업{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
             뉴스
           </span>
         </h1>
-        <p className="text-[var(--text-muted)] text-sm mb-8">
-          주요 기업별 심층 분석 카드뉴스
+        <p className="text-[var(--text-muted)] text-sm mb-6">
+          주요 기업별 실시간 뉴스를 확인하세요
         </p>
 
-        {/* Company Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {COMPANIES.map((c) => {
-            const isActive = c.cardCount > 0;
-            const isSelected = selectedCompany === c.ticker;
-
-            return (
-              <button
-                key={c.ticker}
-                onClick={() => handleCompanyClick(c.ticker, c.cardCount)}
-                className={`relative overflow-hidden bg-[var(--card)] border rounded-xl p-5 text-left transition-all duration-200 ${
-                  isSelected
-                    ? "border-[#f0b90b] shadow-[0_0_20px_rgba(240,185,11,0.15)]"
-                    : isActive
-                    ? "border-[var(--border)] hover:border-[color:var(--accent,#f0b90b)] hover:shadow-lg cursor-pointer"
-                    : "border-[var(--border)] opacity-60 cursor-default"
-                }`}
-              >
-                {/* Top accent bar */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-1"
-                  style={{ backgroundColor: c.color }}
-                />
-
-                <div className="flex items-start gap-3 mb-3">
-                  {/* Company Logo */}
-                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://logo.clearbit.com/${c.domain}`}
-                      alt={`${c.name} logo`}
-                      className="w-8 h-8 object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="font-bold text-sm truncate">{c.name}</div>
-                    <div className="text-xs text-[var(--text-muted)]">${c.ticker}</div>
-                  </div>
-                </div>
-
-                {/* Card count & CTA */}
-                <div className="flex items-center justify-between">
-                  {isActive ? (
-                    <>
-                      <span className="text-xs text-[var(--text-muted)]">
-                        카드뉴스 {c.cardCount}개
-                      </span>
-                      <span className="text-xs font-semibold" style={{ color: c.color }}>
-                        분석 보기 &rarr;
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-xs text-[var(--text-muted)]">
-                      준비 중
-                    </span>
-                  )}
-                </div>
-
-                {/* VIP badge for non-subscribers */}
-                {!canView && (
-                  <div className="absolute top-3 right-3">
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black">
-                      VIP
-                    </span>
-                  </div>
-                )}
-              </button>
-            );
-          })}
+        {/* 티커 필터 */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+          <button
+            onClick={() => setSelectedTicker(null)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              !selectedTicker
+                ? "bg-[#f0b90b]/20 text-[#f0b90b] border border-[#f0b90b]/30"
+                : "bg-[var(--card)] text-[var(--text-muted)] border border-[var(--border)] hover:text-white"
+            }`}
+          >
+            전체
+          </button>
+          {POPULAR_TICKERS.map((t) => (
+            <button
+              key={t.ticker}
+              onClick={() => setSelectedTicker(t.ticker)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                selectedTicker === t.ticker
+                  ? "border text-white"
+                  : "bg-[var(--card)] text-[var(--text-muted)] border border-[var(--border)] hover:text-white"
+              }`}
+              style={
+                selectedTicker === t.ticker
+                  ? { backgroundColor: `${t.color}20`, borderColor: `${t.color}50`, color: t.color }
+                  : undefined
+              }
+            >
+              ${t.ticker}
+            </button>
+          ))}
         </div>
 
-        {/* Selected Company Detail */}
-        {selectedCompany && canView && (
-          <div className="mb-12 animate-in fade-in slide-in-from-top-2 duration-300">
-            {(() => {
-              const company = COMPANIES.find((c) => c.ticker === selectedCompany);
-              const cardNewsList = CARD_NEWS_DATA[selectedCompany];
-              if (!company || !cardNewsList) return null;
+        {/* 선택된 기업 헤더 */}
+        {selectedInfo && (
+          <div className="flex items-center gap-3 mb-6 px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-black text-white"
+              style={{ backgroundColor: selectedInfo.color }}
+            >
+              {selectedInfo.ticker.slice(0, 2)}
+            </div>
+            <div>
+              <div className="font-bold">{selectedInfo.name}</div>
+              <div className="text-xs text-[var(--text-muted)]">${selectedInfo.ticker} 관련 뉴스 {news.length}건</div>
+            </div>
+          </div>
+        )}
+
+        {/* 뉴스 리스트 */}
+        {loading ? (
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 animate-pulse">
+                <div className="h-3 w-24 bg-[var(--border)] rounded mb-3" />
+                <div className="h-5 w-3/4 bg-[var(--border)] rounded mb-2" />
+                <div className="h-3 w-1/2 bg-[var(--border)] rounded" />
+              </div>
+            ))}
+          </div>
+        ) : news.length > 0 ? (
+          <div className="space-y-3 mb-8">
+            {news.map((item) => {
+              const text = item.korean_text
+                .replace(/^[\u2605\u2606]{1,5}\s*/, "")
+                .replace(/^[\[【].*?[\]】]\s*/, "");
+              const lines = text.split("\n").filter((l) => l.trim());
+              const headline = lines[0] || "";
+              const body = lines.slice(1).join("\n");
+              const isExpanded = expandedId === item.id;
+              const impStyle = IMPORTANCE_STYLES[item.importance] || IMPORTANCE_STYLES[2];
 
               return (
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`https://logo.clearbit.com/${company.domain}`}
-                        alt={`${company.name} logo`}
-                        className="w-6 h-6 object-contain"
-                      />
+                <article
+                  key={item.id}
+                  onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                  className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden cursor-pointer hover:border-[var(--text-muted)]/30 transition-all"
+                >
+                  <div style={{ height: "3px", backgroundColor: impStyle.color }} />
+                  <div className="p-4">
+                    {/* 메타 */}
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="text-sm" style={{ color: impStyle.color }}>
+                        {"★".repeat(item.importance)}
+                        <span style={{ opacity: 0.2 }}>{"★".repeat(5 - item.importance)}</span>
+                      </span>
+                      {item.tickers?.map((t) => (
+                        <span
+                          key={t}
+                          onClick={(e) => { e.stopPropagation(); setSelectedTicker(t); }}
+                          className="text-[11px] font-semibold px-1.5 py-0.5 rounded cursor-pointer hover:opacity-80"
+                          style={{ backgroundColor: "rgba(240,185,11,0.1)", color: "#f0b90b" }}
+                        >
+                          ${t}
+                        </span>
+                      ))}
+                      <span className="text-[11px] text-[var(--text-muted)] ml-auto">
+                        {item.source} · {timeAgo(item.published_at)}
+                      </span>
                     </div>
-                    <div>
-                      <h2 className="font-bold text-lg">{company.name} 카드뉴스</h2>
-                      <p className="text-xs text-[var(--text-muted)]">${company.ticker} 심층 분석</p>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {cardNewsList.map((cardNews, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleCardNewsClick(cardNews)}
-                        className="group relative overflow-hidden rounded-lg border border-[var(--border)] hover:border-[#f0b90b] transition-all duration-200 hover:shadow-lg"
-                      >
-                        {/* Thumbnail preview */}
-                        <div className="aspect-[16/9] bg-gradient-to-br from-[var(--card)] to-[var(--background)] flex items-center justify-center overflow-hidden">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={`${cardNews.baseUrl}/slide_1.png`}
-                            alt={cardNews.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <div className="p-3 text-left">
-                          <div className="font-semibold text-sm mb-1">{cardNews.title}</div>
-                          <div className="text-xs text-[var(--text-muted)]">
-                            {cardNews.slideCount}장 슬라이드
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                    {/* 헤드라인 */}
+                    <h3 className={`text-[15px] font-bold leading-snug ${isExpanded ? "" : "line-clamp-2"}`}>
+                      {headline}
+                    </h3>
+
+                    {/* 본문 */}
+                    {body && canView && (
+                      <p className={`mt-2 text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line ${
+                        isExpanded ? "" : "line-clamp-2"
+                      }`}>
+                        {body}
+                      </p>
+                    )}
+                    {body && !canView && (
+                      <div className="relative mt-2 rounded overflow-hidden">
+                        <p
+                          className="text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line line-clamp-2 select-none"
+                          style={{ filter: "blur(6px)" }}
+                        >
+                          {body}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 상세 분석 */}
+                    {isExpanded && canView && item.web_detail && (
+                      <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                        <span className="text-[11px] font-bold text-[#f0b90b] mb-1.5 inline-block">상세 분석</span>
+                        <p className="text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line">
+                          {item.web_detail}
+                        </p>
+                      </div>
+                    )}
+
+                    {!isExpanded && (body || item.web_detail) && canView && (
+                      <span className="text-[11px] text-[#f0b90b] mt-1.5 inline-block">펼쳐서 더 보기</span>
+                    )}
                   </div>
-                </div>
+                </article>
               );
-            })()}
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-16 text-[var(--text-muted)]">
+            <p className="text-3xl mb-3">📭</p>
+            <p className="text-sm">
+              {selectedTicker ? `$${selectedTicker} 관련 뉴스가 없습니다` : "기업 뉴스가 없습니다"}
+            </p>
           </div>
         )}
       </div>
-
       <Footer />
-
-      {/* CardViewer Modal */}
-      {viewerData && (
-        <CardViewer
-          title={viewerData.title}
-          baseUrl={viewerData.baseUrl}
-          slideCount={viewerData.slideCount}
-          onClose={() => setViewerData(null)}
-        />
-      )}
-
-      {/* VIP Modal */}
-      {showVipModal && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
-          onClick={() => setShowVipModal(false)}
-        >
-          <div
-            className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-8 max-w-sm mx-4 text-center shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#f0b90b] to-[#ef6d09] flex items-center justify-center">
-              <svg className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold mb-2">VIP 전용 콘텐츠</h3>
-            <p className="text-sm text-[var(--text-muted)] mb-6">
-              기업 분석 카드뉴스는 구독자 전용 콘텐츠입니다.
-              <br />
-              구독하고 심층 분석을 만나보세요.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowVipModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium border border-[var(--border)] hover:bg-[var(--border)] transition-colors"
-              >
-                닫기
-              </button>
-              <a
-                href="/#subscribe"
-                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90 transition-opacity text-center"
-              >
-                구독하기
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
