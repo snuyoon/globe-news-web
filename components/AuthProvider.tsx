@@ -1,12 +1,16 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
+
+const ADMIN_EMAIL = "snuyoon@snu.ac.kr";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
+  isSubscriber: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -14,6 +18,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  isAdmin: false,
+  isSubscriber: false,
   signInWithGoogle: async () => {},
   signOut: async () => {},
 });
@@ -25,24 +31,53 @@ export function useAuth() {
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubscriber, setIsSubscriber] = useState(false);
+
+  const isAdmin = !!user?.email && user.email === ADMIN_EMAIL;
+
+  const checkSubscription = useCallback(async (u: User | null) => {
+    if (!u) {
+      setIsSubscriber(false);
+      return;
+    }
+    // 관리자는 항상 구독자 취급
+    if (u.email === ADMIN_EMAIL) {
+      setIsSubscriber(true);
+      return;
+    }
+    try {
+      const { data } = await supabase
+        .from("subscribers")
+        .select("id")
+        .eq("user_id", u.id)
+        .single();
+      setIsSubscriber(!!data);
+    } catch {
+      setIsSubscriber(false);
+    }
+  }, []);
 
   useEffect(() => {
     // 현재 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      const u = session?.user ?? null;
+      setUser(u);
+      checkSubscription(u);
       setLoading(false);
     });
 
     // 인증 상태 변경 리스닝
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(session?.user ?? null);
+        const u = session?.user ?? null;
+        setUser(u);
+        checkSubscription(u);
         setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkSubscription]);
 
   const signInWithGoogle = async () => {
     const redirectUrl = window.location.hostname === "localhost"
@@ -59,10 +94,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setIsSubscriber(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, isSubscriber, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

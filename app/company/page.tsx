@@ -1,4 +1,7 @@
+"use client";
+
 import Footer from "@/components/Footer";
+import { useAuth } from "@/components/AuthProvider";
 
 const COMPANIES = [
   { ticker: "TSLA", name: "테슬라", icon: "🚗", color: "#ef4444" },
@@ -12,6 +15,9 @@ const COMPANIES = [
 ];
 
 export default function CompanyPage() {
+  const { isSubscriber, isAdmin } = useAuth();
+  const canView = isSubscriber || isAdmin;
+
   return (
     <div className="min-h-screen">
       <div className="max-w-5xl mx-auto px-4 pt-8 pb-4">
@@ -22,7 +28,7 @@ export default function CompanyPage() {
           </span>
         </h1>
         <p className="text-[var(--text-muted)] text-sm mb-8">
-          주요 기업별 뉴스와 분석 카드뉴스 · 준비 중
+          주요 기업별 뉴스와 분석 카드뉴스 · {canView ? "준비 중" : "VIP 전용 · 구독 후 이용 가능"}
         </p>
 
         {/* 기업 그리드 */}
@@ -39,16 +45,29 @@ export default function CompanyPage() {
           ))}
         </div>
 
-        {/* Coming soon */}
+        {/* Coming soon / VIP 전용 */}
         <div className="text-center py-16">
-          <div className="text-5xl mb-4">🚧</div>
-          <h2 className="text-xl font-bold mb-2">준비 중입니다</h2>
+          <div className="text-5xl mb-4">{canView ? "🚧" : "🔒"}</div>
+          <h2 className="text-xl font-bold mb-2">
+            {canView ? "준비 중입니다" : "VIP 전용 콘텐츠"}
+          </h2>
           <p className="text-[var(--text-muted)] text-sm mb-4">
-            주요 기업별 심층 분석 카드뉴스가 곧 찾아옵니다
+            {canView
+              ? "주요 기업별 심층 분석 카드뉴스가 곧 찾아옵니다"
+              : "기업 분석은 구독자 전용 콘텐츠입니다"}
           </p>
-          <p className="text-[var(--text-muted)] text-xs">
-            매주 주말 특별판에서 기업 분석을 먼저 만나보세요
-          </p>
+          {canView ? (
+            <p className="text-[var(--text-muted)] text-xs">
+              매주 주말 특별판에서 기업 분석을 먼저 만나보세요
+            </p>
+          ) : (
+            <a
+              href="/#subscribe"
+              className="inline-block px-6 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90"
+            >
+              구독하기
+            </a>
+          )}
         </div>
       </div>
       <Footer />

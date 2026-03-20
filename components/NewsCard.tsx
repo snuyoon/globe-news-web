@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { News } from "@/lib/supabase";
+import { useAuth } from "./AuthProvider";
 
 const THEME_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
   "실적":     { icon: "📊", color: "#8b5cf6", label: "실적" },
@@ -50,6 +51,8 @@ function renderStars(importance: number) {
 
 export default function NewsCard({ news, index }: { news: News; index: number }) {
   const [expanded, setExpanded] = useState(false);
+  const { isSubscriber, isAdmin } = useAuth();
+  const canView = isSubscriber || isAdmin;
 
   const themeConf = THEME_CONFIG[news.theme || "기타"] || THEME_CONFIG["기타"];
 
@@ -114,7 +117,7 @@ export default function NewsCard({ news, index }: { news: News; index: number })
         </h3>
 
         {/* Body preview / full */}
-        {body && (
+        {body && canView && (
           <p
             className={`mt-2 text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line ${
               expanded ? "" : "line-clamp-3"
@@ -124,13 +127,38 @@ export default function NewsCard({ news, index }: { news: News; index: number })
           </p>
         )}
 
+        {/* 비구독자 모자이크 */}
+        {body && !canView && (
+          <div className="relative mt-2">
+            <p
+              className="text-[13px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line line-clamp-3 select-none"
+              style={{ filter: "blur(6px)", WebkitFilter: "blur(6px)" }}
+              aria-hidden="true"
+            >
+              {body}
+            </p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-[13px] text-[var(--text-muted)] font-medium mb-1">
+                내용을 보시려면 구독해주세요
+              </p>
+              <a
+                href="/#subscribe"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[12px] text-[#f0b90b] font-bold hover:underline"
+              >
+                구독하기
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Expand hint */}
-        {body && !expanded && lines.length > 4 && (
+        {body && canView && !expanded && lines.length > 4 && (
           <span className="text-[11px] text-[var(--accent)] mt-1 inline-block">
             펼쳐서 더 보기
           </span>
         )}
-        {expanded && body && (
+        {expanded && body && canView && (
           <span className="text-[11px] text-[var(--accent)] mt-1 inline-block">
             접기
           </span>

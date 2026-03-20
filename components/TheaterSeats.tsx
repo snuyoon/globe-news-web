@@ -105,6 +105,19 @@ export default function TheaterSeats() {
     return null;
   }, [seats]);
 
+  // CustomEvent "open-subscribe" 수신 (네비바 구독하기 버튼)
+  useEffect(() => {
+    const handler = () => {
+      if (mySeatedId) return;
+      const nextNum = getNextSeatNumber();
+      if (nextNum === null) return;
+      const nextId = seatIdByOrder(nextNum);
+      setSubscribeSeat(nextId);
+    };
+    window.addEventListener("open-subscribe", handler);
+    return () => window.removeEventListener("open-subscribe", handler);
+  }, [mySeatedId, getNextSeatNumber]);
+
   const handleSave = useCallback(async (seatId: string, data: SeatData, topicRequest?: string) => {
     if (!user) return;
 

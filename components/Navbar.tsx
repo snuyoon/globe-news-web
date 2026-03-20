@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 
 const NAV_LINKS = [
@@ -37,6 +38,15 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const pathname = usePathname();
+
+  const handleSubscribeClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent("open-subscribe"));
+    }
+    // 다른 페이지에서는 href="/#subscribe"로 이동
+  }, [pathname]);
 
   return (
     <nav className="bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] sticky top-0 z-50">
@@ -64,6 +74,7 @@ export default function Navbar() {
           ))}
           <a
             href="/#subscribe"
+            onClick={handleSubscribeClick}
             className="ml-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity"
           >
             구독하기
@@ -170,7 +181,10 @@ export default function Navbar() {
             ))}
             <a
               href="/#subscribe"
-              onClick={() => setMenuOpen(false)}
+              onClick={(e) => {
+                setMenuOpen(false);
+                handleSubscribeClick(e);
+              }}
               className="mt-1 px-4 py-2 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold text-center"
             >
               구독하기

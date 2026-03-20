@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Footer from "@/components/Footer";
 import CardViewer from "@/components/CardViewer";
+import { useAuth } from "@/components/AuthProvider";
 
 const TABS = [
   { id: "premarket", label: "장전 브리핑", emoji: "🌙", desc: "매일 22:00 · 오늘 밤 미국장 체크포인트" },
@@ -63,6 +64,9 @@ export default function CardNewsPage() {
   const [activeTab, setActiveTab] = useState("premarket");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [viewerCard, setViewerCard] = useState<CardItem | null>(null);
+  const [showVipModal, setShowVipModal] = useState(false);
+  const { isSubscriber, isAdmin } = useAuth();
+  const canView = isSubscriber || isAdmin;
   const weekDates = getWeekDates();
 
   const cards = SAMPLE_CARDS[activeTab] || [];
@@ -142,7 +146,7 @@ export default function CardNewsPage() {
             filtered.map((card, i) => (
               <button
                 key={`${card.date}-${i}`}
-                onClick={() => setViewerCard(card)}
+                onClick={() => canView ? setViewerCard(card) : setShowVipModal(true)}
                 className="group block bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden hover:border-[#f0b90b]/30 transition-all hover:scale-[1.01] text-left w-full"
               >
                 {/* 상단 컬러 바 */}
@@ -204,6 +208,40 @@ export default function CardNewsPage() {
           baseUrl={viewerCard.baseUrl}
           onClose={() => setViewerCard(null)}
         />
+      )}
+
+      {/* VIP 전용 모달 */}
+      {showVipModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowVipModal(false)}
+        >
+          <div
+            className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-8 max-w-sm mx-4 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-4xl mb-4">🔒</div>
+            <h3 className="text-lg font-bold mb-2">VIP 전용 콘텐츠입니다</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6">
+              카드뉴스는 구독자만 열람할 수 있습니다.<br />
+              구독하고 모든 콘텐츠를 이용해보세요!
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setShowVipModal(false)}
+                className="px-4 py-2 rounded-lg text-sm text-[var(--text-muted)] border border-[var(--border)] hover:bg-[var(--card)]"
+              >
+                닫기
+              </button>
+              <a
+                href="/#subscribe"
+                className="px-6 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90"
+              >
+                구독하기
+              </a>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
