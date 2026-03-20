@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Footer from "@/components/Footer";
 import CardViewer from "@/components/CardViewer";
+import CardArticle from "@/components/CardArticle";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase, type CardNews } from "@/lib/supabase";
 
@@ -42,6 +43,7 @@ export default function CardNewsPage() {
   const [cards, setCards] = useState<CardNews[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewerCard, setViewerCard] = useState<CardNews | null>(null);
+  const [articleCard, setArticleCard] = useState<CardNews | null>(null);
   const [showVipModal, setShowVipModal] = useState(false);
   const { isSubscriber, isAdmin } = useAuth();
   const canView = isSubscriber || isAdmin;
@@ -50,13 +52,30 @@ export default function CardNewsPage() {
   const fetchCards = useCallback(async (type: CardNews["type"]) => {
     const { data } = await supabase
       .from("card_news")
-      .select("*")
+      .select("id,type,date,title,slide_count,base_url,created_at")
       .eq("type", type)
       .order("date", { ascending: false });
 
     if (data) setCards(data as CardNews[]);
     setLoading(false);
   }, []);
+
+  const openCard = useCallback(async (card: CardNews) => {
+    if (!canView) { setShowVipModal(true); return; }
+
+    // 개별 fetch로 sample_json 포함 데이터 가져오기
+    const { data } = await supabase
+      .from("card_news")
+      .select("*")
+      .eq("id", card.id)
+      .single();
+
+    if (data?.sample_json) {
+      setArticleCard(data as CardNews);
+    } else {
+      setViewerCard(card);
+    }
+  }, [canView]);
 
   useEffect(() => {
     setLoading(true);
@@ -176,7 +195,7 @@ export default function CardNewsPage() {
             filtered.map((card) => (
               <button
                 key={card.id}
-                onClick={() => canView ? setViewerCard(card) : setShowVipModal(true)}
+                onClick={() => openCard(card)}
                 className="group block bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden hover:border-[#f0b90b]/40 transition-all hover:scale-[1.02] text-left w-full"
               >
                 <div className={`h-1 bg-gradient-to-r ${colors.bar}`} />
@@ -247,6 +266,13 @@ export default function CardNewsPage() {
         </div>
       </div>
       <Footer />
+
+      {articleCard && (
+        <CardArticle
+          card={articleCard}
+          onClose={() => setArticleCard(null)}
+        />
+      )}
 
       {viewerCard && (
         <CardViewer

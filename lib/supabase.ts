@@ -14,6 +14,7 @@ export type CardNews = {
   slide_count: number;
   base_url: string;
   created_at: string;
+  sample_json?: Record<string, unknown>;
 };
 
 export type News = {
