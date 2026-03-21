@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CardViewer from "@/components/CardViewer";
 import CardArticle from "@/components/CardArticle";
@@ -92,20 +91,15 @@ export default function MyPage() {
 
   if (!user) {
     return (
-      <>
-        <Navbar />
-        <main className="min-h-screen pt-20 px-4 flex flex-col items-center justify-center">
-          <p className="text-lg font-bold mb-2">로그인이 필요합니다</p>
-          <p className="text-sm text-[var(--text-muted)]">회원가입 후 스크랩한 콘텐츠를 모아볼 수 있어요</p>
-        </main>
-        <Footer />
-      </>
+      <main className="min-h-screen pt-20 px-4 flex flex-col items-center justify-center">
+        <p className="text-lg font-bold mb-2">로그인이 필요합니다</p>
+        <p className="text-sm text-[var(--text-muted)]">회원가입 후 스크랩한 콘텐츠를 모아볼 수 있어요</p>
+      </main>
     );
   }
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen pt-20 pb-24 px-4 max-w-5xl mx-auto">
         {/* 헤더 */}
         <div className="mb-6">
