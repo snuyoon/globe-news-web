@@ -491,9 +491,9 @@ function QnaRenderer({ items }: { items: Qna[] }) {
                           : ""
                       }`}
                     >
-                      <span>Deep Dive</span>
+                      <span>상세 해설 보기</span>
                       {!deepDiveOpen[i] && (typeof window === "undefined" || parseInt(localStorage.getItem("dd_seen") || "0", 10) < 5) && (
-                        <span className="text-[10px] text-[#a78bfa]/70 ml-1">눌러서 상세 분석 보기</span>
+                        <span className="text-[10px] text-[#a78bfa]/70 ml-1">눌러서 펼치기</span>
                       )}
                       <svg
                         width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
@@ -508,7 +508,7 @@ function QnaRenderer({ items }: { items: Qna[] }) {
                         {/* deep_dive */}
                         {qa.web_extended.deep_dive && (
                           <div className="bg-[#1a1a2e] rounded-xl p-4 border border-[#2a2a4a]">
-                            <p className="text-xs font-bold text-[#a78bfa] tracking-wider mb-2">심화 해설</p>
+                            <p className="text-xs font-bold text-[#a78bfa] tracking-wider mb-2">상세 해설</p>
                             <p className="text-sm leading-relaxed text-[var(--text-muted)]"><Markup text={qa.web_extended.deep_dive} /></p>
                           </div>
                         )}
