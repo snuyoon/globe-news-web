@@ -132,7 +132,14 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
             <div className="relative mb-6 rounded-lg overflow-hidden">
               <p className="text-[15px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line select-none" style={{ filter: "blur(8px)" }}>{body}</p>
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[var(--card)]/60">
-                {user && freeNewsViews > 0 ? (
+                {!user ? (
+                  <>
+                    <p className="text-sm text-[var(--text-muted)] text-center">회원가입만 하면 <strong className="text-[#3b82f6]">뉴스 5건 무료</strong> 열람!</p>
+                    <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-sm font-bold hover:opacity-90 shadow-lg">
+                      회원가입하기
+                    </a>
+                  </>
+                ) : freeNewsViews > 0 ? (
                   <button
                     onClick={handleUseFreeNewsView}
                     disabled={consuming}
@@ -161,7 +168,14 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
               <h2 className="text-base font-bold text-[#f0b90b] mb-4">📊 상세 분석</h2>
               <p className="text-[15px] leading-[1.8] whitespace-pre-line select-none line-clamp-4" style={{ filter: "blur(8px)" }}>{news.web_detail}</p>
               <div className="absolute inset-0 top-10 flex flex-col items-center justify-center gap-3 bg-[var(--card)]/60">
-                {user && freeNewsViews > 0 ? (
+                {!user ? (
+                  <>
+                    <p className="text-sm text-[var(--text-muted)] text-center">회원가입만 하면 <strong className="text-[#3b82f6]">뉴스 5건 무료</strong> 열람!</p>
+                    <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-sm font-bold hover:opacity-90 shadow-lg">
+                      회원가입하기
+                    </a>
+                  </>
+                ) : freeNewsViews > 0 ? (
                   <button
                     onClick={handleUseFreeNewsView}
                     disabled={consuming}
