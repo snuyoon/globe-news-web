@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Character, { type EyeStyle, type HairStyle } from "./Character";
+import Character, { type EyeStyle, type HairStyle, type FrameStyle, type AccessoryStyle, type SkinTone, SKIN_TONES } from "./Character";
 
 const COLORS = [
   { name: "검정", hex: "#2d2d3d" },
@@ -38,11 +38,27 @@ interface CharacterModalProps {
   onSave: (seatId: string, data: SeatData, topicRequest?: string) => void;
 }
 
+const FRAME_OPTIONS: { label: string; value: FrameStyle; desc: string }[] = [
+  { label: "없음", value: "none", desc: "" },
+  { label: "골드", value: "gold", desc: "S1 전용" },
+  { label: "다이아", value: "diamond", desc: "S1 전용" },
+  { label: "불꽃", value: "flame", desc: "S1 전용" },
+];
+
+const ACCESSORY_OPTIONS: { label: string; value: AccessoryStyle }[] = [
+  { label: "없음", value: "none" },
+  { label: "선글라스", value: "sunglasses" },
+  { label: "안경", value: "glasses" },
+];
+
 export interface SeatData {
   initial: string;
   hoodieColor: string;
   eyeStyle: EyeStyle;
   hairStyle: HairStyle;
+  skinTone?: SkinTone;
+  frame?: FrameStyle;
+  accessory?: AccessoryStyle;
 }
 
 function randomPick<T>(arr: T[]): T {
@@ -53,6 +69,9 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
   const [hoodieColor, setHoodieColor] = useState(COLORS[2].hex);
   const [eyeStyle, setEyeStyle] = useState<EyeStyle>("dot");
   const [hairStyle, setHairStyle] = useState<HairStyle>("bangs");
+  const [skinTone, setSkinTone] = useState<SkinTone>("#fce4c8");
+  const [frame, setFrame] = useState<FrameStyle>("none");
+  const [accessory, setAccessory] = useState<AccessoryStyle>("none");
   const [initial, setInitial] = useState("");
   const [topicRequest, setTopicRequest] = useState("");
 
@@ -63,6 +82,9 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
     setHoodieColor(randomPick(COLORS).hex);
     setEyeStyle(randomPick(EYE_OPTIONS).value);
     setHairStyle(randomPick(HAIR_OPTIONS).value);
+    setSkinTone(randomPick(SKIN_TONES).value);
+    setFrame(randomPick(FRAME_OPTIONS).value);
+    setAccessory(randomPick(ACCESSORY_OPTIONS).value);
     if (!initial) {
       const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
       setInitial(randomPick(letters.split("")) + randomPick(letters.split("")));
@@ -71,7 +93,7 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
 
   const handleSave = () => {
     if (!initial.trim()) return;
-    onSave(seatId, { initial: initial.trim(), hoodieColor, eyeStyle, hairStyle }, topicRequest.trim() || undefined);
+    onSave(seatId, { initial: initial.trim(), hoodieColor, eyeStyle, hairStyle, skinTone, frame, accessory }, topicRequest.trim() || undefined);
   };
 
   return (
@@ -106,8 +128,11 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
             hoodieColor={hoodieColor}
             eyeStyle={eyeStyle}
             hairStyle={hairStyle}
+            skinTone={skinTone}
+            frame={frame}
+            accessory={accessory}
             initial={initial || "?"}
-            size={120}
+            size={140}
           />
         </div>
 
@@ -180,6 +205,63 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
               placeholder="SJ"
               className="w-24 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-center text-lg font-bold text-white placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#f0b90b]"
             />
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-semibold text-[var(--text-muted)] mb-2">피부색</label>
+            <div className="flex gap-2">
+              {SKIN_TONES.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => setSkinTone(t.value)}
+                  className="w-9 h-9 rounded-full border-2 transition-all hover:scale-110"
+                  style={{
+                    backgroundColor: t.value,
+                    borderColor: skinTone === t.value ? "#f0b90b" : "transparent",
+                    boxShadow: skinTone === t.value ? "0 0 0 2px #f0b90b40" : "none",
+                  }}
+                  title={t.label}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-semibold text-[var(--text-muted)] mb-2">테두리 <span className="text-[10px] text-[#f0b90b]">시즌 1 전용</span></label>
+            <div className="flex gap-2 flex-wrap">
+              {FRAME_OPTIONS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFrame(f.value)}
+                  className={`px-4 py-2 rounded-lg border text-[13px] font-medium transition-all ${
+                    frame === f.value
+                      ? "border-[#f0b90b] bg-[#f0b90b]/10 text-[#f0b90b]"
+                      : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] hover:border-[var(--text-muted)]"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-semibold text-[var(--text-muted)] mb-2">액세서리</label>
+            <div className="flex gap-2 flex-wrap">
+              {ACCESSORY_OPTIONS.map((a) => (
+                <button
+                  key={a.value}
+                  onClick={() => setAccessory(a.value)}
+                  className={`px-4 py-2 rounded-lg border text-[13px] font-medium transition-all ${
+                    accessory === a.value
+                      ? "border-[#f0b90b] bg-[#f0b90b]/10 text-[#f0b90b]"
+                      : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] hover:border-[var(--text-muted)]"
+                  }`}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 주말 카드 주제 신청 */}

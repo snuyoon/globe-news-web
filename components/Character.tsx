@@ -2,6 +2,16 @@
 
 export type EyeStyle = "dot" | "round" | "happy" | "star" | "wink" | "sparkle";
 export type HairStyle = "bangs" | "parted" | "none" | "curly" | "spiky" | "bob";
+export type FrameStyle = "none" | "gold" | "diamond" | "flame";
+export type AccessoryStyle = "none" | "sunglasses" | "glasses";
+export type SkinTone = "#fce4c8" | "#f5d0a9" | "#c68642" | "#8d5524";
+
+export const SKIN_TONES: { label: string; value: SkinTone }[] = [
+  { label: "라이트", value: "#fce4c8" },
+  { label: "미디엄", value: "#f5d0a9" },
+  { label: "탄", value: "#c68642" },
+  { label: "다크", value: "#8d5524" },
+];
 
 export interface CharacterProps {
   hoodieColor: string;
@@ -9,6 +19,9 @@ export interface CharacterProps {
   hairStyle: HairStyle;
   initial: string;
   size?: number;
+  skinTone?: SkinTone;
+  frame?: FrameStyle;
+  accessory?: AccessoryStyle;
 }
 
 function darkenColor(hex: string, amount: number): string {
@@ -151,11 +164,63 @@ function HairBangs({ style, cx, cy, s, color }: { style: HairStyle; cx: number; 
   }
 }
 
-export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120 }: CharacterProps) {
+function Accessory({ style, cx, cy, s }: { style: AccessoryStyle; cx: number; cy: number; s: number }) {
+  const gap = 8 * s;
+  switch (style) {
+    case "none": return null;
+    case "sunglasses":
+      return (
+        <g>
+          <rect x={cx - gap - 6 * s} y={cy - 4 * s} width={12 * s} height={8 * s} rx={3 * s} fill="#1a1a2e" opacity={0.85} />
+          <rect x={cx + gap - 6 * s} y={cy - 4 * s} width={12 * s} height={8 * s} rx={3 * s} fill="#1a1a2e" opacity={0.85} />
+          <line x1={cx - gap + 6 * s} y1={cy} x2={cx + gap - 6 * s} y2={cy} stroke="#1a1a2e" strokeWidth={1.5 * s} />
+          <line x1={cx - gap - 6 * s} y1={cy - 1 * s} x2={cx - gap - 9 * s} y2={cy - 3 * s} stroke="#1a1a2e" strokeWidth={1.5 * s} strokeLinecap="round" />
+          <line x1={cx + gap + 6 * s} y1={cy - 1 * s} x2={cx + gap + 9 * s} y2={cy - 3 * s} stroke="#1a1a2e" strokeWidth={1.5 * s} strokeLinecap="round" />
+          {/* lens shine */}
+          <rect x={cx - gap - 3 * s} y={cy - 3 * s} width={3 * s} height={1.5 * s} rx={0.5 * s} fill="white" opacity={0.3} />
+          <rect x={cx + gap - 3 * s} y={cy - 3 * s} width={3 * s} height={1.5 * s} rx={0.5 * s} fill="white" opacity={0.3} />
+        </g>
+      );
+    case "glasses":
+      return (
+        <g>
+          <circle cx={cx - gap} cy={cy} r={6.5 * s} fill="none" stroke="#8b7355" strokeWidth={1.2 * s} />
+          <circle cx={cx + gap} cy={cy} r={6.5 * s} fill="none" stroke="#8b7355" strokeWidth={1.2 * s} />
+          <line x1={cx - gap + 6.5 * s} y1={cy} x2={cx + gap - 6.5 * s} y2={cy} stroke="#8b7355" strokeWidth={1 * s} />
+          <line x1={cx - gap - 6.5 * s} y1={cy - 1 * s} x2={cx - gap - 9 * s} y2={cy - 3 * s} stroke="#8b7355" strokeWidth={1 * s} strokeLinecap="round" />
+          <line x1={cx + gap + 6.5 * s} y1={cy - 1 * s} x2={cx + gap + 9 * s} y2={cy - 3 * s} stroke="#8b7355" strokeWidth={1 * s} strokeLinecap="round" />
+        </g>
+      );
+  }
+}
+
+function Frame({ style, cx, cy, r, s }: { style: FrameStyle; cx: number; cy: number; r: number; s: number }) {
+  switch (style) {
+    case "none": return null;
+    case "gold":
+      return (
+        <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="#f0b90b" strokeWidth={2.5 * s} opacity={0.8} />
+      );
+    case "diamond":
+      return (
+        <>
+          <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="#c0c0c0" strokeWidth={2 * s} opacity={0.6} />
+          <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="white" strokeWidth={0.5 * s} opacity={0.3} strokeDasharray={`${3 * s} ${5 * s}`} />
+        </>
+      );
+    case "flame":
+      return (
+        <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="#ef6d09" strokeWidth={2.5 * s} opacity={0.7} />
+      );
+  }
+}
+
+export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120, skinTone = "#fce4c8", frame = "none", accessory = "none" }: CharacterProps) {
   const s = size / 100;
   const cx = 50 * s;
   const darker = darkenColor(hoodieColor, 30);
   const lighter = lightenColor(hoodieColor, 30);
+  const skinHighlight = lightenColor(skinTone, 20);
 
   const headCy = 36 * s;
   const headR = 33 * s;
@@ -163,6 +228,9 @@ export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, s
 
   return (
     <svg width={size} height={size * 1.05} viewBox={`0 0 ${100 * s} ${105 * s}`} fill="none">
+      {/* Frame (behind character) */}
+      <Frame style={frame} cx={cx} cy={headCy} r={headR} s={s} />
+
       {/* Shadow */}
       <ellipse cx={cx} cy={100 * s} rx={14 * s} ry={2 * s} fill="black" opacity={0.12} />
 
@@ -188,16 +256,19 @@ export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, s
       {/* Hood inner shadow */}
       <ellipse cx={cx} cy={headCy + 4 * s} rx={23 * s} ry={23 * s} fill={darker} opacity={0.12} />
 
-      {/* Face — big round cream */}
-      <circle cx={cx} cy={headCy + 5 * s} r={20 * s} fill="#fce4c8" />
+      {/* Face */}
+      <circle cx={cx} cy={headCy + 5 * s} r={20 * s} fill={skinTone} />
       {/* Face highlight */}
-      <ellipse cx={cx - 6 * s} cy={headCy} rx={9 * s} ry={11 * s} fill="#fdecd5" opacity={0.5} />
+      <ellipse cx={cx - 6 * s} cy={headCy} rx={9 * s} ry={11 * s} fill={skinHighlight} opacity={0.4} />
 
       {/* Hair */}
       <HairBangs style={hairStyle} cx={cx} cy={headCy - 13 * s} s={s} color={hoodieColor} />
 
       {/* Eyes */}
       <Eyes style={eyeStyle} cx={cx} cy={headCy + 4 * s} s={s} />
+
+      {/* Accessory (over eyes) */}
+      <Accessory style={accessory} cx={cx} cy={headCy + 4 * s} s={s} />
 
       {/* Blush */}
       <ellipse cx={cx - 15 * s} cy={headCy + 12 * s} rx={4.5 * s} ry={2.5 * s} fill="#ffb3b3" opacity={0.4} />
