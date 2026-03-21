@@ -312,6 +312,11 @@ export default function TheaterSeats() {
                       const lucky = isLuckySeat(row, col);
                       const seatNum = getSeatNumber(row, col);
                       const glowColor = isOccupied ? data.hoodieColor : "";
+                      const frameStyle = isOccupied ? (data.frame || "none") : "none";
+                      const frameBorder = frameStyle === "gold" ? "#f0b90b"
+                        : frameStyle === "diamond" ? "#c0c0c0"
+                        : frameStyle === "flame" ? "#ef6d09"
+                        : null;
 
                       return (
                         <button
@@ -360,12 +365,15 @@ export default function TheaterSeats() {
                                 : lucky
                                   ? "linear-gradient(180deg, #1a1510 0%, #0f0f18 100%)"
                                   : "linear-gradient(180deg, #1a1a25 0%, #111118 100%)",
-                              border: `1.5px solid ${
-                                isOccupied ? `${glowColor}50`
+                              border: `${frameBorder ? "2px" : "1.5px"} solid ${
+                                frameBorder ? `${frameBorder}90`
+                                : isOccupied ? `${glowColor}50`
                                 : lucky ? "#f0b90b40"
                                 : "#222233"
                               }`,
-                              boxShadow: isOccupied
+                              boxShadow: frameBorder
+                                ? `0 0 12px ${frameBorder}30, 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 ${frameBorder}20`
+                                : isOccupied
                                 ? `0 0 16px ${glowColor}25, 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 ${glowColor}15`
                                 : lucky
                                   ? "0 0 12px rgba(240,185,11,0.15), 0 4px 12px rgba(0,0,0,0.4)"
@@ -376,7 +384,9 @@ export default function TheaterSeats() {
                             <div
                               className="h-[3px]"
                               style={{
-                                background: isOccupied
+                                background: frameBorder
+                                  ? `linear-gradient(90deg, transparent, ${frameBorder}80, transparent)`
+                                  : isOccupied
                                   ? `linear-gradient(90deg, transparent, ${glowColor}60, transparent)`
                                   : lucky
                                     ? "linear-gradient(90deg, transparent, #f0b90b40, transparent)"
@@ -403,13 +413,15 @@ export default function TheaterSeats() {
 
                           {/* Character or empty */}
                           {isOccupied ? (
-                            <div className="relative z-10 mb-[1px]">
+                            <div className="relative z-10 -mb-[2px]">
                               <Character
                                 hoodieColor={data.hoodieColor}
                                 eyeStyle={data.eyeStyle}
                                 hairStyle={data.hairStyle}
+                                skinTone={data.skinTone}
+                                accessory={data.accessory}
                                 initial={data.initial}
-                                size={66}
+                                size={78}
                               />
                             </div>
                           ) : (

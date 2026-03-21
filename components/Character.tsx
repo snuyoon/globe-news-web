@@ -228,9 +228,6 @@ export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, s
 
   return (
     <svg width={size} height={size * 1.05} viewBox={`0 0 ${100 * s} ${105 * s}`} fill="none">
-      {/* Frame (behind character) */}
-      <Frame style={frame} cx={cx} cy={headCy} r={headR} s={s} />
-
       {/* Shadow */}
       <ellipse cx={cx} cy={100 * s} rx={14 * s} ry={2 * s} fill="black" opacity={0.12} />
 
