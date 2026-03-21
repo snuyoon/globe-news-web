@@ -412,9 +412,12 @@ function ExplainerSection({ explainer }: { explainer: Explainer }) {
       </h2>
 
       {explainer.type === "qna" && explainer.qna && <QnaRenderer items={explainer.qna} />}
-      {explainer.type === "flow" && explainer.flow && <FlowRenderer steps={explainer.flow} />}
-      {explainer.type === "impact" && explainer.impact && <ImpactRenderer impact={explainer.impact} />}
-      {explainer.type === "history" && explainer.history && <HistoryRenderer items={explainer.history} />}
+      {explainer.type === "flow" && explainer.qna && <QnaRenderer items={explainer.qna} />}
+      {explainer.type === "flow" && explainer.flow && <><Divider /><FlowRenderer steps={explainer.flow} /></>}
+      {explainer.type === "impact" && explainer.qna && <QnaRenderer items={explainer.qna} />}
+      {explainer.type === "impact" && explainer.impact && <><Divider /><ImpactRenderer impact={explainer.impact} /></>}
+      {explainer.type === "history" && explainer.qna && <QnaRenderer items={explainer.qna} />}
+      {explainer.type === "history" && explainer.history && <><Divider /><HistoryRenderer items={explainer.history} /></>}
       {explainer.type === "checklist" && explainer.checklist && <ChecklistRenderer items={explainer.checklist} />}
     </section>
   );
@@ -554,27 +557,36 @@ function FlowRenderer({ steps }: { steps: FlowStep[] }) {
   );
 }
 
-/* Impact 2컬럼 */
+/* Impact — 세로 배치, 여백 확대 */
 function ImpactRenderer({ impact }: { impact: Impact }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div className="bg-[#22c55e]/5 border border-[#22c55e]/20 rounded-xl p-4 md:p-5">
-        <p className="text-sm font-bold text-[#22c55e] mb-3">{impact.positive_label || "수혜"}</p>
-        <ul className="space-y-2">
+    <div className="space-y-4">
+      {/* 강점 */}
+      <div className="bg-[#22c55e]/5 border border-[#22c55e]/20 rounded-xl p-5 md:p-6">
+        <p className="text-base font-bold text-[#22c55e] mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
+          {impact.positive_label || "수혜"}
+        </p>
+        <ul className="space-y-3">
           {impact.bullish?.map((b, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm">
-              <span className="text-[#22c55e] shrink-0">&#9650;</span>
+            <li key={i} className="flex items-start gap-3 text-sm md:text-base leading-relaxed">
+              <span className="text-[#22c55e] shrink-0 mt-0.5">&#9650;</span>
               <Markup text={b} />
             </li>
           ))}
         </ul>
       </div>
-      <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-xl p-4 md:p-5">
-        <p className="text-sm font-bold text-[#ef4444] mb-3">{impact.negative_label || "리스크"}</p>
-        <ul className="space-y-2">
+
+      {/* 리스크 */}
+      <div className="bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-xl p-5 md:p-6">
+        <p className="text-base font-bold text-[#ef4444] mb-4 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
+          {impact.negative_label || "리스크"}
+        </p>
+        <ul className="space-y-3">
           {impact.bearish?.map((b, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm">
-              <span className="text-[#ef4444] shrink-0">&#9660;</span>
+            <li key={i} className="flex items-start gap-3 text-sm md:text-base leading-relaxed">
+              <span className="text-[#ef4444] shrink-0 mt-0.5">&#9660;</span>
               <Markup text={b} />
             </li>
           ))}
