@@ -436,14 +436,27 @@ function QnaRenderer({ items }: { items: Qna[] }) {
     <div className="space-y-3">
       {items.map((qa, i) => {
         const isOpen = alwaysOpen || openIdx === i;
+        const qnaSeen = typeof window !== "undefined" ? parseInt(localStorage.getItem("qna_seen") || "0", 10) : 0;
+        const showHint = !alwaysOpen && !isOpen && i === 0 && qnaSeen < 5;
         return (
           <div key={i} className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
             {/* 질문 */}
             <button
-              onClick={() => !alwaysOpen && setOpenIdx(isOpen ? null : i)}
-              className={`w-full flex items-center justify-between px-4 md:px-5 py-4 text-left hover:bg-white/[0.02] transition-colors ${alwaysOpen ? "cursor-default" : ""}`}
+              onClick={() => {
+                if (alwaysOpen) return;
+                setOpenIdx(isOpen ? null : i);
+                if (!isOpen && typeof window !== "undefined") {
+                  localStorage.setItem("qna_seen", String(qnaSeen + 1));
+                }
+              }}
+              className={`w-full flex items-center justify-between px-4 md:px-5 py-4 text-left hover:bg-white/[0.02] transition-colors ${alwaysOpen ? "cursor-default" : ""} ${showHint ? "animate-pulse" : ""}`}
             >
-              <span className="text-sm md:text-base font-bold text-[#f0b90b] pr-4">Q. {qa.q}</span>
+              <div className="flex flex-col gap-1 pr-4">
+                <span className="text-sm md:text-base font-bold text-[#f0b90b]">Q. {qa.q}</span>
+                {showHint && (
+                  <span className="text-[10px] text-[var(--text-muted)]">눌러서 답변 보기</span>
+                )}
+              </div>
               {!alwaysOpen && (
                 <svg
                   width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
