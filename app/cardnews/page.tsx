@@ -61,21 +61,30 @@ export default function CardNewsPage() {
   }, []);
 
   const openCard = useCallback(async (card: CardNews) => {
-    if (!canView) { setShowVipModal(true); return; }
-
-    // 개별 fetch로 sample_json 포함 데이터 가져오기
-    const { data } = await supabase
-      .from("card_news")
-      .select("*")
-      .eq("id", card.id)
-      .single();
-
-    if (data?.sample_json) {
-      setArticleCard(data as CardNews);
-    } else {
-      setViewerCard(card);
+    // 구독자/관리자는 바로 열림
+    if (isAdmin) {
+      const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
+      if (data?.sample_json) setArticleCard(data as CardNews);
+      else setViewerCard(card);
+      return;
     }
-  }, [canView]);
+
+    // 비구독자: 무료 크레딧 확인
+    if (!canView) {
+      setShowVipModal(true);
+      return;
+    }
+
+    // 무료 크레딧으로 열기 (구독자가 아닌 경우에만 차감)
+    if (!isAdmin && freeViews > 0) {
+      const ok = await useFreeView();
+      if (!ok) { setShowVipModal(true); return; }
+    }
+
+    const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
+    if (data?.sample_json) setArticleCard(data as CardNews);
+    else setViewerCard(card);
+  }, [canView, isAdmin, freeViews, useFreeView]);
 
   useEffect(() => {
     setLoading(true);

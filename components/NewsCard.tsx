@@ -68,7 +68,8 @@ function renderStars(importance: number) {
 export default function NewsCard({ news, index }: { news: News; index: number }) {
   const expanded = false; // 모달로 대체
   const { isSubscriber, isAdmin, freeNewsViews, user, canViewVip } = useAuth();
-  const canView = isSubscriber || isAdmin || (!!user && freeNewsViews > 0);
+  const isPremiumNews = news.importance >= 4;
+  const canView = !isPremiumNews || isSubscriber || isAdmin || (!!user && freeNewsViews > 0);
 
   const themeConf = THEME_CONFIG[news.theme || "기타"] || THEME_CONFIG["기타"];
 

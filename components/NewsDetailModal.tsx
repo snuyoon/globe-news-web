@@ -47,7 +47,8 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
   const { isSubscriber, isAdmin, canViewVip, freeNewsViews, useFreeNewsView, user } = useAuth();
   const [unlocked, setUnlocked] = useState(false);
   const [consuming, setConsuming] = useState(false);
-  const canView = isSubscriber || isAdmin || unlocked;
+  const isPremiumNews = news.importance >= 4;
+  const canView = !isPremiumNews || isSubscriber || isAdmin || unlocked;
 
   const handleUseFreeNewsView = useCallback(async () => {
     if (consuming) return;

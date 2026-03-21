@@ -28,20 +28,24 @@ export default function CompanyPage() {
   }, []);
 
   const openCard = useCallback(async (card: CardNews) => {
+    if (isAdmin) {
+      const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
+      if (data?.sample_json) setArticleCard(data as CardNews);
+      else setViewerCard(card);
+      return;
+    }
+
     if (!canView) { setShowVipModal(true); return; }
 
-    const { data } = await supabase
-      .from("card_news")
-      .select("*")
-      .eq("id", card.id)
-      .single();
-
-    if (data?.sample_json) {
-      setArticleCard(data as CardNews);
-    } else {
-      setViewerCard(card);
+    if (freeViews > 0) {
+      const ok = await useFreeView();
+      if (!ok) { setShowVipModal(true); return; }
     }
-  }, [canView]);
+
+    const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
+    if (data?.sample_json) setArticleCard(data as CardNews);
+    else setViewerCard(card);
+  }, [canView, isAdmin, freeViews, useFreeView]);
 
   useEffect(() => {
     fetchCards();
