@@ -8,7 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type CardNews = {
   id: number;
-  type: "premarket" | "morning" | "weekend";
+  type: "premarket" | "morning" | "weekend" | "company";
   date: string;
   title: string;
   slide_count: number;
