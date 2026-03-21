@@ -12,9 +12,28 @@ interface CardViewerProps {
 export default function CardViewer({ title, slideCount, baseUrl, onClose }: CardViewerProps) {
   const [current, setCurrent] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+  const [copied, setCopied] = useState(false);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  const handleShare = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement("textarea");
+      textarea.value = window.location.href;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, []);
 
   const slides = Array.from({ length: slideCount }, (_, i) => `${baseUrl}/slide_${i + 1}.png`);
 
@@ -81,17 +100,31 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm"
       style={{ touchAction: "none" }}
     >
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors"
-        aria-label="Close"
-      >
-        &times;
-      </button>
+      {/* Close + Share buttons */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <button
+          onClick={handleShare}
+          className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
+          aria-label="Share"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+            <polyline points="16 6 12 2 8 6" />
+            <line x1="12" y1="2" x2="12" y2="15" />
+          </svg>
+          {copied ? "복사됨!" : "공유"}
+        </button>
+        <button
+          onClick={onClose}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white text-xl transition-colors"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+      </div>
 
       {/* Title */}
-      <div className="absolute top-4 left-4 right-16 z-10">
+      <div className="absolute top-4 left-4 right-32 z-10">
         <h2 className="text-white text-sm md:text-base font-bold truncate">{title}</h2>
       </div>
 

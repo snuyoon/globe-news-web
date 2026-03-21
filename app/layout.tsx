@@ -3,13 +3,18 @@ import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
 
 export const metadata: Metadata = {
-  title: "US속보 - AI 미국 금융 속보",
+  title: "US속보 | AI가 선별한 실시간 미국 금융 속보",
   description:
-    "AI가 선별한 실시간 미국 금융 속보. 모닝 브리핑, 장전 브리핑, 카드뉴스를 제공합니다.",
+    "매일 AI가 분석한 미국 시장 브리핑, 실시간 속보, 주말 특별판, 기업 심층 분석",
   openGraph: {
-    title: "US속보 - AI 미국 금융 속보",
-    description: "AI가 선별한 실시간 미국 금융 속보",
+    title: "US속보 | AI가 선별한 실시간 미국 금융 속보",
+    description:
+      "매일 AI가 분석한 미국 시장 브리핑, 실시간 속보, 주말 특별판, 기업 심층 분석",
+    siteName: "US속보",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
   },
 };
 

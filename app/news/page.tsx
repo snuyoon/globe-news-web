@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
 import NewsFeed from "@/components/NewsFeed";
 import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "실시간 속보 | US속보",
+  description:
+    "AI가 선별한 글로벌 금융 뉴스를 실시간으로 확인하세요. 30초마다 자동 업데이트.",
+  openGraph: {
+    title: "실시간 속보 | US속보",
+    description:
+      "AI가 선별한 글로벌 금융 뉴스를 실시간으로 확인하세요. 30초마다 자동 업데이트.",
+    siteName: "US속보",
+  },
+  twitter: { card: "summary_large_image" },
+};
 
 export default function NewsPage() {
   return (
