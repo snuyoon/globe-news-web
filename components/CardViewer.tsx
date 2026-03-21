@@ -16,6 +16,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
   const [copied, setCopied] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [showCreditModal, setShowCreditModal] = useState(false);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -47,14 +48,14 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
   const goNext = useCallback(() => {
     if (current === 0 && needsCredit) {
       if (freeViews <= 0) {
-        onClose();
+        setShowSubscribeModal(true);
         return;
       }
       setShowCreditModal(true);
       return;
     }
     setCurrent((c) => Math.min(slideCount - 1, c + 1));
-  }, [current, needsCredit, freeViews, slideCount, onClose]);
+  }, [current, needsCredit, freeViews, slideCount]);
 
   const handleConfirmCredit = useCallback(async () => {
     const ok = await useFreeView();
@@ -253,6 +254,35 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
               >
                 열람하기
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 구독 안내 모달 (크레딧 0) */}
+      {showSubscribeModal && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60">
+          <div className="bg-[#1a1a2e] border border-[var(--border)] rounded-2xl p-6 mx-4 max-w-sm w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <span className="text-3xl mb-2 block">🔒</span>
+              <h3 className="text-base font-bold text-white mb-1">무료 체험이 끝났습니다</h3>
+              <p className="text-sm text-[var(--text-muted)]">
+                구독하면 모든 카드뉴스를 무제한으로 볼 수 있어요
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowSubscribeModal(false); onClose(); }}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-muted)] bg-[var(--bg)] hover:bg-[var(--border)] transition-colors"
+              >
+                닫기
+              </button>
+              <a
+                href="/#subscribe"
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-black bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] hover:opacity-90 transition-opacity text-center"
+              >
+                구독하기
+              </a>
             </div>
           </div>
         </div>
