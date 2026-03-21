@@ -3,7 +3,7 @@
 export type EyeStyle = "dot" | "round" | "happy" | "star" | "wink" | "sparkle";
 export type HairStyle = "bangs" | "parted" | "none" | "curly" | "spiky" | "bob";
 export type FrameStyle = "none" | "gold" | "diamond" | "flame";
-export type AccessoryStyle = "none" | "sunglasses" | "glasses";
+export type AccessoryStyle = "none" | "sunglasses" | "glasses" | "aviator" | "monocle";
 export type SkinTone = "#fce4c8" | "#f5d0a9" | "#c68642" | "#8d5524";
 
 export const SKIN_TONES: { label: string; value: SkinTone }[] = [
@@ -189,6 +189,25 @@ function Accessory({ style, cx, cy, s }: { style: AccessoryStyle; cx: number; cy
           <line x1={cx - gap + 6.5 * s} y1={cy} x2={cx + gap - 6.5 * s} y2={cy} stroke="#8b7355" strokeWidth={1 * s} />
           <line x1={cx - gap - 6.5 * s} y1={cy - 1 * s} x2={cx - gap - 9 * s} y2={cy - 3 * s} stroke="#8b7355" strokeWidth={1 * s} strokeLinecap="round" />
           <line x1={cx + gap + 6.5 * s} y1={cy - 1 * s} x2={cx + gap + 9 * s} y2={cy - 3 * s} stroke="#8b7355" strokeWidth={1 * s} strokeLinecap="round" />
+        </g>
+      );
+    case "aviator":
+      return (
+        <g>
+          <ellipse cx={cx - gap} cy={cy + 1 * s} rx={7 * s} ry={6 * s} fill="#1a1a2e" opacity={0.75} />
+          <ellipse cx={cx + gap} cy={cy + 1 * s} rx={7 * s} ry={6 * s} fill="#1a1a2e" opacity={0.75} />
+          <line x1={cx - gap + 7 * s} y1={cy - 1 * s} x2={cx + gap - 7 * s} y2={cy - 1 * s} stroke="#f0b90b" strokeWidth={1.2 * s} />
+          <line x1={cx - gap - 7 * s} y1={cy - 2 * s} x2={cx - gap - 10 * s} y2={cy - 4 * s} stroke="#f0b90b" strokeWidth={1.2 * s} strokeLinecap="round" />
+          <line x1={cx + gap + 7 * s} y1={cy - 2 * s} x2={cx + gap + 10 * s} y2={cy - 4 * s} stroke="#f0b90b" strokeWidth={1.2 * s} strokeLinecap="round" />
+          <ellipse cx={cx - gap - 1 * s} cy={cy - 1 * s} rx={2 * s} ry={1 * s} fill="white" opacity={0.2} />
+          <ellipse cx={cx + gap - 1 * s} cy={cy - 1 * s} rx={2 * s} ry={1 * s} fill="white" opacity={0.2} />
+        </g>
+      );
+    case "monocle":
+      return (
+        <g>
+          <circle cx={cx + gap} cy={cy} r={7 * s} fill="none" stroke="#f0b90b" strokeWidth={1.2 * s} />
+          <line x1={cx + gap} y1={cy + 7 * s} x2={cx + gap - 2 * s} y2={cy + 14 * s} stroke="#f0b90b" strokeWidth={0.8 * s} strokeLinecap="round" />
         </g>
       );
   }

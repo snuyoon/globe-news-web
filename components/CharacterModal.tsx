@@ -49,6 +49,8 @@ const ACCESSORY_OPTIONS: { label: string; value: AccessoryStyle }[] = [
   { label: "없음", value: "none" },
   { label: "선글라스", value: "sunglasses" },
   { label: "안경", value: "glasses" },
+  { label: "에비에이터", value: "aviator" },
+  { label: "모노클", value: "monocle" },
 ];
 
 export interface SeatData {

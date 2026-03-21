@@ -133,7 +133,7 @@ export default function TheaterSeats() {
       seat_number: nextNum,
       character_data: data,
       topic_request: topicRequest || null,
-      payment_status: "test",
+      payment_status: "active",
       is_lucky: lucky,
     }, { onConflict: "user_id" });
 
