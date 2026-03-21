@@ -211,7 +211,7 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 pb-24 min-h-full">
+        <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-12 pb-24 min-h-full flex flex-col justify-center">
           {pages[current].render()}
         </div>
       </div>
@@ -278,7 +278,7 @@ function HeroHeader({ data }: { data: SampleJson }) {
   const coverImage = data.cover.cover_image;
 
   return (
-    <section className="text-center pt-8 md:pt-16 relative overflow-hidden rounded-2xl">
+    <section className="text-center py-12 md:py-20 relative overflow-hidden rounded-2xl">
       {/* 블러 배경 이미지 */}
       {coverImage && (
         <div
@@ -334,7 +334,7 @@ function HeroHeader({ data }: { data: SampleJson }) {
 /* ── B. 지수 카드 ── */
 function IndicatorsSection({ data }: { data: SampleJson }) {
   return (
-    <section>
+    <section className="py-4">
       <SectionBadge label={data.indicators_label || "ECONOMIC DATA"} />
       <h2 className="text-xl md:text-2xl font-bold mb-6">
         <Markup text={data.indicators_title || "주요 경제 지표"} />
@@ -369,7 +369,7 @@ function EarningsSection({ section }: { section: EarningsSection }) {
   };
 
   return (
-    <section>
+    <section className="py-4">
       <SectionBadge label={section.cat_label || "EARNINGS"} />
       {section.title && (
         <h2
@@ -405,7 +405,7 @@ function EarningsSection({ section }: { section: EarningsSection }) {
 /* ── D. Explainer 섹션 ── */
 function ExplainerSection({ explainer }: { explainer: Explainer }) {
   return (
-    <section>
+    <section className="py-4">
       <SectionBadge label={explainer.badge || "주린이 설명서"} />
       <h2 className="text-xl md:text-2xl font-bold mb-6">
         <Markup text={explainer.title} />
@@ -640,7 +640,7 @@ function ChecklistRenderer({ items }: { items: ChecklistItem[] }) {
 /* ── E. 체크포인트 ── */
 function CheckpointsSection({ checkpoints }: { checkpoints: Checkpoint[] }) {
   return (
-    <section>
+    <section className="py-4">
       <SectionBadge label="CHECKPOINTS" />
       <h2 className="text-xl md:text-2xl font-bold mb-6">오늘의 체크포인트</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -708,7 +708,7 @@ function BottomCTA({ handle }: { handle: string }) {
 /* ── 공통: 섹션 뱃지 ── */
 function SectionBadge({ label }: { label: string }) {
   return (
-    <span className="inline-block text-[10px] font-bold tracking-[0.15em] text-[#f0b90b] bg-[#f0b90b]/10 px-2.5 py-1 rounded-full mb-3">
+    <span className="inline-block text-[10px] font-bold tracking-[0.15em] text-[#f0b90b] bg-[#f0b90b]/10 px-2.5 py-1 rounded-full mb-4">
       {label}
     </span>
   );
