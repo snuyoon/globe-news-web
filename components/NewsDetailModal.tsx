@@ -34,6 +34,13 @@ const THEME_CONFIG: Record<string, { icon: string; color: string; label: string 
   "기타":     { icon: "📰", color: "#6b7280", label: "기타" },
 };
 
+const SECTION_META: Record<string, { icon: string; color: string }> = {
+  "배경": { icon: "📋", color: "#3b82f6" },
+  "영향": { icon: "💥", color: "#ef4444" },
+  "관련": { icon: "🔗", color: "#22c55e" },
+  "전망": { icon: "🔮", color: "#a855f7" },
+};
+
 function timeAgo(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -42,6 +49,27 @@ function timeAgo(dateStr: string): string {
   if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
   return `${Math.floor(diff / 86400)}일 전`;
+}
+
+function parseWebDetail(text: string): { title: string; content: string }[] {
+  const sections: { title: string; content: string }[] = [];
+  const pattern = /^(배경|영향|관련|전망)\s*[:：]/gm;
+  const matches = [...text.matchAll(pattern)];
+
+  if (matches.length === 0) {
+    return [{ title: "", content: text }];
+  }
+
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].index! + matches[i][0].length;
+    const end = i + 1 < matches.length ? matches[i + 1].index! : text.length;
+    sections.push({
+      title: matches[i][1],
+      content: text.slice(start, end).trim(),
+    });
+  }
+
+  return sections;
 }
 
 export default function NewsDetailModal({ news, onClose }: { news: News; onClose: () => void }) {
@@ -67,7 +95,8 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
   const headline = lines[0] || "";
   const body = lines.slice(1).join("\n");
 
-  // ESC로 닫기 + body 스크롤 잠금
+  const detailSections = news.web_detail ? parseWebDetail(news.web_detail) : [];
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handleKey);
@@ -77,6 +106,8 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
       document.body.style.overflow = "";
     };
   }, [onClose]);
+
+  const tweetUrl = news.tweet_id ? `https://x.com/US_sokbo/status/${news.tweet_id}` : null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto" onClick={onClose}>
@@ -151,25 +182,62 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
                   </button>
                 ) : (
                   <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-sm font-bold hover:opacity-90 shadow-lg">
-                    🔒 구독하고 전체 내용 보기
+                    구독하고 전체 내용 보기
                   </a>
                 )}
               </div>
             </div>
           )}
 
-          {/* 상세 분석 */}
+          {/* 상세 분석 — 카드형 */}
           {news.web_detail && canView && (
-            <div className="border-t border-[var(--border)] pt-5">
-              <h2 className="text-base font-bold text-[#f0b90b] mb-4">📊 상세 분석</h2>
-              <div className="text-[15px] text-[var(--text)] leading-[1.8] whitespace-pre-line">{news.web_detail}</div>
+            <div className="mt-2 mb-2">
+              <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[var(--border)]">
+                <span className="text-lg">📊</span>
+                <h2 className="text-base font-bold text-[#f0b90b]">상세 분석</h2>
+              </div>
+
+              {detailSections.length === 1 && !detailSections[0].title ? (
+                /* 섹션 구분 없는 경우 — 기존처럼 표시 */
+                <div className="text-[15px] text-[var(--text)] leading-[1.8] whitespace-pre-line">
+                  {detailSections[0].content}
+                </div>
+              ) : (
+                /* 섹션별 카드 */
+                <div className="flex flex-col gap-4">
+                  {detailSections.map((section, i) => {
+                    const meta = SECTION_META[section.title] || { icon: "📌", color: "#6b7280" };
+                    return (
+                      <div
+                        key={i}
+                        className="rounded-xl p-4 md:p-5"
+                        style={{ backgroundColor: "var(--bg)", borderLeft: `3px solid ${meta.color}` }}
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-base">{meta.icon}</span>
+                          <h3 className="text-sm font-bold" style={{ color: meta.color }}>
+                            {section.title}
+                          </h3>
+                        </div>
+                        <p className="text-[14px] text-[var(--text-muted)] leading-[1.8] whitespace-pre-line">
+                          {section.content}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
+
           {news.web_detail && !canView && (
-            <div className="border-t border-[var(--border)] pt-5 relative rounded-lg overflow-hidden">
-              <h2 className="text-base font-bold text-[#f0b90b] mb-4">📊 상세 분석</h2>
+            <div className="relative rounded-xl overflow-hidden mt-2 mb-2 p-5" style={{ backgroundColor: "var(--bg)" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">📊</span>
+                <h2 className="text-base font-bold text-[#f0b90b]">상세 분석</h2>
+              </div>
               <p className="text-[15px] leading-[1.8] whitespace-pre-line select-none line-clamp-4" style={{ filter: "blur(8px)" }}>{news.web_detail}</p>
-              <div className="absolute inset-0 top-10 flex flex-col items-center justify-center gap-3 bg-[var(--card)]/60">
+              <div className="absolute inset-0 top-10 flex flex-col items-center justify-center gap-3 bg-[var(--bg)]/80">
                 {!user ? (
                   <>
                     <p className="text-sm text-[var(--text-muted)] text-center">회원가입만 하면 <strong className="text-[#3b82f6]">뉴스 5건 무료</strong> 열람!</p>
@@ -187,21 +255,38 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
                   </button>
                 ) : (
                   <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-sm font-bold hover:opacity-90 shadow-lg">
-                    🔒 구독하고 상세 분석 보기
+                    구독하고 상세 분석 보기
                   </a>
                 )}
               </div>
             </div>
           )}
 
-          {/* 스크랩 */}
-          <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between">
-            <NewsScrapButton newsId={news.id} />
-            {news.url && (
-              <a href={news.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">
-                원문 보기 &rarr;
-              </a>
-            )}
+          {/* 하단 액션 바 */}
+          <div className="mt-6 pt-5 border-t border-[var(--border)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <NewsScrapButton newsId={news.id} />
+                {tweetUrl && (
+                  <a href={tweetUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                    X에서 보기
+                  </a>
+                )}
+                {news.url && (
+                  <a href={news.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                    원문 보기
+                  </a>
+                )}
+              </div>
+              <button
+                onClick={onClose}
+                className="text-xs text-[var(--text-muted)] hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-[var(--bg)]"
+              >
+                닫기
+              </button>
+            </div>
           </div>
         </div>
       </div>
