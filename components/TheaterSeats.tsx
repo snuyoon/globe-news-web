@@ -126,7 +126,7 @@ export default function TheaterSeats() {
 
     const lucky = LUCKY_NUMBERS.has(nextNum);
 
-    const { error } = await supabase.from("subscribers").insert({
+    const { error } = await supabase.from("subscribers").upsert({
       user_id: user.id,
       email: user.email,
       name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
@@ -135,7 +135,7 @@ export default function TheaterSeats() {
       topic_request: topicRequest || null,
       payment_status: "test",
       is_lucky: lucky,
-    });
+    }, { onConflict: "user_id" });
 
     if (error) {
       console.error("착석 실패:", error);

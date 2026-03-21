@@ -19,6 +19,8 @@ const EYE_OPTIONS: { label: string; value: EyeStyle }[] = [
   { label: "O", value: "round" },
   { label: "^", value: "happy" },
   { label: "*", value: "star" },
+  { label: ";)", value: "wink" },
+  { label: "**", value: "sparkle" },
 ];
 
 const HAIR_OPTIONS: { label: string; value: HairStyle }[] = [
@@ -26,6 +28,8 @@ const HAIR_OPTIONS: { label: string; value: HairStyle }[] = [
   { label: "가르마", value: "parted" },
   { label: "없음", value: "none" },
   { label: "곱슬", value: "curly" },
+  { label: "뾰족", value: "spiky" },
+  { label: "단발", value: "bob" },
 ];
 
 interface CharacterModalProps {
