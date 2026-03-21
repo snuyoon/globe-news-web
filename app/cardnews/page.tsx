@@ -47,8 +47,7 @@ export default function CardNewsPage() {
   const [viewerCard, setViewerCard] = useState<CardNews | null>(null);
   const [articleCard, setArticleCard] = useState<CardNews | null>(null);
   const [showVipModal, setShowVipModal] = useState(false);
-  const { canViewVip, useFreeView, freeViews, user, isAdmin } = useAuth();
-  const canView = canViewVip;
+  const { isSubscriber, useFreeView, freeViews, user, isAdmin } = useAuth();
   const weekDates = getWeekDates();
 
   const fetchCards = useCallback(async (type: CardNews["type"]) => {
@@ -63,30 +62,27 @@ export default function CardNewsPage() {
   }, []);
 
   const openCard = useCallback(async (card: CardNews) => {
-    // 구독자/관리자는 바로 열림
-    if (isAdmin) {
+    // 관리자/구독자는 바로 열림
+    if (isAdmin || isSubscriber) {
       const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
       if (data?.sample_json) setArticleCard(data as CardNews);
       else setViewerCard(card);
       return;
     }
 
-    // 비구독자: 무료 크레딧 확인
-    if (!canView) {
+    // 비구독자: 무료 크레딧 1건 차감
+    if (freeViews <= 0) {
       setShowVipModal(true);
       return;
     }
 
-    // 무료 크레딧으로 열기 (구독자가 아닌 경우에만 차감)
-    if (!isAdmin && freeViews > 0) {
-      const ok = await useFreeView();
-      if (!ok) { setShowVipModal(true); return; }
-    }
+    const ok = await useFreeView();
+    if (!ok) { setShowVipModal(true); return; }
 
     const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
     if (data?.sample_json) setArticleCard(data as CardNews);
     else setViewerCard(card);
-  }, [canView, isAdmin, freeViews, useFreeView]);
+  }, [isAdmin, isSubscriber, freeViews, useFreeView]);
 
   useEffect(() => {
     setLoading(true);

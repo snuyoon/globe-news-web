@@ -77,10 +77,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
     const { data } = await supabase
       .from("subscribers")
-      .select("id, free_views, free_news_views")
+      .select("id, free_views, free_news_views, payment_status")
       .eq("user_id", u.id)
       .maybeSingle();
-    setIsSubscriber(!!data);
+    setIsSubscriber(!!data && data.payment_status === "active");
     setFreeViews(data?.free_views ?? 0);
     setFreeNewsViews(data?.free_news_views ?? 0);
 

@@ -14,8 +14,7 @@ export default function CompanyPage() {
   const [viewerCard, setViewerCard] = useState<CardNews | null>(null);
   const [articleCard, setArticleCard] = useState<CardNews | null>(null);
   const [showVipModal, setShowVipModal] = useState(false);
-  const { canViewVip, useFreeView, freeViews, user, isAdmin } = useAuth();
-  const canView = canViewVip;
+  const { isSubscriber, useFreeView, freeViews, user, isAdmin } = useAuth();
 
   const fetchCards = useCallback(async () => {
     const { data } = await supabase
@@ -29,24 +28,22 @@ export default function CompanyPage() {
   }, []);
 
   const openCard = useCallback(async (card: CardNews) => {
-    if (isAdmin) {
+    if (isAdmin || isSubscriber) {
       const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
       if (data?.sample_json) setArticleCard(data as CardNews);
       else setViewerCard(card);
       return;
     }
 
-    if (!canView) { setShowVipModal(true); return; }
+    if (freeViews <= 0) { setShowVipModal(true); return; }
 
-    if (freeViews > 0) {
-      const ok = await useFreeView();
-      if (!ok) { setShowVipModal(true); return; }
-    }
+    const ok = await useFreeView();
+    if (!ok) { setShowVipModal(true); return; }
 
     const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
     if (data?.sample_json) setArticleCard(data as CardNews);
     else setViewerCard(card);
-  }, [canView, isAdmin, freeViews, useFreeView]);
+  }, [isAdmin, isSubscriber, freeViews, useFreeView]);
 
   useEffect(() => {
     fetchCards();
