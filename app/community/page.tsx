@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import { grantXp } from "@/lib/xp";
+import Character from "@/components/Character";
 
 interface Post {
   id: number;
@@ -16,7 +17,11 @@ interface Post {
   author_name?: string;
   author_seat?: number | null;
   author_level?: number;
+  author_character?: Record<string, string> | null;
   comment_count?: number;
+  like_count?: number;
+  liked_by_me?: boolean;
+  is_hot?: boolean;
 }
 
 interface Comment {
@@ -28,6 +33,7 @@ interface Comment {
   author_name?: string;
   author_seat?: number | null;
   author_level?: number;
+  author_character?: Record<string, string> | null;
 }
 
 const LEVEL_NAMES: Record<number, { name: string; color: string }> = {
@@ -46,16 +52,30 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}일 전`;
 }
 
-function AuthorBadge({ name, seat, level }: { name: string; seat?: number | null; level?: number }) {
+function AuthorBadge({ name, seat, level, characterData }: { name: string; seat?: number | null; level?: number; characterData?: Record<string, string> | null }) {
   const lvl = LEVEL_NAMES[level || 1] || LEVEL_NAMES[1];
   return (
     <div className="flex items-center gap-2">
-      <div
-        className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold"
-        style={{ backgroundColor: `${lvl.color}20`, color: lvl.color }}
-      >
-        {name[0]?.toUpperCase() || "?"}
-      </div>
+      {characterData ? (
+        <div className="w-8 h-8 flex-shrink-0">
+          <Character
+            hoodieColor={characterData.hoodieColor || "#2d2d3d"}
+            eyeStyle={(characterData.eyeStyle as "dot") || "dot"}
+            hairStyle={(characterData.hairStyle as "bangs") || "bangs"}
+            skinTone={(characterData.skinTone as "#fce4c8") || "#fce4c8"}
+            accessory={(characterData.accessory as "none") || "none"}
+            initial={characterData.initial || name[0]?.toUpperCase() || "?"}
+            size={32}
+          />
+        </div>
+      ) : (
+        <div
+          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+          style={{ backgroundColor: `${lvl.color}20`, color: lvl.color }}
+        >
+          {name[0]?.toUpperCase() || "?"}
+        </div>
+      )}
       <div className="flex items-center gap-1.5">
         {seat && <span className="text-[11px] text-[var(--text-muted)]">#{seat}</span>}
         <span className="text-[12px] font-medium">{name}</span>
@@ -97,33 +117,60 @@ export default function CommunityPage() {
     const userIds = [...new Set(postRows.map((p) => p.user_id))];
     const { data: subs } = await supabase
       .from("subscribers")
-      .select("user_id, name, email, seat_number, level")
+      .select("user_id, name, email, seat_number, level, character_data")
       .in("user_id", userIds);
 
     const subMap = new Map((subs || []).map((s) => [s.user_id, s]));
 
-    // 댓글 수
+    // 댓글 수 + 좋아요 수
     const postIds = postRows.map((p) => p.id);
-    const { data: commentCounts } = await supabase
-      .from("comments")
-      .select("post_id")
-      .in("post_id", postIds);
+    const [{ data: commentCounts }, { data: likeCounts }, { data: myLikes }] = await Promise.all([
+      supabase.from("comments").select("post_id").in("post_id", postIds),
+      supabase.from("post_likes").select("post_id").in("post_id", postIds),
+      user
+        ? supabase.from("post_likes").select("post_id").eq("user_id", user.id).in("post_id", postIds)
+        : Promise.resolve({ data: [] as { post_id: number }[] }),
+    ]);
 
-    const countMap = new Map<number, number>();
+    const commentCountMap = new Map<number, number>();
     (commentCounts || []).forEach((c) => {
-      countMap.set(c.post_id, (countMap.get(c.post_id) || 0) + 1);
+      commentCountMap.set(c.post_id, (commentCountMap.get(c.post_id) || 0) + 1);
     });
 
-    setPosts(postRows.map((p) => {
+    const likeCountMap = new Map<number, number>();
+    (likeCounts || []).forEach((l) => {
+      likeCountMap.set(l.post_id, (likeCountMap.get(l.post_id) || 0) + 1);
+    });
+
+    const myLikeSet = new Set((myLikes || []).map((l) => l.post_id));
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const HOT_THRESHOLD = 3;
+
+    const mapped = postRows.map((p) => {
       const sub = subMap.get(p.user_id);
+      const likes = likeCountMap.get(p.id) || 0;
+      const isRecent = new Date(p.created_at).getTime() > oneWeekAgo;
       return {
         ...p,
         author_name: sub?.name || sub?.email?.split("@")[0] || "익명",
         author_seat: sub?.seat_number,
         author_level: sub?.level || 1,
-        comment_count: countMap.get(p.id) || 0,
+        author_character: sub?.character_data || null,
+        comment_count: commentCountMap.get(p.id) || 0,
+        like_count: likes,
+        liked_by_me: myLikeSet.has(p.id),
+        is_hot: isRecent && likes >= HOT_THRESHOLD,
       };
-    }));
+    });
+
+    // 정렬: 공지 → 핫게시글 → 최신순
+    mapped.sort((a, b) => {
+      if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+      if (a.is_hot !== b.is_hot) return a.is_hot ? -1 : 1;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    setPosts(mapped);
     setLoadingPosts(false);
   }, []);
 
@@ -140,7 +187,7 @@ export default function CommunityPage() {
     const userIds = [...new Set(commentRows.map((c) => c.user_id))];
     const { data: subs } = await supabase
       .from("subscribers")
-      .select("user_id, name, email, seat_number, level")
+      .select("user_id, name, email, seat_number, level, character_data")
       .in("user_id", userIds);
 
     const subMap = new Map((subs || []).map((s) => [s.user_id, s]));
@@ -152,10 +199,30 @@ export default function CommunityPage() {
         author_name: sub?.name || sub?.email?.split("@")[0] || "익명",
         author_seat: sub?.seat_number,
         author_level: sub?.level || 1,
+        author_character: sub?.character_data || null,
       };
     }));
     setLoadingComments(false);
   }, []);
+
+  const toggleLike = useCallback(async (postId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) return;
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
+
+    if (post.liked_by_me) {
+      await supabase.from("post_likes").delete().eq("post_id", postId).eq("user_id", user.id);
+    } else {
+      await supabase.from("post_likes").insert({ post_id: postId, user_id: user.id });
+    }
+    // 로컬 업데이트
+    setPosts((prev) => prev.map((p) =>
+      p.id === postId
+        ? { ...p, liked_by_me: !p.liked_by_me, like_count: (p.like_count || 0) + (p.liked_by_me ? -1 : 1) }
+        : p
+    ));
+  }, [user, posts]);
 
   useEffect(() => {
     fetchPosts();
@@ -279,12 +346,22 @@ export default function CommunityPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       {post.is_pinned && <span className="text-[11px] font-bold text-[#f0b90b] bg-[#f0b90b]/10 px-2 py-0.5 rounded-full">&#x1F4CC; 공지</span>}
+                      {post.is_hot && <span className="text-[11px] font-bold text-[#ef4444] bg-[#ef4444]/10 px-2 py-0.5 rounded-full">HOT</span>}
                       <h3 className="text-sm font-bold line-clamp-1">{post.title}</h3>
                     </div>
                     <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3">{post.body}</p>
                     <div className="flex items-center justify-between">
-                      <AuthorBadge name={post.author_name || "익명"} seat={post.author_seat} level={post.author_level} />
+                      <AuthorBadge name={post.author_name || "익명"} seat={post.author_seat} level={post.author_level} characterData={post.author_character} />
                       <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
+                        <button
+                          onClick={(e) => toggleLike(post.id, e)}
+                          className={`flex items-center gap-1 transition-colors ${post.liked_by_me ? "text-[#ef4444]" : "hover:text-[#ef4444]"}`}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill={post.liked_by_me ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          {(post.like_count || 0) > 0 && <span>{post.like_count}</span>}
+                        </button>
                         <span>&#x1F4AC; {post.comment_count}</span>
                         <span>{timeAgo(post.created_at)}</span>
                       </div>
@@ -318,7 +395,7 @@ export default function CommunityPage() {
                 <h1 className="text-lg md:text-xl font-bold mb-3">{selectedPost.title}</h1>
 
                 <div className="flex items-center justify-between mb-5">
-                  <AuthorBadge name={selectedPost.author_name || "익명"} seat={selectedPost.author_seat} level={selectedPost.author_level} />
+                  <AuthorBadge name={selectedPost.author_name || "익명"} seat={selectedPost.author_seat} level={selectedPost.author_level} characterData={selectedPost.author_character} />
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] text-[var(--text-muted)]">{timeAgo(selectedPost.created_at)}</span>
                     {(isAdmin || user?.id === selectedPost.user_id) && (
@@ -328,8 +405,28 @@ export default function CommunityPage() {
                 </div>
 
                 {/* 본문 */}
-                <div className="text-sm text-[var(--text-muted)] leading-relaxed whitespace-pre-line mb-6 pb-6 border-b border-[var(--border)]">
+                <div className="text-sm text-[var(--text-muted)] leading-relaxed whitespace-pre-line mb-4">
                   {selectedPost.body}
+                </div>
+
+                {/* 따봉 */}
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-[var(--border)]">
+                  <button
+                    onClick={(e) => toggleLike(selectedPost.id, e)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                      selectedPost.liked_by_me
+                        ? "border-[#ef4444]/30 bg-[#ef4444]/10 text-[#ef4444]"
+                        : "border-[var(--border)] text-[var(--text-muted)] hover:border-[#ef4444]/30 hover:text-[#ef4444]"
+                    }`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill={selectedPost.liked_by_me ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    추천 {(selectedPost.like_count || 0) > 0 && selectedPost.like_count}
+                  </button>
+                  {selectedPost.is_hot && (
+                    <span className="text-[12px] font-bold text-[#ef4444] bg-[#ef4444]/10 px-3 py-1.5 rounded-full">HOT</span>
+                  )}
                 </div>
 
                 {/* 댓글 */}
@@ -344,7 +441,7 @@ export default function CommunityPage() {
                     {comments.map((c) => (
                       <div key={c.id} className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg)" }}>
                         <div className="flex items-center justify-between mb-2">
-                          <AuthorBadge name={c.author_name || "익명"} seat={c.author_seat} level={c.author_level} />
+                          <AuthorBadge name={c.author_name || "익명"} seat={c.author_seat} level={c.author_level} characterData={c.author_character} />
                           <span className="text-[11px] text-[var(--text-muted)]">{timeAgo(c.created_at)}</span>
                         </div>
                         <p className="text-sm text-[var(--text-muted)] leading-relaxed">{c.body}</p>
