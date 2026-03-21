@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Footer from "@/components/Footer";
 import CardViewer from "@/components/CardViewer";
 import CardArticle from "@/components/CardArticle";
+import CardActions from "@/components/CardActions";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase, type CardNews } from "@/lib/supabase";
 
@@ -42,6 +43,7 @@ export default function CardNewsPage() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [cards, setCards] = useState<CardNews[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllDates, setShowAllDates] = useState(false);
   const [viewerCard, setViewerCard] = useState<CardNews | null>(null);
   const [articleCard, setArticleCard] = useState<CardNews | null>(null);
   const [showVipModal, setShowVipModal] = useState(false);
@@ -146,9 +148,53 @@ export default function CardNewsPage() {
           ))}
         </div>
 
-        {/* 요일 선택 (주말 특별판은 제외) */}
-        {activeTab !== "weekend" && (
-        <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2 no-scrollbar">
+        {/* 날짜 선택 */}
+        {activeTab !== "weekend" ? (
+          <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2 no-scrollbar items-center">
+            {/* 오늘 버튼 (항상 표시) */}
+            {weekDates.filter((d) => d.isToday).map((day) => (
+              <button
+                key={day.date}
+                onClick={() => { setSelectedDay(selectedDay === day.date ? null : day.date); }}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  !selectedDay || selectedDay === day.date
+                    ? "bg-[#f0b90b]/20 text-[#f0b90b] border border-[#f0b90b]/30"
+                    : "bg-[var(--card)] text-[var(--text-muted)] border border-[var(--border)]"
+                }`}
+              >
+                오늘 ({day.label})
+              </button>
+            ))}
+
+            {/* 이전 날짜 토글 */}
+            <button
+              onClick={() => setShowAllDates(!showAllDates)}
+              className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--card)] text-[var(--text-muted)] border border-[var(--border)] hover:text-white transition-all"
+            >
+              {showAllDates ? "접기" : "이전 날짜 ▾"}
+            </button>
+
+            {/* 나머지 날짜 (펼침 시) */}
+            {showAllDates && weekDates.filter((d) => !d.isToday).map((day) => (
+              <button
+                key={day.date}
+                onClick={() => setSelectedDay(day.date)}
+                className={`relative flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  selectedDay === day.date
+                    ? "bg-[#f0b90b]/20 text-[#f0b90b] border border-[#f0b90b]/30"
+                    : "bg-[var(--card)] text-[var(--text-muted)] border border-[var(--border)] hover:text-white"
+                }`}
+              >
+                {day.label}
+                {datesWithCards.has(day.date) && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#f0b90b]" />
+                )}
+              </button>
+            ))}
+          </div>
+        ) : (
+          /* 주말 특별판: 주차 단위 */
+          <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2 no-scrollbar">
             <button
               onClick={() => setSelectedDay(null)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -159,25 +205,6 @@ export default function CardNewsPage() {
             >
               전체
             </button>
-            {weekDates.map((day) => (
-              <button
-                key={day.date}
-                onClick={() => setSelectedDay(day.date)}
-                className={`relative flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  selectedDay === day.date
-                    ? "bg-[#f0b90b]/20 text-[#f0b90b] border border-[#f0b90b]/30"
-                    : day.isToday
-                      ? "bg-[var(--card)] text-white border border-[var(--text-muted)]/30"
-                      : "bg-[var(--card)] text-[var(--text-muted)] border border-[var(--border)] hover:text-white"
-                }`}
-              >
-                {day.label}
-                {day.isToday && <span className="ml-1 text-[#f0b90b]">·</span>}
-                {datesWithCards.has(day.date) && (
-                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#f0b90b]" />
-                )}
-              </button>
-            ))}
           </div>
         )}
 
@@ -250,6 +277,7 @@ export default function CardNewsPage() {
                       </span>
                     )}
                   </div>
+                  <CardActions cardId={card.id} />
                 </div>
               </button>
             ))

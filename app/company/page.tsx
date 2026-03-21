@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Footer from "@/components/Footer";
 import CardViewer from "@/components/CardViewer";
 import CardArticle from "@/components/CardArticle";
+import CardActions from "@/components/CardActions";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase, type CardNews } from "@/lib/supabase";
 
@@ -141,6 +142,7 @@ export default function CompanyPage() {
                       </span>
                     )}
                   </div>
+                  <CardActions cardId={card.id} />
                 </div>
               </button>
             ))
