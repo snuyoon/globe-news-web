@@ -465,10 +465,23 @@ function QnaRenderer({ items }: { items: Qna[] }) {
                 {qa.web_extended && (
                   <div className="mt-4">
                     <button
-                      onClick={() => setDeepDiveOpen((prev) => ({ ...prev, [i]: !prev[i] }))}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors"
+                      onClick={() => {
+                        setDeepDiveOpen((prev) => ({ ...prev, [i]: !prev[i] }));
+                        if (typeof window !== "undefined" && !deepDiveOpen[i]) {
+                          const count = parseInt(localStorage.getItem("dd_seen") || "0", 10);
+                          localStorage.setItem("dd_seen", String(count + 1));
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1.5 text-xs font-bold text-[#a78bfa] hover:text-[#c4b5fd] transition-colors ${
+                        !deepDiveOpen[i] && (typeof window === "undefined" || parseInt(localStorage.getItem("dd_seen") || "0", 10) < 5)
+                          ? "animate-pulse"
+                          : ""
+                      }`}
                     >
                       <span>Deep Dive</span>
+                      {!deepDiveOpen[i] && (typeof window === "undefined" || parseInt(localStorage.getItem("dd_seen") || "0", 10) < 5) && (
+                        <span className="text-[10px] text-[#a78bfa]/70 ml-1">눌러서 상세 분석 보기</span>
+                      )}
                       <svg
                         width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                         className={`transition-transform duration-200 ${deepDiveOpen[i] ? "rotate-180" : ""}`}
