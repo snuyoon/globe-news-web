@@ -40,7 +40,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [tabBarHidden, setTabBarHidden] = useState(false);
-  const { user, loading, isAdmin, isInAppBrowser, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, isAdmin, isSubscriber, isInAppBrowser, signInWithGoogle, signOut } = useAuth();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -93,13 +93,19 @@ export default function Navbar() {
               {ADMIN_LINK.label}
             </a>
           )}
-          <a
-            href="/#subscribe"
-            onClick={handleSubscribeClick}
-            className="ml-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity"
-          >
-            구독하기
-          </a>
+          {isSubscriber ? (
+            <span className="ml-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold">
+              PRO
+            </span>
+          ) : (
+            <a
+              href="/#subscribe"
+              onClick={handleSubscribeClick}
+              className="ml-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity"
+            >
+              구독하기
+            </a>
+          )}
 
           {/* Auth 영역 */}
           {!loading && (
@@ -156,7 +162,7 @@ export default function Navbar() {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-[#333] text-[12px] font-semibold hover:bg-gray-100 transition-colors"
                 >
                   <GoogleIcon />
-                  로그인
+                  회원가입하기
                 </button>
               )}
             </>
@@ -214,16 +220,22 @@ export default function Navbar() {
                 {ADMIN_LINK.label}
               </a>
             )}
-            <a
-              href="/#subscribe"
-              onClick={(e) => {
-                setMenuOpen(false);
-                handleSubscribeClick(e);
-              }}
-              className="mt-1 px-4 py-2 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold text-center"
-            >
-              구독하기
-            </a>
+            {isSubscriber ? (
+              <span className="mt-1 px-4 py-2 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold text-center inline-block">
+                PRO
+              </span>
+            ) : (
+              <a
+                href="/#subscribe"
+                onClick={(e) => {
+                  setMenuOpen(false);
+                  handleSubscribeClick(e);
+                }}
+                className="mt-1 px-4 py-2 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold text-center"
+              >
+                구독하기
+              </a>
+            )}
 
             {/* Mobile Auth */}
             {!loading && (
@@ -268,7 +280,7 @@ export default function Navbar() {
                     className="flex items-center justify-center gap-2 mt-1 px-4 py-2 rounded-full bg-white text-[#333] text-[13px] font-semibold"
                   >
                     <GoogleIcon />
-                    구글 로그인
+                    회원가입하기
                   </button>
                 )}
               </>
