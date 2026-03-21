@@ -30,7 +30,7 @@ interface Checkpoint { num: string; title: string; desc: string; }
 
 interface SampleJson {
   meta: { date: string; day: string; handle: string; cover_title: string; cover_sub: string; brief_label: string; total_slides: number; };
-  cover: { headline: string; tickers: Ticker[]; };
+  cover: { headline: string; tickers: Ticker[]; cover_image?: string; };
   indicators: Indicator[];
   indicators_label: string;
   indicators_title: string;
@@ -275,42 +275,58 @@ function Divider() {
 
 /* ── A. 히어로 헤더 ── */
 function HeroHeader({ data }: { data: SampleJson }) {
+  const coverImage = data.cover.cover_image;
+
   return (
-    <section className="text-center pt-8 md:pt-16">
-      {/* brief_label 뱃지 */}
-      <span className="inline-block text-xs font-bold tracking-[0.2em] text-[#f0b90b] bg-[#f0b90b]/10 px-3 py-1 rounded-full mb-6">
-        {data.meta.brief_label || "BRIEFING"}
-      </span>
-
-      {/* headline */}
-      <h1
-        className="text-2xl md:text-4xl font-black leading-tight mb-4"
-        dangerouslySetInnerHTML={{ __html: parseMarkup(data.cover.headline.replace(/\n/g, "<br/>")) }}
-      />
-
-      {/* date + handle */}
-      <p className="text-sm text-[var(--text-muted)] mb-8">
-        {data.meta.date} {data.meta.day} &middot; {data.meta.handle}
-      </p>
-
-      {/* tickers */}
-      {data.cover.tickers?.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-3">
-          {data.cover.tickers.map((t) => (
-            <span
-              key={t.name}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border ${
-                t.color === "green"
-                  ? "text-[#22c55e] border-[#22c55e]/20 bg-[#22c55e]/5"
-                  : "text-[#ef4444] border-[#ef4444]/20 bg-[#ef4444]/5"
-              }`}
-            >
-              <span className="text-[var(--text-muted)] text-xs">{t.name}</span>
-              {t.value}
-            </span>
-          ))}
-        </div>
+    <section className="text-center pt-8 md:pt-16 relative overflow-hidden rounded-2xl">
+      {/* 블러 배경 이미지 */}
+      {coverImage && (
+        <div
+          className="absolute inset-0 -m-8 scale-110"
+          style={{
+            backgroundImage: `url(${coverImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(18px) brightness(0.18)",
+          }}
+        />
       )}
+      <div className="relative z-10">
+        {/* brief_label 뱃지 */}
+        <span className="inline-block text-xs font-bold tracking-[0.2em] text-[#f0b90b] bg-[#f0b90b]/10 px-3 py-1 rounded-full mb-6">
+          {data.meta.brief_label || "BRIEFING"}
+        </span>
+
+        {/* headline */}
+        <h1
+          className="text-2xl md:text-4xl font-black leading-tight mb-4"
+          dangerouslySetInnerHTML={{ __html: parseMarkup(data.cover.headline.replace(/\n/g, "<br/>")) }}
+        />
+
+        {/* date + handle */}
+        <p className="text-sm text-[var(--text-muted)] mb-8">
+          {data.meta.date} {data.meta.day} &middot; {data.meta.handle}
+        </p>
+
+        {/* tickers */}
+        {data.cover.tickers?.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-3">
+            {data.cover.tickers.map((t) => (
+              <span
+                key={t.name}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border ${
+                  t.color === "green"
+                    ? "text-[#22c55e] border-[#22c55e]/20 bg-[#22c55e]/5"
+                    : "text-[#ef4444] border-[#ef4444]/20 bg-[#ef4444]/5"
+                }`}
+              >
+                <span className="text-[var(--text-muted)] text-xs">{t.name}</span>
+                {t.value}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
