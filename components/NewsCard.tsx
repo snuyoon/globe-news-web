@@ -67,8 +67,8 @@ function renderStars(importance: number) {
 
 export default function NewsCard({ news, index }: { news: News; index: number }) {
   const expanded = false; // 모달로 대체
-  const { isSubscriber, isAdmin } = useAuth();
-  const canView = isSubscriber || isAdmin;
+  const { isSubscriber, isAdmin, freeNewsViews, user, canViewVip } = useAuth();
+  const canView = isSubscriber || isAdmin || (!!user && freeNewsViews > 0);
 
   const themeConf = THEME_CONFIG[news.theme || "기타"] || THEME_CONFIG["기타"];
 
@@ -157,13 +157,15 @@ export default function NewsCard({ news, index }: { news: News; index: number })
               {body}
             </p>
             <div className="absolute inset-0 flex items-center justify-center bg-[var(--card)]/60">
-              <a
-                href="/#subscribe"
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity shadow-lg"
-              >
-                🔒 구독하고 전체 내용 보기
-              </a>
+              {!user ? (
+                <span className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-[13px] font-bold shadow-lg">
+                  회원가입하면 5건 무료
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold shadow-lg">
+                  🔒 구독하고 전체 내용 보기
+                </span>
+              )}
             </div>
           </div>
         )}
