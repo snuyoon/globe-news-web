@@ -88,7 +88,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     if (!data) {
       const { data: newRow } = await supabase
         .from("subscribers")
-        .insert({ user_id: u.id, email: u.email, free_views: 2, free_news_views: 5, payment_status: "free_trial" })
+        .upsert(
+          { user_id: u.id, email: u.email, free_views: 2, free_news_views: 5, payment_status: "free_trial" },
+          { onConflict: "user_id", ignoreDuplicates: true }
+        )
         .select("free_views, free_news_views")
         .single();
       if (newRow) {
