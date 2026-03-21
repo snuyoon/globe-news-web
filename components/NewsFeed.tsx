@@ -42,11 +42,13 @@ export default function NewsFeed() {
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [newCount, setNewCount] = useState(0);
 
   const fetchNews = useCallback(async (append = false) => {
     if (append) {
       setLoadingMore(true);
-    } else {
+    } else if (news.length === 0) {
       setLoading(true);
     }
 
@@ -76,6 +78,7 @@ export default function NewsFeed() {
         setNews((prev) => [...prev, ...typed]);
       } else {
         setNews(typed);
+        setNewCount(0);
       }
       setHasMore(typed.length >= PAGE_SIZE);
     }
@@ -83,16 +86,50 @@ export default function NewsFeed() {
     setLoadingMore(false);
   }, [importanceFilter, themeFilter, news]);
 
-  // Refetch when filters change
+  // 새 뉴스 체크 (전체 교체 대신 최신 1건만 확인)
+  const checkForNew = useCallback(async () => {
+    if (news.length === 0) return;
+    const latestDate = news[0].published_at;
+    let query = supabase
+      .from("news")
+      .select("id", { count: "exact", head: true })
+      .gt("published_at", latestDate);
+
+    if (importanceFilter.size > 0) {
+      query = query.in("importance", Array.from(importanceFilter));
+    }
+    if (themeFilter !== "all") {
+      query = query.eq("theme", themeFilter);
+    }
+
+    const { count } = await query;
+    if (count && count > 0) {
+      setNewCount(count);
+    }
+  }, [news, importanceFilter, themeFilter]);
+
+  // 초기 로드 + 필터 변경 시 fetch
   useEffect(() => {
     fetchNews(false);
-    const interval = setInterval(() => {
-      // Only auto-refresh if not appending
-      fetchNews(false);
-    }, POLL_INTERVAL);
-    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importanceFilter, themeFilter]);
+
+  // 자동 새로고침: 새 뉴스 있으면 배너만 표시, 자동 반영
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      checkForNew();
+    }, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [autoRefresh, checkForNew]);
+
+  // 새 뉴스가 감지되면 자동 병합
+  useEffect(() => {
+    if (newCount > 0 && autoRefresh) {
+      fetchNews(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newCount]);
 
   const toggleImportance = (value: number) => {
     if (value === 0) {
@@ -132,10 +169,13 @@ export default function NewsFeed() {
               <span className="w-1.5 h-1.5 rounded-full bg-[#f0b90b]" />
             )}
           </button>
-          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
-            <span className="live-dot w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-            LIVE
-          </div>
+          <button
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <span className={`w-1.5 h-1.5 rounded-full inline-block ${autoRefresh ? "bg-green-500 live-dot" : "bg-gray-500"}`} />
+            {autoRefresh ? "LIVE" : "일시정지"}
+          </button>
         </div>
 
         {/* Desktop: always show / Mobile: collapsible */}
@@ -169,10 +209,13 @@ export default function NewsFeed() {
                 )}
               </button>
             ))}
-            <div className="ml-auto hidden md:flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
-              <span className="live-dot w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-              LIVE
-            </div>
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className="ml-auto hidden md:flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+            >
+              <span className={`w-1.5 h-1.5 rounded-full inline-block ${autoRefresh ? "bg-green-500 live-dot" : "bg-gray-500"}`} />
+              {autoRefresh ? "LIVE · 자동 업데이트" : "일시정지 · 눌러서 재개"}
+            </button>
           </div>
 
           {/* Theme filter */}
