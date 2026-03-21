@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
 import NewsScrapButton from "./NewsScrapButton";
+import { timeAgo } from "@/lib/utils";
 
 function OgImage({ src, alt }: { src: string; alt: string }) {
   const [error, setError] = useState(false);
@@ -45,16 +46,7 @@ const IMPORTANCE_STYLES: Record<number, { color: string; glow: string }> = {
   1: { color: "#4b5563", glow: "none" },
 };
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "\uBC29\uAE08 \uC804";
-  if (mins < 60) return `${mins}\uBD84 \uC804`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}\uC2DC\uAC04 \uC804`;
-  const days = Math.floor(hours / 24);
-  return `${days}\uC77C \uC804`;
-}
+
 
 function renderStars(importance: number) {
   const style = IMPORTANCE_STYLES[importance] || IMPORTANCE_STYLES[1];

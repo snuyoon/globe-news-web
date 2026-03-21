@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import { grantXp } from "@/lib/xp";
+import { timeAgo } from "@/lib/utils";
 import Character from "@/components/Character";
 
 interface Post {
@@ -43,14 +44,6 @@ const LEVEL_NAMES: Record<number, { name: string; color: string }> = {
   4: { name: "매니저", color: "#a855f7" },
   5: { name: "디렉터", color: "#f0b90b" },
 };
-
-function timeAgo(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return "방금 전";
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  return `${Math.floor(diff / 86400)}일 전`;
-}
 
 function AuthorBadge({ name, seat, level, characterData }: { name: string; seat?: number | null; level?: number; characterData?: Record<string, string> | null }) {
   const lvl = LEVEL_NAMES[level || 1] || LEVEL_NAMES[1];
@@ -104,14 +97,14 @@ export default function CommunityPage() {
 
   const fetchPosts = useCallback(async () => {
     setLoadingPosts(true);
-    const { data: postRows } = await supabase
+    const { data: postRows, error: postErr } = await supabase
       .from("posts")
       .select("*")
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (!postRows) { setLoadingPosts(false); return; }
+    if (postErr || !postRows) { setLoadingPosts(false); return; }
 
     // 작성자 정보
     const userIds = [...new Set(postRows.map((p) => p.user_id))];
@@ -172,7 +165,7 @@ export default function CommunityPage() {
 
     setPosts(mapped);
     setLoadingPosts(false);
-  }, []);
+  }, [user]);
 
   const fetchComments = useCallback(async (postId: number) => {
     setLoadingComments(true);

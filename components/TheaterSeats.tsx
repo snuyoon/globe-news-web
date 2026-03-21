@@ -36,7 +36,7 @@ interface SubscriberRow {
 }
 
 export default function TheaterSeats() {
-  const { user, signInWithGoogle } = useAuth();
+  const { user } = useAuth();
   const [seats, setSeats] = useState<Record<string, SeatData>>({});
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
   const [subscribeSeat, setSubscribeSeat] = useState<string | null>(null);

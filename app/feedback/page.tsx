@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import { grantXp } from "@/lib/xp";
+import { timeAgo } from "@/lib/utils";
 
 interface Feedback {
   id: number;
@@ -29,14 +30,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   resolved: { label: "해결됨", color: "#3b82f6" },
   rejected: { label: "반려", color: "#6b7280" },
 };
-
-function timeAgo(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return "방금 전";
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  return `${Math.floor(diff / 86400)}일 전`;
-}
 
 export default function FeedbackPage() {
   const { user, loading, isSubscriber, isAdmin } = useAuth();

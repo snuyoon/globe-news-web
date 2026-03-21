@@ -5,6 +5,7 @@ import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
 import NewsScrapButton from "./NewsScrapButton";
 import { grantXp } from "@/lib/xp";
+import { timeAgo } from "@/lib/utils";
 
 function ModalOgImage({ src, alt }: { src: string; alt: string }) {
   const [error, setError] = useState(false);
@@ -42,15 +43,7 @@ const SECTION_META: Record<string, { icon: string; color: string }> = {
   "전망": { icon: "🔮", color: "#a855f7" },
 };
 
-function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diff = Math.floor((now - then) / 1000);
-  if (diff < 60) return `${diff}초 전`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  return `${Math.floor(diff / 86400)}일 전`;
-}
+
 
 function parseWebDetail(text: string): { title: string; content: string }[] {
   const sections: { title: string; content: string }[] = [];

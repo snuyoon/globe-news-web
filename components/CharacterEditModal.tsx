@@ -2,51 +2,8 @@
 
 import { useState } from "react";
 import Character, { type EyeStyle, type HairStyle, type FrameStyle, type AccessoryStyle, type SkinTone, SKIN_TONES } from "./Character";
+import { COLORS, EYE_OPTIONS, HAIR_OPTIONS, FRAME_OPTIONS, ACCESSORY_OPTIONS } from "./CharacterModal";
 import { supabase } from "@/lib/supabase";
-
-const COLORS = [
-  { name: "검정", hex: "#2d2d3d" },
-  { name: "빨강", hex: "#e74c3c" },
-  { name: "파랑", hex: "#3498db" },
-  { name: "초록", hex: "#27ae60" },
-  { name: "노랑", hex: "#f1c40f" },
-  { name: "보라", hex: "#9b59b6" },
-  { name: "핑크", hex: "#e91e8a" },
-  { name: "하양", hex: "#bdc3c7" },
-];
-
-const EYE_OPTIONS: { label: string; value: EyeStyle }[] = [
-  { label: ".", value: "dot" },
-  { label: "O", value: "round" },
-  { label: "^", value: "happy" },
-  { label: "*", value: "star" },
-  { label: ";)", value: "wink" },
-  { label: "**", value: "sparkle" },
-];
-
-const HAIR_OPTIONS: { label: string; value: HairStyle }[] = [
-  { label: "앞머리", value: "bangs" },
-  { label: "가르마", value: "parted" },
-  { label: "없음", value: "none" },
-  { label: "곱슬", value: "curly" },
-  { label: "뾰족", value: "spiky" },
-  { label: "단발", value: "bob" },
-];
-
-const FRAME_OPTIONS: { label: string; value: FrameStyle }[] = [
-  { label: "없음", value: "none" },
-  { label: "골드", value: "gold" },
-  { label: "다이아", value: "diamond" },
-  { label: "불꽃", value: "flame" },
-];
-
-const ACCESSORY_OPTIONS: { label: string; value: AccessoryStyle }[] = [
-  { label: "없음", value: "none" },
-  { label: "선글라스", value: "sunglasses" },
-  { label: "안경", value: "glasses" },
-  { label: "에비에이터", value: "aviator" },
-  { label: "모노클", value: "monocle" },
-];
 
 interface Props {
   userId: string;

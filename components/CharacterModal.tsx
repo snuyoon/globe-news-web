@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Character, { type EyeStyle, type HairStyle, type FrameStyle, type AccessoryStyle, type SkinTone, SKIN_TONES } from "./Character";
 
-const COLORS = [
+export const COLORS = [
   { name: "검정", hex: "#2d2d3d" },
   { name: "빨강", hex: "#e74c3c" },
   { name: "파랑", hex: "#3498db" },
@@ -14,7 +14,7 @@ const COLORS = [
   { name: "하양", hex: "#bdc3c7" },
 ];
 
-const EYE_OPTIONS: { label: string; value: EyeStyle }[] = [
+export const EYE_OPTIONS: { label: string; value: EyeStyle }[] = [
   { label: ".", value: "dot" },
   { label: "O", value: "round" },
   { label: "^", value: "happy" },
@@ -23,7 +23,7 @@ const EYE_OPTIONS: { label: string; value: EyeStyle }[] = [
   { label: "**", value: "sparkle" },
 ];
 
-const HAIR_OPTIONS: { label: string; value: HairStyle }[] = [
+export const HAIR_OPTIONS: { label: string; value: HairStyle }[] = [
   { label: "앞머리", value: "bangs" },
   { label: "가르마", value: "parted" },
   { label: "없음", value: "none" },
@@ -38,14 +38,14 @@ interface CharacterModalProps {
   onSave: (seatId: string, data: SeatData, topicRequest?: string) => void;
 }
 
-const FRAME_OPTIONS: { label: string; value: FrameStyle; desc: string }[] = [
-  { label: "없음", value: "none", desc: "" },
-  { label: "골드", value: "gold", desc: "S1 전용" },
-  { label: "다이아", value: "diamond", desc: "S1 전용" },
-  { label: "불꽃", value: "flame", desc: "S1 전용" },
+export const FRAME_OPTIONS: { label: string; value: FrameStyle }[] = [
+  { label: "없음", value: "none" },
+  { label: "골드", value: "gold" },
+  { label: "다이아", value: "diamond" },
+  { label: "불꽃", value: "flame" },
 ];
 
-const ACCESSORY_OPTIONS: { label: string; value: AccessoryStyle }[] = [
+export const ACCESSORY_OPTIONS: { label: string; value: AccessoryStyle }[] = [
   { label: "없음", value: "none" },
   { label: "선글라스", value: "sunglasses" },
   { label: "안경", value: "glasses" },

@@ -213,27 +213,6 @@ function Accessory({ style, cx, cy, s }: { style: AccessoryStyle; cx: number; cy
   }
 }
 
-function Frame({ style, cx, cy, r, s }: { style: FrameStyle; cx: number; cy: number; r: number; s: number }) {
-  switch (style) {
-    case "none": return null;
-    case "gold":
-      return (
-        <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="#f0b90b" strokeWidth={2.5 * s} opacity={0.8} />
-      );
-    case "diamond":
-      return (
-        <>
-          <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="#c0c0c0" strokeWidth={2 * s} opacity={0.6} />
-          <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="white" strokeWidth={0.5 * s} opacity={0.3} strokeDasharray={`${3 * s} ${5 * s}`} />
-        </>
-      );
-    case "flame":
-      return (
-        <circle cx={cx} cy={cy} r={r + 4 * s} fill="none" stroke="#ef6d09" strokeWidth={2.5 * s} opacity={0.7} />
-      );
-  }
-}
-
 export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120, skinTone = "#fce4c8", frame = "none", accessory = "none" }: CharacterProps) {
   const s = size / 100;
   const cx = 50 * s;
