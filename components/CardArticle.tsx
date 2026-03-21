@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import type { CardNews } from "@/lib/supabase";
+import { useAuth } from "./AuthProvider";
 
 /* ── SampleJson 타입 ── */
 interface Ticker { name: string; value: string; color: string; }
@@ -130,15 +131,39 @@ function buildPages(data: SampleJson): { label: string; render: () => React.Reac
 export default function CardArticle({ card, onClose }: CardArticleProps) {
   const data = (card as CardNews & { sample_json?: SampleJson }).sample_json;
   const [current, setCurrent] = useState(0);
+  const [unlocked, setUnlocked] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const { isAdmin, isSubscriber, freeViews, useFreeView } = useAuth();
+  const needsCredit = !isAdmin && !isSubscriber && !unlocked;
 
   const pages = data ? buildPages(data) : [];
   const total = pages.length;
 
   const goPrev = useCallback(() => setCurrent((c) => Math.max(0, c - 1)), []);
-  const goNext = useCallback(() => setCurrent((c) => Math.min(total - 1, c + 1)), [total]);
+  const goNext = useCallback(() => {
+    if (current === 0 && needsCredit) {
+      if (freeViews <= 0) { onClose(); return; }
+      setShowCreditModal(true);
+      return;
+    }
+    setCurrent((c) => Math.min(total - 1, c + 1));
+  }, [current, needsCredit, freeViews, total, onClose]);
+
+  const handleConfirmCredit = useCallback(async () => {
+    const ok = await useFreeView();
+    if (ok) {
+      setUnlocked(true);
+      setShowCreditModal(false);
+      setCurrent(1);
+    } else {
+      setShowCreditModal(false);
+      onClose();
+    }
+  }, [useFreeView, onClose]);
 
   // 페이지 바뀔 때 스크롤 맨 위로
   useEffect(() => {
@@ -148,9 +173,14 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
   // ESC/방향키 + body 스크롤 잠금
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") goPrev();
-      if (e.key === "ArrowRight") goNext();
+      if (e.key === "Escape") {
+        if (showCreditModal) setShowCreditModal(false);
+        else onClose();
+      }
+      if (!showCreditModal) {
+        if (e.key === "ArrowLeft") goPrev();
+        if (e.key === "ArrowRight") goNext();
+      }
     };
     window.addEventListener("keydown", handleKey);
     const prev = document.body.style.overflow;
@@ -159,7 +189,7 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
       window.removeEventListener("keydown", handleKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose, goPrev, goNext]);
+  }, [onClose, goPrev, goNext, showCreditModal]);
 
   // 터치 스와이프
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -264,6 +294,39 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
           )}
         </div>
       </div>
+
+      {/* 크레딧 차감 확인 모달 */}
+      {showCreditModal && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/60">
+          <div className="bg-[#1a1a2e] border border-[var(--border)] rounded-2xl p-6 mx-4 max-w-sm w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <span className="text-3xl mb-2 block">📖</span>
+              <h3 className="text-base font-bold text-white mb-1">무료 열람권 사용</h3>
+              <p className="text-sm text-[var(--text-muted)]">
+                다음 슬라이드부터 열람권이 차감됩니다
+              </p>
+            </div>
+            <div className="bg-[var(--bg)] rounded-xl p-4 mb-4 text-center">
+              <p className="text-2xl font-bold text-[#f0b90b]">{freeViews}건 <span className="text-base font-normal text-[var(--text-muted)]">남음</span></p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">이 카드뉴스를 보면 1건이 차감됩니다</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCreditModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-muted)] bg-[var(--bg)] hover:bg-[var(--border)] transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmCredit}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-black bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] hover:opacity-90 transition-opacity"
+              >
+                열람하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useAuth } from "./AuthProvider";
 
 interface CardViewerProps {
   title: string;
@@ -13,9 +14,14 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
   const [current, setCurrent] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [copied, setCopied] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  const { isAdmin, isSubscriber, freeViews, useFreeView } = useAuth();
+  const needsCredit = !isAdmin && !isSubscriber && !unlocked;
 
   const handleShare = useCallback(async () => {
     try {
@@ -23,7 +29,6 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const textarea = document.createElement("textarea");
       textarea.value = window.location.href;
       document.body.appendChild(textarea);
@@ -38,20 +43,48 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
   const slides = Array.from({ length: slideCount }, (_, i) => `${baseUrl}/slide_${i + 1}.png`);
 
   const goPrev = useCallback(() => setCurrent((c) => Math.max(0, c - 1)), []);
-  const goNext = useCallback(() => setCurrent((c) => Math.min(slideCount - 1, c + 1)), []);
+
+  const goNext = useCallback(() => {
+    if (current === 0 && needsCredit) {
+      if (freeViews <= 0) {
+        onClose();
+        return;
+      }
+      setShowCreditModal(true);
+      return;
+    }
+    setCurrent((c) => Math.min(slideCount - 1, c + 1));
+  }, [current, needsCredit, freeViews, slideCount, onClose]);
+
+  const handleConfirmCredit = useCallback(async () => {
+    const ok = await useFreeView();
+    if (ok) {
+      setUnlocked(true);
+      setShowCreditModal(false);
+      setCurrent(1);
+    } else {
+      setShowCreditModal(false);
+      onClose();
+    }
+  }, [useFreeView, onClose]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") goPrev();
-      if (e.key === "ArrowRight") goNext();
+      if (e.key === "Escape") {
+        if (showCreditModal) setShowCreditModal(false);
+        else onClose();
+      }
+      if (!showCreditModal) {
+        if (e.key === "ArrowLeft") goPrev();
+        if (e.key === "ArrowRight") goNext();
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose, goPrev, goNext]);
+  }, [onClose, goPrev, goNext, showCreditModal]);
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -72,7 +105,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
     });
   }, [current, slideCount, slides, loadedImages]);
 
-  // Touch swipe handlers
+  // Touch swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -81,14 +114,12 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
   const handleTouchEnd = (e: React.TouchEvent) => {
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    // Only trigger swipe if horizontal movement > vertical and > 50px
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
       if (dx < 0) goNext();
       else goPrev();
     }
   };
 
-  // Click overlay to close (but not inner content)
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose();
   };
@@ -100,7 +131,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm"
       style={{ touchAction: "none" }}
     >
-      {/* Close + Share buttons */}
+      {/* Close + Share */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         <button
           onClick={handleShare}
@@ -156,7 +187,6 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={slides[current]}
           alt={`Slide ${current + 1} of ${slideCount}`}
@@ -167,26 +197,66 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
 
       {/* Bottom indicator */}
       <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-3 z-10">
-        {/* Dots */}
         <div className="flex gap-1.5">
           {slides.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrent(i)}
+              onClick={() => {
+                if (i > 0 && needsCredit) {
+                  if (freeViews <= 0) return;
+                  setShowCreditModal(true);
+                  return;
+                }
+                setCurrent(i);
+              }}
               className={`rounded-full transition-all ${
                 i === current
                   ? "w-6 h-2 bg-[#f0b90b]"
-                  : "w-2 h-2 bg-white/30 hover:bg-white/50"
+                  : i > 0 && needsCredit
+                    ? "w-2 h-2 bg-white/15"
+                    : "w-2 h-2 bg-white/30 hover:bg-white/50"
               }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
         </div>
-        {/* Counter text */}
         <span className="text-white/60 text-xs">
           {current + 1} / {slideCount}
         </span>
       </div>
+
+      {/* 크레딧 차감 확인 모달 */}
+      {showCreditModal && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60">
+          <div className="bg-[#1a1a2e] border border-[var(--border)] rounded-2xl p-6 mx-4 max-w-sm w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <span className="text-3xl mb-2 block">📖</span>
+              <h3 className="text-base font-bold text-white mb-1">무료 열람권 사용</h3>
+              <p className="text-sm text-[var(--text-muted)]">
+                다음 슬라이드부터 열람권이 차감됩니다
+              </p>
+            </div>
+            <div className="bg-[var(--bg)] rounded-xl p-4 mb-4 text-center">
+              <p className="text-2xl font-bold text-[#f0b90b]">{freeViews}건 <span className="text-base font-normal text-[var(--text-muted)]">남음</span></p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">이 카드뉴스를 보면 1건이 차감됩니다</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCreditModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-muted)] bg-[var(--bg)] hover:bg-[var(--border)] transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmCredit}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-black bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] hover:opacity-90 transition-opacity"
+              >
+                열람하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
