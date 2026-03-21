@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
+import { grantXp } from "@/lib/xp";
 
 interface Feedback {
   id: number;
+  user_id: string;
   category: string;
   body: string;
   status: string;
@@ -79,6 +81,11 @@ export default function FeedbackPage() {
   // 관리자: 상태 변경
   const updateStatus = async (id: number, status: string) => {
     await supabase.from("feedback").update({ status, resolved_at: status === "resolved" ? new Date().toISOString() : null }).eq("id", id);
+    // 채택 시 XP 보상
+    if (status === "accepted") {
+      const fb = feedbacks.find((f) => f.id === id);
+      if (fb) grantXp(fb.user_id, "feedback_accepted");
+    }
     fetchFeedbacks();
   };
 

@@ -12,11 +12,11 @@ import CharacterEditModal from "@/components/CharacterEditModal";
 import { supabase, type CardNews, type News } from "@/lib/supabase";
 
 const LEVELS = [
-  { level: 1, name: "루키", minXp: 0, color: "#6b7280" },
-  { level: 2, name: "트레이더", minXp: 100, color: "#22c55e" },
-  { level: 3, name: "애널리스트", minXp: 300, color: "#3b82f6" },
-  { level: 4, name: "매니저", minXp: 600, color: "#a855f7" },
-  { level: 5, name: "디렉터", minXp: 1000, color: "#f0b90b" },
+  { level: 1, name: "루키", minXp: 0, color: "#6b7280", perks: ["기본 콘텐츠 열람"] },
+  { level: 2, name: "트레이더", minXp: 100, color: "#22c55e", perks: ["커뮤니티 뱃지", "추가 무료 열람 +2회/일"] },
+  { level: 3, name: "애널리스트", minXp: 300, color: "#3b82f6", perks: ["전용 이모지 뱃지", "주말 특별판 우선 열람"] },
+  { level: 4, name: "매니저", minXp: 600, color: "#a855f7", perks: ["왕관 아이템 구매 가능", "기업분석 우선 열람"] },
+  { level: 5, name: "디렉터", minXp: 1000, color: "#f0b90b", perks: ["모든 혜택", "구독료 10% 할인", "운영팀 DM"] },
 ];
 
 function getLevelInfo(xp: number) {
@@ -242,6 +242,39 @@ export default function MyPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          );
+        })()}
+
+        {/* 레벨 혜택 */}
+        {profile && (() => {
+          const lvl = getLevelInfo(profile.xp);
+          const currentPerks = LEVELS.find((l) => l.level === lvl.level)?.perks || [];
+          const nextLevel = LEVELS.find((l) => l.level === lvl.level + 1);
+          return (
+            <div className="mb-8 p-5 rounded-2xl" style={{ backgroundColor: "var(--card)" }}>
+              <h3 className="text-sm font-bold mb-3">레벨 혜택</h3>
+              <div className="space-y-2 mb-3">
+                {currentPerks.map((p, i) => (
+                  <div key={i} className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
+                    <span className="text-[#22c55e]">&#x2713;</span> {p}
+                  </div>
+                ))}
+              </div>
+              {nextLevel && (
+                <div className="pt-3 border-t border-[var(--border)]">
+                  <p className="text-[12px] text-[var(--text-muted)]">
+                    <span className="font-bold" style={{ color: nextLevel.color }}>Lv.{nextLevel.level} {nextLevel.name}</span> 달성 시:
+                  </p>
+                  <div className="mt-1 space-y-1">
+                    {nextLevel.perks.map((p, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[12px] text-[var(--text-muted)] opacity-60">
+                        <span>&#x1F512;</span> {p}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
