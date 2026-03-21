@@ -7,6 +7,8 @@ import CardArticle from "@/components/CardArticle";
 import NewsDetailModal from "@/components/NewsDetailModal";
 import { useAuth } from "@/components/AuthProvider";
 import CancelWarningModal from "@/components/CancelWarningModal";
+import Character from "@/components/Character";
+import CharacterEditModal from "@/components/CharacterEditModal";
 import { supabase, type CardNews, type News } from "@/lib/supabase";
 
 const LEVELS = [
@@ -49,6 +51,7 @@ export default function MyPage() {
   const [tab, setTab] = useState<Tab>("cards");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCharEdit, setShowCharEdit] = useState(false);
   const [scrapCards, setScrapCards] = useState<CardNews[]>([]);
   const [scrapNews, setScrapNews] = useState<News[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -160,13 +163,30 @@ export default function MyPage() {
               <div className="h-1" style={{ background: `linear-gradient(to right, ${lvl.color}, ${lvl.color}80)` }} />
               <div className="p-5 md:p-6">
                 <div className="flex items-start gap-4">
-                  {/* 캐릭터 / 이니셜 */}
-                  <div
-                    className="flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold"
-                    style={{ backgroundColor: `${lvl.color}20`, color: lvl.color, border: `2px solid ${lvl.color}40` }}
-                  >
-                    {initial}
-                  </div>
+                  {/* 캐릭터 */}
+                  <button onClick={() => setShowCharEdit(true)} className="flex-shrink-0 relative group" title="캐릭터 꾸미기">
+                    {profile.character_data ? (
+                      <Character
+                        hoodieColor={profile.character_data.hoodieColor || "#2d2d3d"}
+                        eyeStyle={(profile.character_data.eyeStyle as "dot") || "dot"}
+                        hairStyle={(profile.character_data.hairStyle as "bangs") || "bangs"}
+                        skinTone={(profile.character_data.skinTone as "#fce4c8") || "#fce4c8"}
+                        accessory={(profile.character_data.accessory as "none") || "none"}
+                        initial={profile.character_data.initial || initial}
+                        size={64}
+                      />
+                    ) : (
+                      <div
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold"
+                        style={{ backgroundColor: `${lvl.color}20`, color: lvl.color, border: `2px solid ${lvl.color}40` }}
+                      >
+                        {initial}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                  </button>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -355,6 +375,16 @@ export default function MyPage() {
         )}
       </main>
       <Footer />
+
+      {/* 캐릭터 편집 모달 */}
+      {showCharEdit && user && (
+        <CharacterEditModal
+          userId={user.id}
+          current={profile?.character_data || null}
+          onClose={() => setShowCharEdit(false)}
+          onSaved={() => fetchProfile()}
+        />
+      )}
 
       {/* 해지 경고 모달 */}
       {showCancelModal && profile && (() => {
