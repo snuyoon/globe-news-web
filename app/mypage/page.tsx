@@ -8,11 +8,45 @@ import NewsDetailModal from "@/components/NewsDetailModal";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase, type CardNews, type News } from "@/lib/supabase";
 
+const LEVELS = [
+  { level: 1, name: "루키", minXp: 0, color: "#6b7280" },
+  { level: 2, name: "트레이더", minXp: 100, color: "#22c55e" },
+  { level: 3, name: "애널리스트", minXp: 300, color: "#3b82f6" },
+  { level: 4, name: "매니저", minXp: 600, color: "#a855f7" },
+  { level: 5, name: "디렉터", minXp: 1000, color: "#f0b90b" },
+];
+
+function getLevelInfo(xp: number) {
+  let current = LEVELS[0];
+  for (const l of LEVELS) {
+    if (xp >= l.minXp) current = l;
+  }
+  const next = LEVELS.find((l) => l.minXp > xp);
+  const progress = next
+    ? ((xp - current.minXp) / (next.minXp - current.minXp)) * 100
+    : 100;
+  return { ...current, xp, nextXp: next?.minXp ?? current.minXp, progress, nextName: next?.name };
+}
+
+interface Profile {
+  name: string | null;
+  seat_number: number | null;
+  character_data: Record<string, string> | null;
+  xp: number;
+  level: number;
+  points: number;
+  payment_status: string;
+  is_lucky: boolean;
+  created_at: string;
+  topic_request: string | null;
+}
+
 type Tab = "cards" | "news";
 
 export default function MyPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, isSubscriber } = useAuth();
   const [tab, setTab] = useState<Tab>("cards");
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [scrapCards, setScrapCards] = useState<CardNews[]>([]);
   const [scrapNews, setScrapNews] = useState<News[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -70,9 +104,22 @@ export default function MyPage() {
     setLoadingData(false);
   }, [user]);
 
+  const fetchProfile = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("subscribers")
+      .select("name, seat_number, character_data, xp, level, points, payment_status, is_lucky, created_at, topic_request")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) setProfile(data as Profile);
+  }, [user]);
+
   useEffect(() => {
-    if (user) fetchScraps();
-  }, [user, fetchScraps]);
+    if (user) {
+      fetchScraps();
+      fetchProfile();
+    }
+  }, [user, fetchScraps, fetchProfile]);
 
   const openCard = useCallback(async (card: CardNews) => {
     const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
@@ -101,9 +148,77 @@ export default function MyPage() {
   return (
     <>
       <main className="min-h-screen pt-20 pb-24 px-4 max-w-5xl mx-auto">
-        {/* 헤더 */}
+        {/* 프로필 카드 */}
+        {profile && (() => {
+          const lvl = getLevelInfo(profile.xp);
+          const initial = (user?.user_metadata?.full_name || user?.email || "U")[0].toUpperCase();
+          const joinDate = new Date(profile.created_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+          return (
+            <div className="mb-8 rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--card)", border: `1px solid ${lvl.color}30` }}>
+              <div className="h-1" style={{ background: `linear-gradient(to right, ${lvl.color}, ${lvl.color}80)` }} />
+              <div className="p-5 md:p-6">
+                <div className="flex items-start gap-4">
+                  {/* 캐릭터 / 이니셜 */}
+                  <div
+                    className="flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold"
+                    style={{ backgroundColor: `${lvl.color}20`, color: lvl.color, border: `2px solid ${lvl.color}40` }}
+                  >
+                    {initial}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <h2 className="text-lg font-bold">{user?.user_metadata?.full_name || user?.email?.split("@")[0]}</h2>
+                      {isSubscriber && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black">PRO</span>
+                      )}
+                      {profile.seat_number && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--bg)] text-[var(--text-muted)]">
+                          좌석 #{profile.seat_number}
+                        </span>
+                      )}
+                      {profile.is_lucky && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#f0b90b]/20 text-[#f0b90b]">LUCKY</span>
+                      )}
+                    </div>
+
+                    {/* 레벨 */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xs font-bold" style={{ color: lvl.color }}>
+                        Lv.{lvl.level} {lvl.name}
+                      </span>
+                      <span className="text-[11px] text-[var(--text-muted)]">{joinDate} 가입</span>
+                    </div>
+
+                    {/* XP 프로그레스 */}
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] mb-1">
+                        <span>{profile.xp} XP</span>
+                        {lvl.nextName && <span>다음: Lv.{lvl.level + 1} {lvl.nextName} ({lvl.nextXp} XP)</span>}
+                        {!lvl.nextName && <span>MAX</span>}
+                      </div>
+                      <div className="h-2 rounded-full bg-[var(--bg)] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${lvl.progress}%`, background: `linear-gradient(to right, ${lvl.color}, ${lvl.color}cc)` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 포인트 */}
+                    <div className="flex items-center gap-4 text-xs">
+                      <span className="text-[var(--text-muted)]">포인트: <strong className="text-[#f0b90b]">{profile.points}P</strong></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* 스크랩 헤더 */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold mb-1">내 스크랩</h1>
+          <h2 className="text-lg font-bold mb-1">내 스크랩</h2>
           <p className="text-sm text-[var(--text-muted)]">저장한 콘텐츠를 모아봅니다</p>
         </div>
 
