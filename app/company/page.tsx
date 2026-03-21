@@ -13,7 +13,7 @@ export default function CompanyPage() {
   const [viewerCard, setViewerCard] = useState<CardNews | null>(null);
   const [articleCard, setArticleCard] = useState<CardNews | null>(null);
   const [showVipModal, setShowVipModal] = useState(false);
-  const { canViewVip, useFreeView, freeViews, user } = useAuth();
+  const { canViewVip, useFreeView, freeViews, user, isAdmin } = useAuth();
   const canView = canViewVip;
 
   const fetchCards = useCallback(async () => {
