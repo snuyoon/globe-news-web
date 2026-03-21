@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Character, { type EyeStyle, type HairStyle, type FrameStyle, type AccessoryStyle, type SkinTone, SKIN_TONES } from "./Character";
 
 export const COLORS = [
@@ -79,6 +79,13 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
 
   const row = seatId[0];
   const col = seatId.slice(1);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", handleKey); document.body.style.overflow = ""; };
+  }, [onClose]);
 
   const handleRandom = () => {
     setHoodieColor(randomPick(COLORS).hex);

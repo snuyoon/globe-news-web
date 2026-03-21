@@ -56,6 +56,7 @@ export default function FeedbackPage() {
 
   useEffect(() => {
     if (user) fetchFeedbacks();
+    else setLoadingData(false);
   }, [user, fetchFeedbacks]);
 
   const handleSubmit = async () => {

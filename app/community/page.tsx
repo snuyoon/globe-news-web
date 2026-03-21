@@ -201,21 +201,21 @@ export default function CommunityPage() {
   const toggleLike = useCallback(async (postId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) return;
-    const post = posts.find((p) => p.id === postId);
-    if (!post) return;
 
-    if (post.liked_by_me) {
+    // 낙관적 업데이트 (posts 의존성 제거)
+    let wasLiked = false;
+    setPosts((prev) => prev.map((p) => {
+      if (p.id !== postId) return p;
+      wasLiked = !!p.liked_by_me;
+      return { ...p, liked_by_me: !p.liked_by_me, like_count: (p.like_count || 0) + (p.liked_by_me ? -1 : 1) };
+    }));
+
+    if (wasLiked) {
       await supabase.from("post_likes").delete().eq("post_id", postId).eq("user_id", user.id);
     } else {
       await supabase.from("post_likes").insert({ post_id: postId, user_id: user.id });
     }
-    // 로컬 업데이트
-    setPosts((prev) => prev.map((p) =>
-      p.id === postId
-        ? { ...p, liked_by_me: !p.liked_by_me, like_count: (p.like_count || 0) + (p.liked_by_me ? -1 : 1) }
-        : p
-    ));
-  }, [user, posts]);
+  }, [user]);
 
   useEffect(() => {
     fetchPosts();
@@ -254,7 +254,20 @@ export default function CommunityPage() {
   const openPost = (postId: number) => {
     setOpenPostId(postId);
     fetchComments(postId);
+    document.body.style.overflow = "hidden";
   };
+
+  const closePost = () => {
+    setOpenPostId(null);
+    document.body.style.overflow = "";
+  };
+
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape" && openPostId) closePost(); };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [openPostId]);
 
   const selectedPost = posts.find((p) => p.id === openPostId);
 
@@ -368,7 +381,7 @@ export default function CommunityPage() {
 
         {/* 글 상세 + 댓글 */}
         {selectedPost && (
-          <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto" onClick={() => setOpenPostId(null)}>
+          <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto" onClick={closePost}>
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
             <div
               className="relative w-full max-w-2xl mx-4 my-8 md:my-16 rounded-2xl overflow-hidden"
@@ -376,7 +389,7 @@ export default function CommunityPage() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* 닫기 */}
-              <button onClick={() => setOpenPostId(null)} className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text-muted)] hover:text-white">
+              <button onClick={closePost} className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text-muted)] hover:text-white">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" /></svg>
               </button>
 

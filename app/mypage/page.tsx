@@ -96,7 +96,7 @@ export default function MyPage() {
       const ids = newsScrapRows.map((r) => r.news_id);
       const { data: news } = await supabase
         .from("news")
-        .select("*")
+        .select("id,korean_text,importance,theme,source,published_at,og_image")
         .in("id", ids);
       if (news) {
         const newsMap = new Map(news.map((n) => [n.id, n]));

@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 export type EyeStyle = "dot" | "round" | "happy" | "star" | "wink" | "sparkle";
 export type HairStyle = "bangs" | "parted" | "none" | "curly" | "spiky" | "bob";
 export type FrameStyle = "none" | "gold" | "diamond" | "flame";
@@ -213,7 +215,7 @@ function Accessory({ style, cx, cy, s }: { style: AccessoryStyle; cx: number; cy
   }
 }
 
-export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120, skinTone = "#fce4c8", frame = "none", accessory = "none" }: CharacterProps) {
+function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120, skinTone = "#fce4c8", frame = "none", accessory = "none" }: CharacterProps) {
   const s = size / 100;
   const cx = 50 * s;
   const darker = darkenColor(hoodieColor, 30);
@@ -292,3 +294,5 @@ export default function Character({ hoodieColor, eyeStyle, hairStyle, initial, s
     </svg>
   );
 }
+
+export default React.memo(Character);

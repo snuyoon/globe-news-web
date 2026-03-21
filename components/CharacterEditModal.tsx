@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Character, { type EyeStyle, type HairStyle, type FrameStyle, type AccessoryStyle, type SkinTone, SKIN_TONES } from "./Character";
 import { COLORS, EYE_OPTIONS, HAIR_OPTIONS, FRAME_OPTIONS, ACCESSORY_OPTIONS } from "./CharacterModal";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +21,13 @@ export default function CharacterEditModal({ userId, current, onClose, onSaved }
   const [accessory, setAccessory] = useState<AccessoryStyle>((current?.accessory as AccessoryStyle) || "none");
   const [initial, setInitial] = useState(current?.initial || "");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", handleKey); document.body.style.overflow = ""; };
+  }, [onClose]);
 
   const handleSave = async () => {
     if (!initial.trim()) return;
