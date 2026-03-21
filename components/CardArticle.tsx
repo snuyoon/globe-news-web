@@ -420,33 +420,39 @@ function ExplainerSection({ explainer }: { explainer: Explainer }) {
   );
 }
 
-/* Q&A 아코디언 */
+/* Q&A — deep dive 없으면 펼침, 있으면 아코디언 */
 function QnaRenderer({ items }: { items: Qna[] }) {
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const hasAnyDeepDive = items.some((qa) => qa.web_extended);
+  const [openIdx, setOpenIdx] = useState<number | null>(hasAnyDeepDive ? null : 0);
   const [deepDiveOpen, setDeepDiveOpen] = useState<Record<number, boolean>>({});
+
+  // deep dive 없으면 전부 펼침
+  const alwaysOpen = !hasAnyDeepDive;
 
   return (
     <div className="space-y-3">
       {items.map((qa, i) => {
-        const isOpen = openIdx === i;
+        const isOpen = alwaysOpen || openIdx === i;
         return (
           <div key={i} className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden">
-            {/* 질문 (클릭 토글) */}
+            {/* 질문 */}
             <button
-              onClick={() => setOpenIdx(isOpen ? null : i)}
-              className="w-full flex items-center justify-between px-4 md:px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+              onClick={() => !alwaysOpen && setOpenIdx(isOpen ? null : i)}
+              className={`w-full flex items-center justify-between px-4 md:px-5 py-4 text-left hover:bg-white/[0.02] transition-colors ${alwaysOpen ? "cursor-default" : ""}`}
             >
               <span className="text-sm md:text-base font-bold text-[#f0b90b] pr-4">Q. {qa.q}</span>
-              <svg
-                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                className={`shrink-0 text-[var(--text-muted)] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-              >
-                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              {!alwaysOpen && (
+                <svg
+                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  className={`shrink-0 text-[var(--text-muted)] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                >
+                  <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
             </button>
 
             {/* 답변 */}
-            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
+            <div className={alwaysOpen ? "" : `transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
               <div className="px-4 md:px-5 pb-4">
                 <p className="text-sm md:text-base leading-relaxed text-[var(--text-muted)]">
                   <Markup text={qa.a} />
