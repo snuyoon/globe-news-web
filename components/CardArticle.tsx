@@ -641,34 +641,48 @@ function CheckpointsSection({ checkpoints }: { checkpoints: Checkpoint[] }) {
 /* ── F. 하단 CTA ── */
 function BottomCTA({ handle }: { handle: string }) {
   return (
-    <section className="text-center py-8">
-      <p className="text-xs text-[var(--text-muted)] mb-4">본 콘텐츠는 정보 제공 목적이며 투자 조언이 아닙니다</p>
-      <div className="flex items-center justify-center gap-4">
+    <section className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+      {/* 로고 */}
+      <div className="text-3xl font-black tracking-wider text-[#00d28c] mb-6">US SOKBO</div>
+
+      {/* 메인 메시지 */}
+      <h2 className="text-xl md:text-2xl font-bold mb-2">오늘 브리핑은 여기까지!</h2>
+      <p className="text-sm text-[var(--text-muted)] mb-10 max-w-sm">
+        매일 아침·저녁 AI가 분석한 미국 시장 브리핑을<br />가장 먼저 받아보세요
+      </p>
+
+      {/* SNS 링크 */}
+      <div className="flex flex-col gap-3 w-full max-w-xs mb-10">
         <a
           href="https://x.com/US_sokbo"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f0b90b]/10 text-[#f0b90b] text-sm font-bold hover:bg-[#f0b90b]/20 transition-colors"
+          className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#f0b90b] text-black text-sm font-bold hover:opacity-90 transition-opacity"
         >
           {handle || "@US_sokbo"} 팔로우
         </a>
-        <a
-          href="https://www.instagram.com/us_sokbo/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-[var(--text-muted)] text-sm font-medium hover:bg-white/10 transition-colors"
-        >
-          Instagram
-        </a>
-        <a
-          href="https://www.threads.net/@us_sokbo"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-[var(--text-muted)] text-sm font-medium hover:bg-white/10 transition-colors"
-        >
-          Threads
-        </a>
+        <div className="flex gap-3">
+          <a
+            href="https://www.instagram.com/us_sokbo/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-[var(--border)] text-[var(--text-muted)] text-sm font-medium hover:bg-white/10 transition-colors"
+          >
+            Instagram
+          </a>
+          <a
+            href="https://www.threads.net/@us_sokbo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-[var(--border)] text-[var(--text-muted)] text-sm font-medium hover:bg-white/10 transition-colors"
+          >
+            Threads
+          </a>
+        </div>
       </div>
+
+      {/* 면책 */}
+      <p className="text-[10px] text-[var(--text-muted)]/50">본 콘텐츠는 정보 제공 목적이며 투자 조언이 아닙니다</p>
     </section>
   );
 }
