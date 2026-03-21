@@ -6,6 +6,7 @@ import CardViewer from "@/components/CardViewer";
 import CardArticle from "@/components/CardArticle";
 import NewsDetailModal from "@/components/NewsDetailModal";
 import { useAuth } from "@/components/AuthProvider";
+import CancelWarningModal from "@/components/CancelWarningModal";
 import { supabase, type CardNews, type News } from "@/lib/supabase";
 
 const LEVELS = [
@@ -47,6 +48,7 @@ export default function MyPage() {
   const { user, loading, isSubscriber } = useAuth();
   const [tab, setTab] = useState<Tab>("cards");
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [scrapCards, setScrapCards] = useState<CardNews[]>([]);
   const [scrapNews, setScrapNews] = useState<News[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -205,9 +207,17 @@ export default function MyPage() {
                       </div>
                     </div>
 
-                    {/* 포인트 */}
-                    <div className="flex items-center gap-4 text-xs">
+                    {/* 포인트 + 구독 관리 */}
+                    <div className="flex items-center justify-between text-xs">
                       <span className="text-[var(--text-muted)]">포인트: <strong className="text-[#f0b90b]">{profile.points}P</strong></span>
+                      {isSubscriber && (
+                        <button
+                          onClick={() => setShowCancelModal(true)}
+                          className="text-[var(--text-muted)] hover:text-[#ef4444] transition-colors text-[11px]"
+                        >
+                          구독 해지
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -345,6 +355,25 @@ export default function MyPage() {
         )}
       </main>
       <Footer />
+
+      {/* 해지 경고 모달 */}
+      {showCancelModal && profile && (() => {
+        const lvl = getLevelInfo(profile.xp);
+        return (
+          <CancelWarningModal
+            level={lvl.level}
+            levelName={lvl.name}
+            points={profile.points}
+            isFounder={!!profile.seat_number && profile.seat_number <= 100}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={() => {
+              setShowCancelModal(false);
+              // TODO: 실제 해지 로직 (결제 시스템 연동 후)
+              alert("해지 기능은 결제 시스템 연동 후 활성화됩니다.");
+            }}
+          />
+        );
+      })()}
 
       {/* 카드뉴스 뷰어 */}
       {viewerCard && (
