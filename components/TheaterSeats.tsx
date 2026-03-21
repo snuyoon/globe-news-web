@@ -231,7 +231,7 @@ export default function TheaterSeats() {
                 <span className="text-[var(--text-muted)] text-lg">/ 월</span>
               </div>
               <p className="text-[#f0b90b] text-sm font-semibold mt-1">
-                선착순 100명 한정 — 지금 구독하면 <span className="underline underline-offset-2">평생 이 가격</span>
+                선착순 100명 <span className="underline underline-offset-2">창립 멤버</span> — 영구 혜택 + 최고 레벨
               </p>
               <a
                 href="/subscribe"
@@ -265,7 +265,7 @@ export default function TheaterSeats() {
             </div>
 
             <p className="text-[var(--text-muted)] text-xs mt-4">
-              월스트리트 VIP 보드에 나만의 좌석을 선점하세요!
+              100석 마감 후 시즌 2가 열려요 — 창립 멤버 혜택은 지금뿐!
             </p>
 
             {/* SNS */}
@@ -288,10 +288,10 @@ export default function TheaterSeats() {
                 <span className="text-2xl text-[var(--text-muted)]">100</span>
               </div>
               <p className="text-sm text-[var(--text)] font-medium mb-1">
-                빈 좌석을 선점하고, 나만의 캐릭터를 채우세요!
+                지금 앉으면 <span className="text-[#f0b90b] font-bold">창립 멤버</span> 영구 등록!
               </p>
               <p className="text-xs text-[var(--text-muted)] mb-2">
-                구독하면 VIP 좌석에 내 캐릭터가 영구히 앉아있어요
+                창립 멤버는 최고 레벨 즉시 부여 + 구독료 영구 할인
               </p>
               <p className="text-[11px] text-[var(--text-muted)]">
                 <span className="text-[#f0b90b] font-bold">1, 7, 77, 100</span>번째 구독자 → 이번 달만 내면 <span className="text-[#f0b90b] font-bold">평생 무료</span>
