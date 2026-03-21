@@ -39,7 +39,7 @@ function GoogleIcon() {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const { user, loading, isAdmin, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, isAdmin, isInAppBrowser, signInWithGoogle, signOut } = useAuth();
   const pathname = usePathname();
 
   const handleSubscribeClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -51,6 +51,12 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
+    <>
+    {isInAppBrowser && (
+      <div className="bg-[#f0b90b] text-black text-center text-xs font-bold py-2 px-4 sticky top-0 z-[60]">
+        인앱 브라우저에서는 로그인이 제한됩니다. 우측 상단 ⋯ → Safari/Chrome으로 열어주세요
+      </div>
+    )}
     <nav className="bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
@@ -266,5 +272,6 @@ export default function Navbar() {
         </div>
       )}
     </nav>
+    </>
   );
 }
