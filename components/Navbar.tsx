@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "뉴스", href: "/news" },
   { label: "카드뉴스", href: "/cardnews" },
   { label: "기업분석", href: "/company" },
+  { label: "커뮤니티", href: "/community" },
 ] as const;
 
 const ADMIN_LINK = { label: "관리", href: "/admin" } as const;
