@@ -76,6 +76,7 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
   const { isSubscriber, isAdmin, canViewVip, freeNewsViews, useFreeNewsView, user } = useAuth();
   const [unlocked, setUnlocked] = useState(false);
   const [consuming, setConsuming] = useState(false);
+  const [showSubOnly, setShowSubOnly] = useState(false);
   const isPremiumNews = news.importance >= 4;
   const canView = !isPremiumNews || isSubscriber || isAdmin || unlocked;
 
@@ -106,8 +107,6 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
       document.body.style.overflow = "";
     };
   }, [onClose]);
-
-  const tweetUrl = news.tweet_id ? `https://x.com/US_sokbo/status/${news.tweet_id}` : null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto" onClick={onClose}>
@@ -267,17 +266,21 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <NewsScrapButton newsId={news.id} />
-                {tweetUrl && (
-                  <a href={tweetUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-                    X에서 보기
-                  </a>
-                )}
                 {news.url && (
-                  <a href={news.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
-                    원문 보기
-                  </a>
+                  (isSubscriber || isAdmin) ? (
+                    <a href={news.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                      원문 보기
+                    </a>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowSubOnly(true); setTimeout(() => setShowSubOnly(false), 2500); }}
+                      className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-white transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                      원문 보기
+                    </button>
+                  )
                 )}
               </div>
               <button
@@ -287,6 +290,15 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
                 닫기
               </button>
             </div>
+
+            {/* 구독자 전용 토스트 */}
+            {showSubOnly && (
+              <div className="mt-3 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b]/10 to-[#ef6d09]/10 border border-[#f0b90b]/20">
+                <span className="text-sm">🔒</span>
+                <span className="text-xs text-[#f0b90b] font-medium">구독자에게만 제공되는 기능입니다</span>
+                <a href="/#subscribe" onClick={(e) => e.stopPropagation()} className="ml-auto text-xs text-[#f0b90b] font-bold hover:underline">구독하기</a>
+              </div>
+            )}
           </div>
         </div>
       </div>
