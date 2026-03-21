@@ -9,9 +9,9 @@ import { useAuth } from "@/components/AuthProvider";
 import { supabase, type CardNews } from "@/lib/supabase";
 
 const TABS = [
-  { id: "premarket" as const, label: "장전 브리핑", emoji: "🌙", desc: "매일 22:00 · 오늘 밤 미국장 체크포인트" },
   { id: "morning" as const, label: "모닝 브리핑", emoji: "☀️", desc: "매일 08:30 · 어젯밤 시장 결과 해석" },
-  { id: "weekend" as const, label: "주말 특별판", emoji: "📚", desc: "매주 토요일 · 주간 핵심 주제 깊이 분석" },
+  { id: "premarket" as const, label: "장전 브리핑", emoji: "🌙", desc: "매일 22:00 · 오늘 밤 미국장 체크포인트" },
+  { id: "weekend" as const, label: "주간 리포트", emoji: "📊", desc: "매주 토요일 · 한 주 핵심 뉴스 종합 분석" },
 ];
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -39,7 +39,7 @@ const TAB_COLORS: Record<string, { bar: string; badge: string }> = {
 };
 
 export default function CardNewsPage() {
-  const [activeTab, setActiveTab] = useState<CardNews["type"]>("premarket");
+  const [activeTab, setActiveTab] = useState<CardNews["type"]>("morning");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [cards, setCards] = useState<CardNews[]>([]);
   const [loading, setLoading] = useState(true);
@@ -282,9 +282,9 @@ export default function CardNewsPage() {
               <p className="text-3xl mb-3">📭</p>
               <p className="text-sm font-medium mb-2">해당 날짜의 카드뉴스가 없습니다</p>
               <p className="text-xs text-[var(--text-muted)]/60">
-                {activeTab === "premarket" && "장전 브리핑은 매일 22:00에 발행됩니다"}
                 {activeTab === "morning" && "모닝 브리핑은 매일 08:30에 발행됩니다"}
-                {activeTab === "weekend" && "주말 특별판은 매주 토요일에 발행됩니다"}
+                {activeTab === "premarket" && "장전 브리핑은 매일 22:00에 발행됩니다"}
+                {activeTab === "weekend" && "주간 리포트는 매주 토요일에 발행됩니다"}
               </p>
             </div>
           )}
