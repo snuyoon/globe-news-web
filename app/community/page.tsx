@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/lib/supabase";
+import { grantXp } from "@/lib/xp";
 
 interface Post {
   id: number;
@@ -164,6 +165,7 @@ export default function CommunityPage() {
     if (!user || !title.trim() || !body.trim() || submitting) return;
     setSubmitting(true);
     await supabase.from("posts").insert({ user_id: user.id, title: title.trim(), body: body.trim() });
+    grantXp(user.id, "post_create");
     setTitle("");
     setBody("");
     setShowWrite(false);
@@ -175,6 +177,7 @@ export default function CommunityPage() {
     if (!user || !commentBody.trim() || !openPostId || submitting) return;
     setSubmitting(true);
     await supabase.from("comments").insert({ post_id: openPostId, user_id: user.id, body: commentBody.trim() });
+    grantXp(user.id, "comment_create");
     setCommentBody("");
     setSubmitting(false);
     fetchComments(openPostId);

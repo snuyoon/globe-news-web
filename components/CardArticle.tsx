@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import type { CardNews } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
+import { grantXp } from "@/lib/xp";
 
 /* ── SampleJson 타입 ── */
 interface Ticker { name: string; value: string; color: string; }
@@ -138,8 +139,9 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
   const touchStartY = useRef(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const { isAdmin, isSubscriber, freeViews, useFreeView } = useAuth();
+  const { user: authUser, isAdmin, isSubscriber, freeViews, useFreeView } = useAuth();
   const needsCredit = !isAdmin && !isSubscriber && !unlocked;
+  const xpGranted = useRef(false);
 
   const pages = data ? buildPages(data) : [];
   const total = pages.length;
@@ -154,12 +156,24 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
     setCurrent((c) => Math.min(total - 1, c + 1));
   }, [current, needsCredit, freeViews, total]);
 
+  // 구독자/관리자 열 때 바로 XP
+  useEffect(() => {
+    if (authUser && (isAdmin || isSubscriber) && !xpGranted.current) {
+      xpGranted.current = true;
+      grantXp(authUser.id, "card_view");
+    }
+  }, [authUser, isAdmin, isSubscriber]);
+
   const handleConfirmCredit = useCallback(async () => {
     const ok = await useFreeView();
     if (ok) {
       setUnlocked(true);
       setShowCreditModal(false);
       setCurrent(1);
+      if (authUser && !xpGranted.current) {
+        xpGranted.current = true;
+        grantXp(authUser.id, "card_view");
+      }
     } else {
       setShowCreditModal(false);
       onClose();

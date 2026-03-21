@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
 import NewsScrapButton from "./NewsScrapButton";
+import { grantXp } from "@/lib/xp";
 
 function ModalOgImage({ src, alt }: { src: string; alt: string }) {
   const [error, setError] = useState(false);
@@ -97,6 +98,15 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
   const body = lines.slice(1).join("\n");
 
   const detailSections = news.web_detail ? parseWebDetail(news.web_detail) : [];
+
+  // 열람 XP 적립 (1회)
+  const xpGranted = useRef(false);
+  useEffect(() => {
+    if (user && !xpGranted.current) {
+      xpGranted.current = true;
+      grantXp(user.id, "news_view");
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };

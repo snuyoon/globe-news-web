@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "./AuthProvider";
+import { grantXp } from "@/lib/xp";
 
 interface CardViewerProps {
   title: string;
@@ -21,8 +22,17 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
   const touchStartY = useRef(0);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const { isAdmin, isSubscriber, freeViews, useFreeView } = useAuth();
+  const { user: authUser, isAdmin, isSubscriber, freeViews, useFreeView } = useAuth();
   const needsCredit = !isAdmin && !isSubscriber && !unlocked;
+  const xpGranted = useRef(false);
+
+  // 구독자/관리자 열 때 바로 XP
+  useEffect(() => {
+    if (authUser && (isAdmin || isSubscriber) && !xpGranted.current) {
+      xpGranted.current = true;
+      grantXp(authUser.id, "card_view");
+    }
+  }, [authUser, isAdmin, isSubscriber]);
 
   const handleShare = useCallback(async () => {
     try {
@@ -63,6 +73,10 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
       setUnlocked(true);
       setShowCreditModal(false);
       setCurrent(1);
+      if (authUser && !xpGranted.current) {
+        xpGranted.current = true;
+        grantXp(authUser.id, "card_view");
+      }
     } else {
       setShowCreditModal(false);
       onClose();
