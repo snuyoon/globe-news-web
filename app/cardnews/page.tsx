@@ -52,7 +52,7 @@ export default function CardNewsPage() {
   const fetchCards = useCallback(async (type: CardNews["type"]) => {
     const { data } = await supabase
       .from("card_news")
-      .select("id,type,date,title,slide_count,base_url,created_at")
+      .select("id,type,date,title,slide_count,base_url,created_at,cover_image")
       .eq("type", type)
       .order("date", { ascending: false });
 
@@ -204,7 +204,7 @@ export default function CardNewsPage() {
                 <div className="relative aspect-[16/9] bg-black/20 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={`${card.base_url}/slide_1.png`}
+                    src={card.cover_image || `${card.base_url}/slide_1.png`}
                     alt={card.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"

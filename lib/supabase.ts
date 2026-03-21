@@ -15,6 +15,7 @@ export type CardNews = {
   base_url: string;
   created_at: string;
   sample_json?: Record<string, unknown>;
+  cover_image?: string | null;
 };
 
 export type News = {
