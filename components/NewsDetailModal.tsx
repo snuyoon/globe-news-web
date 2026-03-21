@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
 
@@ -44,8 +44,18 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function NewsDetailModal({ news, onClose }: { news: News; onClose: () => void }) {
-  const { isSubscriber, isAdmin } = useAuth();
-  const canView = isSubscriber || isAdmin;
+  const { isSubscriber, isAdmin, canViewVip, freeNewsViews, useFreeNewsView, user } = useAuth();
+  const [unlocked, setUnlocked] = useState(false);
+  const [consuming, setConsuming] = useState(false);
+  const canView = isSubscriber || isAdmin || unlocked;
+
+  const handleUseFreeNewsView = useCallback(async () => {
+    if (consuming) return;
+    setConsuming(true);
+    const ok = await useFreeNewsView();
+    if (ok) setUnlocked(true);
+    setConsuming(false);
+  }, [consuming, useFreeNewsView]);
   const themeConf = THEME_CONFIG[news.theme || "기타"] || THEME_CONFIG["기타"];
 
   const text = news.korean_text
@@ -121,10 +131,20 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
           {body && !canView && (
             <div className="relative mb-6 rounded-lg overflow-hidden">
               <p className="text-[15px] text-[var(--text-muted)] leading-relaxed whitespace-pre-line select-none" style={{ filter: "blur(8px)" }}>{body}</p>
-              <div className="absolute inset-0 flex items-center justify-center bg-[var(--card)]/60">
-                <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-sm font-bold hover:opacity-90 shadow-lg">
-                  🔒 구독하고 전체 내용 보기
-                </a>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[var(--card)]/60">
+                {user && freeNewsViews > 0 ? (
+                  <button
+                    onClick={handleUseFreeNewsView}
+                    disabled={consuming}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-sm font-bold hover:opacity-90 shadow-lg disabled:opacity-50"
+                  >
+                    {consuming ? "처리 중..." : `무료 열람 사용 (${freeNewsViews}건 남음)`}
+                  </button>
+                ) : (
+                  <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-sm font-bold hover:opacity-90 shadow-lg">
+                    🔒 구독하고 전체 내용 보기
+                  </a>
+                )}
               </div>
             </div>
           )}
@@ -140,10 +160,20 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
             <div className="border-t border-[var(--border)] pt-5 relative rounded-lg overflow-hidden">
               <h2 className="text-base font-bold text-[#f0b90b] mb-4">📊 상세 분석</h2>
               <p className="text-[15px] leading-[1.8] whitespace-pre-line select-none line-clamp-4" style={{ filter: "blur(8px)" }}>{news.web_detail}</p>
-              <div className="absolute inset-0 top-10 flex items-center justify-center bg-[var(--card)]/60">
-                <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-sm font-bold hover:opacity-90 shadow-lg">
-                  🔒 구독하고 상세 분석 보기
-                </a>
+              <div className="absolute inset-0 top-10 flex flex-col items-center justify-center gap-3 bg-[var(--card)]/60">
+                {user && freeNewsViews > 0 ? (
+                  <button
+                    onClick={handleUseFreeNewsView}
+                    disabled={consuming}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-sm font-bold hover:opacity-90 shadow-lg disabled:opacity-50"
+                  >
+                    {consuming ? "처리 중..." : `무료 열람 사용 (${freeNewsViews}건 남음)`}
+                  </button>
+                ) : (
+                  <a href="/#subscribe" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-sm font-bold hover:opacity-90 shadow-lg">
+                    🔒 구독하고 상세 분석 보기
+                  </a>
+                )}
               </div>
             </div>
           )}

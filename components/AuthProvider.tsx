@@ -13,8 +13,10 @@ interface AuthContextType {
   isSubscriber: boolean;
   isInAppBrowser: boolean;
   freeViews: number;
+  freeNewsViews: number;
   canViewVip: boolean;
   useFreeView: () => Promise<boolean>;
+  useFreeNewsView: () => Promise<boolean>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -32,8 +34,10 @@ const AuthContext = createContext<AuthContextType>({
   isSubscriber: false,
   isInAppBrowser: false,
   freeViews: 0,
+  freeNewsViews: 0,
   canViewVip: false,
   useFreeView: async () => false,
+  useFreeNewsView: async () => false,
   signInWithGoogle: async () => {},
   signOut: async () => {},
 });
@@ -48,6 +52,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [isSubscriber, setIsSubscriber] = useState(false);
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const [freeViews, setFreeViews] = useState(0);
+  const [freeNewsViews, setFreeNewsViews] = useState(0);
 
   const isAdmin = !!user?.email && user.email === ADMIN_EMAIL;
   const canViewVip = isAdmin || isSubscriber || freeViews > 0;
@@ -60,30 +65,36 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     if (!u) {
       setIsSubscriber(false);
       setFreeViews(0);
+      setFreeNewsViews(0);
       return;
     }
     // 관리자는 항상 구독자 취급
     if (u.email === ADMIN_EMAIL) {
       setIsSubscriber(true);
       setFreeViews(99);
+      setFreeNewsViews(99);
       return;
     }
     const { data } = await supabase
       .from("subscribers")
-      .select("id, free_views")
+      .select("id, free_views, free_news_views")
       .eq("user_id", u.id)
       .maybeSingle();
     setIsSubscriber(!!data);
     setFreeViews(data?.free_views ?? 0);
+    setFreeNewsViews(data?.free_news_views ?? 0);
 
     // 로그인했지만 subscribers에 없으면 → 신규 가입, free_views 2 부여
     if (!data) {
       const { data: newRow } = await supabase
         .from("subscribers")
-        .insert({ user_id: u.id, email: u.email, free_views: 2, payment_status: "free_trial" })
-        .select("free_views")
+        .insert({ user_id: u.id, email: u.email, free_views: 2, free_news_views: 5, payment_status: "free_trial" })
+        .select("free_views, free_news_views")
         .single();
-      if (newRow) setFreeViews(newRow.free_views);
+      if (newRow) {
+        setFreeViews(newRow.free_views);
+        setFreeNewsViews(newRow.free_news_views);
+      }
     }
   }, []);
 
@@ -101,6 +112,21 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
     return false;
   }, [user, isSubscriber, isAdmin, freeViews]);
+
+  const useFreeNewsView = useCallback(async (): Promise<boolean> => {
+    if (!user || isSubscriber || isAdmin) return true;
+    if (freeNewsViews <= 0) return false;
+    const newCount = freeNewsViews - 1;
+    const { error } = await supabase
+      .from("subscribers")
+      .update({ free_news_views: newCount })
+      .eq("user_id", user.id);
+    if (!error) {
+      setFreeNewsViews(newCount);
+      return true;
+    }
+    return false;
+  }, [user, isSubscriber, isAdmin, freeNewsViews]);
 
   useEffect(() => {
     // 현재 세션 확인
@@ -167,7 +193,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, isSubscriber, isInAppBrowser, freeViews, canViewVip, useFreeView, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, isSubscriber, isInAppBrowser, freeViews, freeNewsViews, canViewVip, useFreeView, useFreeNewsView, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

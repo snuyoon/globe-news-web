@@ -239,6 +239,9 @@ export default function TheaterSeats() {
               >
                 구독하면 어떤 혜택이? <span className="underline underline-offset-2">자세히 보기</span>
               </a>
+              <p className="mt-3 text-xs text-[var(--text-muted)] bg-[#f0b90b]/[0.06] border border-[#f0b90b]/15 rounded-lg px-3 py-2 text-center lg:text-left">
+                회원가입만 해도 <span className="text-[#f0b90b] font-bold">카드뉴스 2건 + 뉴스 5건</span> 무료 체험
+              </p>
             </div>
 
             {/* Progress bar */}
