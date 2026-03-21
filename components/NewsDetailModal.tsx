@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
+import NewsScrapButton from "./NewsScrapButton";
 
 function ModalOgImage({ src, alt }: { src: string; alt: string }) {
   const [error, setError] = useState(false);
@@ -192,6 +193,16 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
               </div>
             </div>
           )}
+
+          {/* 스크랩 */}
+          <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between">
+            <NewsScrapButton newsId={news.id} />
+            {news.url && (
+              <a href={news.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-[var(--text-muted)] hover:text-white transition-colors">
+                원문 보기 &rarr;
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>

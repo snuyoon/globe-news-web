@@ -144,6 +144,13 @@ export default function Navbar() {
                           {user.email}
                         </p>
                       </div>
+                      <a
+                        href="/mypage"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2.5 text-sm text-[var(--text-muted)] hover:bg-[var(--card)] hover:text-white transition-colors"
+                      >
+                        내 스크랩
+                      </a>
                       <button
                         onClick={() => {
                           setProfileOpen(false);
@@ -261,15 +268,24 @@ export default function Navbar() {
                         {user.user_metadata?.full_name || user.email?.split("@")[0]}
                       </span>
                     </div>
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        signOut();
-                      }}
-                      className="text-[12px] text-[var(--text-muted)] hover:text-white transition-colors"
-                    >
-                      로그아웃
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <a
+                        href="/mypage"
+                        onClick={() => setMenuOpen(false)}
+                        className="text-[12px] text-[#f0b90b] hover:underline transition-colors"
+                      >
+                        내 스크랩
+                      </a>
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          signOut();
+                        }}
+                        className="text-[12px] text-[var(--text-muted)] hover:text-white transition-colors"
+                      >
+                        로그아웃
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button
