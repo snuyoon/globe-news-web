@@ -13,8 +13,8 @@ export default function CompanyPage() {
   const [viewerCard, setViewerCard] = useState<CardNews | null>(null);
   const [articleCard, setArticleCard] = useState<CardNews | null>(null);
   const [showVipModal, setShowVipModal] = useState(false);
-  const { isSubscriber, isAdmin } = useAuth();
-  const canView = isSubscriber || isAdmin;
+  const { canViewVip, useFreeView, freeViews, user } = useAuth();
+  const canView = canViewVip;
 
   const fetchCards = useCallback(async () => {
     const { data } = await supabase
@@ -172,12 +172,23 @@ export default function CompanyPage() {
             <div className="text-4xl mb-4">🔒</div>
             <h3 className="text-lg font-bold mb-2">VIP 전용 콘텐츠입니다</h3>
             <p className="text-sm text-[var(--text-muted)] mb-6">
-              기업분석은 구독자만 열람할 수 있습니다.<br />
-              구독하고 모든 콘텐츠를 이용해보세요!
+              {!user ? (
+                <>회원가입만 하면 <strong className="text-[#f0b90b]">2건 무료 체험</strong>할 수 있어요!</>
+              ) : freeViews > 0 ? (
+                <>무료 열람권 <strong className="text-[#f0b90b]">{freeViews}건</strong> 남았어요. 사용하시겠어요?</>
+              ) : (
+                <>무료 체험을 모두 사용했습니다. 구독하고 모든 콘텐츠를 이용해보세요!</>
+              )}
             </p>
             <div className="flex gap-3 justify-center">
               <button onClick={() => setShowVipModal(false)} className="px-4 py-2 rounded-lg text-sm text-[var(--text-muted)] border border-[var(--border)]">닫기</button>
-              <a href="/#subscribe" className="px-6 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90">구독하기</a>
+              {!user ? (
+                <button onClick={() => setShowVipModal(false)} className="px-6 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90">회원가입하기</button>
+              ) : freeViews > 0 ? (
+                <button onClick={async () => { const ok = await useFreeView(); if (ok) setShowVipModal(false); }} className="px-6 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90">무료 열람 사용 ({freeViews}건 남음)</button>
+              ) : (
+                <a href="/#subscribe" className="px-6 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90">구독하기</a>
+              )}
             </div>
           </div>
         </div>
