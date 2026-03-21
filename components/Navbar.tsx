@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 
@@ -39,8 +39,13 @@ function GoogleIcon() {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [tabBarHidden, setTabBarHidden] = useState(false);
   const { user, loading, isAdmin, isInAppBrowser, signInWithGoogle, signOut } = useAuth();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setTabBarHidden(localStorage.getItem("tabbar_hidden") === "1");
+  }, []);
 
   const handleSubscribeClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     if (pathname === "/") {
@@ -272,6 +277,51 @@ export default function Navbar() {
         </div>
       )}
     </nav>
+
+    {/* 모바일 탭바 (md 이상에선 숨김) */}
+    {!tabBarHidden && (
+      <div className="md:hidden sticky top-[53px] z-40 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)]">
+        <div className="flex items-center">
+          <div className="flex-1 flex overflow-x-auto scrollbar-none">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className={`flex-shrink-0 px-4 py-2.5 text-xs font-semibold transition-colors whitespace-nowrap ${
+                  pathname === link.href
+                    ? "text-[#f0b90b] border-b-2 border-[#f0b90b]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text)]"
+                }`}
+              >
+                {link.label}
+              </a>
+            ))}
+            {isAdmin && (
+              <a
+                href="/admin"
+                className={`flex-shrink-0 px-4 py-2.5 text-xs font-semibold transition-colors whitespace-nowrap ${
+                  pathname === "/admin" ? "text-[#f0b90b] border-b-2 border-[#f0b90b]" : "text-[var(--text-muted)]"
+                }`}
+              >
+                관리
+              </a>
+            )}
+          </div>
+          <button
+            onClick={() => {
+              setTabBarHidden(true);
+              localStorage.setItem("tabbar_hidden", "1");
+            }}
+            className="flex-shrink-0 px-3 py-2.5 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            aria-label="탭바 닫기"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    )}
     </>
   );
 }
