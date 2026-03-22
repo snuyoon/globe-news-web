@@ -10,6 +10,7 @@ import CancelWarningModal from "@/components/CancelWarningModal";
 import Character from "@/components/Character";
 import CharacterEditModal from "@/components/CharacterEditModal";
 import { supabase, type CardNews, type News } from "@/lib/supabase";
+import { dailyCheckin, type CheckinResult } from "@/lib/checkin";
 
 const LEVELS = [
   { level: 1, name: "루키", minXp: 0, color: "#6b7280", perks: ["기본 콘텐츠 열람"] },
@@ -52,6 +53,9 @@ export default function MyPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showCharEdit, setShowCharEdit] = useState(false);
+  const [checkin, setCheckin] = useState<CheckinResult | null>(null);
+  const [checkinLoading, setCheckinLoading] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<{ name: string; xp: number; level: number; seat_number: number | null }[]>([]);
   const [scrapCards, setScrapCards] = useState<CardNews[]>([]);
   const [scrapNews, setScrapNews] = useState<News[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -119,12 +123,33 @@ export default function MyPage() {
     if (data) setProfile(data as Profile);
   }, [user]);
 
+  const fetchLeaderboard = useCallback(async () => {
+    const { data } = await supabase
+      .from("subscribers")
+      .select("name, xp, level, seat_number")
+      .order("xp", { ascending: false })
+      .limit(10);
+    if (data) setLeaderboard(data);
+  }, []);
+
   useEffect(() => {
     if (user) {
       fetchScraps();
       fetchProfile();
+      fetchLeaderboard();
     }
-  }, [user, fetchScraps, fetchProfile]);
+  }, [user, fetchScraps, fetchProfile, fetchLeaderboard]);
+
+  const handleCheckin = async () => {
+    if (!user || checkinLoading) return;
+    setCheckinLoading(true);
+    const result = await dailyCheckin(user.id);
+    if (result) {
+      setCheckin(result);
+      if (!result.already) fetchProfile(); // XP 갱신
+    }
+    setCheckinLoading(false);
+  };
 
   const openCard = useCallback(async (card: CardNews) => {
     const { data } = await supabase.from("card_news").select("*").eq("id", card.id).single();
@@ -245,6 +270,76 @@ export default function MyPage() {
             </div>
           );
         })()}
+
+        {/* 데일리 체크인 + 리더보드 */}
+        {profile && (
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 체크인 */}
+            <div className="p-5 rounded-2xl" style={{ backgroundColor: "var(--card)" }}>
+              <h3 className="text-sm font-bold mb-3">데일리 체크인</h3>
+              {checkin ? (
+                <div className="text-center py-3">
+                  {checkin.already ? (
+                    <>
+                      <p className="text-2xl mb-1">&#10003;</p>
+                      <p className="text-sm font-bold text-[#22c55e]">오늘 체크인 완료!</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-1">{checkin.streak}일 연속</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-2xl mb-1">&#127881;</p>
+                      <p className="text-sm font-bold text-[#f0b90b]">+{checkin.xp} XP 획득!</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-1">{checkin.streak}일 연속 출석</p>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-xs text-[var(--text-muted)] mb-3">매일 출석하면 XP 보너스! 7일 연속 시 +15XP</p>
+                  <button
+                    onClick={handleCheckin}
+                    disabled={checkinLoading}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black font-bold text-sm hover:opacity-90 disabled:opacity-40 transition-opacity"
+                  >
+                    {checkinLoading ? "..." : "출석 체크"}
+                  </button>
+                </div>
+              )}
+              <div className="mt-3 pt-3 border-t border-[var(--border)] grid grid-cols-4 gap-1 text-center">
+                {[1, 3, 5, 7].map((d) => (
+                  <div key={d} className="text-[10px] text-[var(--text-muted)]">
+                    <p className="font-bold">{d}일</p>
+                    <p className="text-[#f0b90b]">+{d >= 7 ? 15 : d >= 5 ? 10 : d >= 3 ? 5 : 3}XP</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 리더보드 */}
+            <div className="p-5 rounded-2xl" style={{ backgroundColor: "var(--card)" }}>
+              <h3 className="text-sm font-bold mb-3">XP 랭킹 TOP 10</h3>
+              <div className="space-y-2">
+                {leaderboard.map((entry, i) => {
+                  const lvlInfo = LEVELS.find((l) => l.level === entry.level) || LEVELS[0];
+                  return (
+                    <div key={i} className="flex items-center gap-2 text-[12px]">
+                      <span className={`w-5 text-center font-bold ${i < 3 ? "text-[#f0b90b]" : "text-[var(--text-muted)]"}`}>
+                        {i + 1}
+                      </span>
+                      {entry.seat_number && <span className="text-[10px] text-[var(--text-muted)]">#{entry.seat_number}</span>}
+                      <span className="flex-1 truncate">{entry.name || "익명"}</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${lvlInfo.color}15`, color: lvlInfo.color }}>
+                        Lv.{entry.level}
+                      </span>
+                      <span className="text-[var(--text-muted)] font-mono">{entry.xp}XP</span>
+                    </div>
+                  );
+                })}
+                {leaderboard.length === 0 && <p className="text-center text-xs text-[var(--text-muted)] py-4">아직 데이터가 없어요</p>}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 레벨 혜택 */}
         {profile && (() => {
