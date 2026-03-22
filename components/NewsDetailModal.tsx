@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
 import NewsScrapButton from "./NewsScrapButton";
+import ShareButton from "./ShareButton";
 import { grantXp } from "@/lib/xp";
 import { timeAgo } from "@/lib/utils";
 
@@ -268,6 +269,7 @@ export default function NewsDetailModal({ news, onClose }: { news: News; onClose
           <div className="mt-6 pt-5 border-t border-[var(--border)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
+                <ShareButton title={headline} size="md" />
                 <NewsScrapButton newsId={news.id} />
                 {news.url && (
                   (isSubscriber || isAdmin) ? (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { News } from "@/lib/supabase";
 import { useAuth } from "./AuthProvider";
 import NewsScrapButton from "./NewsScrapButton";
+import ShareButton from "./ShareButton";
 import { timeAgo } from "@/lib/utils";
 
 function OgImage({ src, alt }: { src: string; alt: string }) {
@@ -242,7 +243,10 @@ export default function NewsCard({ news, index }: { news: News; index: number })
             {news.source && <span className="opacity-70">{news.source}</span>}
             <span>{timeAgo(news.published_at)}</span>
           </div>
-          <NewsScrapButton newsId={news.id} />
+          <div className="flex items-center gap-1">
+            <ShareButton title={headline} />
+            <NewsScrapButton newsId={news.id} />
+          </div>
         </div>
       </div>
     </article>

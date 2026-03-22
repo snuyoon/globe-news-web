@@ -11,6 +11,7 @@ import Character from "@/components/Character";
 import CharacterEditModal from "@/components/CharacterEditModal";
 import { supabase, type CardNews, type News } from "@/lib/supabase";
 import { dailyCheckin, type CheckinResult } from "@/lib/checkin";
+import { getReferralCode, getReferralLink } from "@/lib/referral";
 
 const LEVELS = [
   { level: 1, name: "루키", minXp: 0, color: "#6b7280", perks: ["기본 콘텐츠 열람"] },
@@ -56,6 +57,8 @@ export default function MyPage() {
   const [checkin, setCheckin] = useState<CheckinResult | null>(null);
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [leaderboard, setLeaderboard] = useState<{ name: string; xp: number; level: number; seat_number: number | null }[]>([]);
+  const [refCode, setRefCode] = useState("");
+  const [refCopied, setRefCopied] = useState(false);
   const [scrapCards, setScrapCards] = useState<CardNews[]>([]);
   const [scrapNews, setScrapNews] = useState<News[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -137,6 +140,7 @@ export default function MyPage() {
       fetchScraps();
       fetchProfile();
       fetchLeaderboard();
+      getReferralCode(user.id).then((code) => { if (code) setRefCode(code); });
     }
   }, [user, fetchScraps, fetchProfile, fetchLeaderboard]);
 
@@ -338,6 +342,33 @@ export default function MyPage() {
                 {leaderboard.length === 0 && <p className="text-center text-xs text-[var(--text-muted)] py-4">아직 데이터가 없어요</p>}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* 친구 초대 */}
+        {isSubscriber && refCode && (
+          <div className="mb-8 p-5 rounded-2xl" style={{ backgroundColor: "var(--card)" }}>
+            <h3 className="text-sm font-bold mb-1">친구 초대</h3>
+            <p className="text-xs text-[var(--text-muted)] mb-3">친구가 구독하면 양쪽 모두 +50XP, +50P!</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={getReferralLink(refCode)}
+                className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--text-muted)] truncate"
+              />
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(getReferralLink(refCode));
+                  setRefCopied(true);
+                  setTimeout(() => setRefCopied(false), 2000);
+                }}
+                className="px-4 py-2 rounded-lg text-xs font-bold text-black bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] hover:opacity-90 transition-opacity flex-shrink-0"
+              >
+                {refCopied ? "복사됨!" : "링크 복사"}
+              </button>
+            </div>
+            <p className="text-[10px] text-[var(--text-muted)] mt-2">내 초대 코드: <strong className="text-[#f0b90b]">{refCode}</strong></p>
           </div>
         )}
 
