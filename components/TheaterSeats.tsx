@@ -288,13 +288,13 @@ export default function TheaterSeats() {
                 <span className="text-2xl text-[var(--text-muted)]">100</span>
               </div>
               <p className="text-sm text-[var(--text)] font-medium mb-1">
-                지금은 <span className="text-[#22c55e] font-bold">무료 체험</span> 기간!
+                나만의 캐릭터를 만들어 <span className="text-[#f0b90b] font-bold">좌석에 앉혀보세요!</span>
               </p>
               <p className="text-xs text-[var(--text-muted)] mb-2">
-                5월 1일 정식 오픈 · 지금 착석하고 모든 기능을 무료로 체험하세요
+                5월 1일 선착순 구독 오픈 · 이 좌석이 곧 내 구독석이 됩니다
               </p>
               <p className="text-[11px] text-[var(--text-muted)]">
-                <span className="text-[#f0b90b] font-bold">1, 7, 77, 100</span>번째 구독자 → 5월 오픈 시 <span className="text-[#f0b90b] font-bold">Pro 평생 무료</span>
+                5월 구독 시 <span className="text-[#f0b90b] font-bold">1, 7, 77, 100</span>번째 구독자는 <span className="text-[#f0b90b] font-bold">Pro 평생 무료</span>
               </p>
             </div>
 
