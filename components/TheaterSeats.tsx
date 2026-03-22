@@ -406,11 +406,11 @@ export default function TheaterSeats() {
 
                           {/* 왕관 뱃지: 럭키(1,7,77,100)=다이아, 일반 착석=동색, Lv.3+=은색 */}
                           {isOccupied && (
-                            <div className="absolute -top-[6px] left-1/2 -translate-x-1/2 z-20 text-[10px]">
+                            <div className="absolute -top-[10px] left-1/2 -translate-x-1/2 z-20 text-[18px]">
                               {lucky ? (
-                                <span title="다이아 왕관 — 럭키넘버!" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }}>&#x1F451;</span>
+                                <span title="다이아 왕관 — 럭키넘버!" style={{ filter: "drop-shadow(0 0 6px #00d4ff) drop-shadow(0 0 12px #00d4ff80)" }}>&#x1F451;</span>
                               ) : (
-                                <span className="opacity-60" title="창립 멤버 왕관">&#x1F451;</span>
+                                <span className="opacity-50" title="창립 멤버 왕관">&#x1F451;</span>
                               )}
                             </div>
                           )}
