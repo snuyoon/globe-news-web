@@ -12,8 +12,8 @@ interface EarningItem { symbol: string; name: string; eps: string; why: string; 
 interface EarningsSection { title: string; subtitle: string; cat_label: string; items: EarningItem[]; }
 interface QnaWebExtended { deep_dive: string; data_points: string[]; action_items: string[]; related: string[]; }
 interface Qna { q: string; a: string; web_extended?: QnaWebExtended; }
-interface FlowStep { title: string; detail: string; color: string; }
-interface Impact { positive_label: string; negative_label: string; bullish: string[]; bearish: string[]; }
+interface FlowStep { title: string; detail: string; color: "green" | "red" | "yellow" | "purple" | "pink" | "blue" | "orange"; }
+interface Impact { positive_label: string; negative_label: string; positive_style?: string; negative_style?: string; bullish: string[]; bearish: string[]; }
 interface HistoryItem { year: string; title: string; desc: string; }
 interface ChecklistItem { text: string; }
 
