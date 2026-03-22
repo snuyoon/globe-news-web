@@ -397,7 +397,7 @@ export default function CommunityPage() {
                       {(post.author_name || "?")[0].toUpperCase()}
                     </div>
                   )}
-                  <p className="text-[10px] font-bold mt-1 text-center truncate w-full">{post.author_name || "익명"}</p>
+                  <p className="text-[10px] font-bold mt-1 text-center truncate w-full">{post.author_character?.initial || "??"}</p>
                   {post.author_seat && <p className="text-[9px] text-[var(--text-muted)]">#{post.author_seat}석</p>}
                 </div>
 
@@ -457,7 +457,7 @@ export default function CommunityPage() {
                 <h1 className="text-lg md:text-xl font-bold mb-3">{selectedPost.title}</h1>
 
                 <div className="flex items-center justify-between mb-5">
-                  <AuthorBadge name={selectedPost.author_name || "익명"} seat={selectedPost.author_seat} level={selectedPost.author_level} characterData={selectedPost.author_character} />
+                  <AuthorBadge name={selectedPost.author_character?.initial || "??"} seat={selectedPost.author_seat} level={selectedPost.author_level} characterData={selectedPost.author_character} />
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] text-[var(--text-muted)]">{timeAgo(selectedPost.created_at)}</span>
                     {(isAdmin || user?.id === selectedPost.user_id) && (
@@ -503,7 +503,7 @@ export default function CommunityPage() {
                     {comments.map((c) => (
                       <div key={c.id} className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg)" }}>
                         <div className="flex items-center justify-between mb-2">
-                          <AuthorBadge name={c.author_name || "익명"} seat={c.author_seat} level={c.author_level} characterData={c.author_character} />
+                          <AuthorBadge name={c.author_character?.initial || "??"} seat={c.author_seat} level={c.author_level} characterData={c.author_character} />
                           <span className="text-[11px] text-[var(--text-muted)]">{timeAgo(c.created_at)}</span>
                         </div>
                         <p className="text-sm text-[var(--text-muted)] leading-relaxed">{c.body}</p>
