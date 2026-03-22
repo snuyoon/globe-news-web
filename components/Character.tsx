@@ -222,72 +222,85 @@ function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120, skin
   const lighter = lightenColor(hoodieColor, 30);
   const skinHighlight = lightenColor(skinTone, 20);
 
-  const headCy = 36 * s;
-  const headR = 33 * s;
-  const bodyCy = 82 * s;
+  // 참고이미지 스타일: 머리→몸 이어지는 통통 실루엣
+  const headCy = 32 * s;
+  const headR = 30 * s;
+  const bodyCy = 72 * s;
+  const bodyRx = 22 * s;
+  const bodyRy = 26 * s;
 
   return (
     <svg width={size} height={size * 1.05} viewBox={`0 0 ${100 * s} ${105 * s}`} fill="none">
       {/* Shadow */}
-      <ellipse cx={cx} cy={100 * s} rx={14 * s} ry={2 * s} fill="black" opacity={0.12} />
+      <ellipse cx={cx} cy={99 * s} rx={18 * s} ry={2.5 * s} fill="black" opacity={0.12} />
 
-      {/* Tiny round feet */}
-      <circle cx={40 * s} cy={96 * s} r={4.5 * s} fill={darker} />
-      <circle cx={60 * s} cy={96 * s} r={4.5 * s} fill={darker} />
+      {/* === 통통 몸 (머리와 이어지는 실루엣) === */}
+      {/* 몸통 — 큰 타원 */}
+      <ellipse cx={cx} cy={bodyCy} rx={bodyRx} ry={bodyRy} fill={hoodieColor} />
 
-      {/* Small round body */}
-      <ellipse cx={cx} cy={bodyCy} rx={14 * s} ry={14 * s} fill={hoodieColor} />
+      {/* 머리→몸 연결부 (목 없이 이어지게) */}
+      <rect x={cx - 18 * s} y={headCy + 10 * s} width={36 * s} height={20 * s} fill={hoodieColor} rx={2 * s} />
 
-      {/* Body highlight */}
-      <ellipse cx={cx - 4 * s} cy={bodyCy - 5 * s} rx={5 * s} ry={7 * s} fill={lighter} opacity={0.12} />
+      {/* 팔 — 몸에 붙은 볼록한 형태 */}
+      <ellipse cx={cx - 22 * s} cy={bodyCy - 4 * s} rx={7 * s} ry={10 * s} fill={hoodieColor} />
+      <ellipse cx={cx + 22 * s} cy={bodyCy - 4 * s} rx={7 * s} ry={10 * s} fill={hoodieColor} />
+      {/* 팔 하이라이트 */}
+      <ellipse cx={cx - 24 * s} cy={bodyCy - 8 * s} rx={3 * s} ry={5 * s} fill={lighter} opacity={0.1} />
 
-      {/* Tiny round arms */}
-      <circle cx={34 * s} cy={80 * s} r={5 * s} fill={hoodieColor} />
-      <circle cx={66 * s} cy={80 * s} r={5 * s} fill={hoodieColor} />
+      {/* 짧은 발 */}
+      <rect x={cx - 12 * s} y={94 * s} width={9 * s} height={5 * s} rx={3 * s} fill={darker} />
+      <rect x={cx + 3 * s} y={94 * s} width={9 * s} height={5 * s} rx={3 * s} fill={darker} />
 
-      {/* === BIG HEAD (hood) === */}
+      {/* 몸통 하이라이트 */}
+      <ellipse cx={cx - 8 * s} cy={bodyCy - 10 * s} rx={8 * s} ry={12 * s} fill={lighter} opacity={0.1} />
+
+      {/* 지퍼 라인 */}
+      <line x1={cx} y1={headCy + 22 * s} x2={cx} y2={bodyCy + 20 * s} stroke={darker} strokeWidth={1.2 * s} strokeLinecap="round" opacity={0.3} />
+
+      {/* === 큰 머리 (후드) === */}
       <circle cx={cx} cy={headCy} r={headR} fill={hoodieColor} />
-      {/* Hood highlight */}
-      <ellipse cx={cx - 12 * s} cy={headCy - 14 * s} rx={14 * s} ry={12 * s} fill={lighter} opacity={0.15} />
 
-      {/* Hood inner shadow */}
-      <ellipse cx={cx} cy={headCy + 4 * s} rx={23 * s} ry={23 * s} fill={darker} opacity={0.12} />
+      {/* 후드 하이라이트 */}
+      <ellipse cx={cx - 10 * s} cy={headCy - 14 * s} rx={14 * s} ry={11 * s} fill={lighter} opacity={0.15} />
 
-      {/* Face */}
-      <circle cx={cx} cy={headCy + 5 * s} r={20 * s} fill={skinTone} />
-      {/* Face highlight */}
-      <ellipse cx={cx - 6 * s} cy={headCy} rx={9 * s} ry={11 * s} fill={skinHighlight} opacity={0.4} />
+      {/* 후드 안쪽 그림자 */}
+      <ellipse cx={cx} cy={headCy + 4 * s} rx={22 * s} ry={21 * s} fill={darker} opacity={0.1} />
 
-      {/* Hair */}
-      <HairBangs style={hairStyle} cx={cx} cy={headCy - 13 * s} s={s} color={hoodieColor} />
+      {/* 얼굴 — 후드 안 동그란 피부 */}
+      <circle cx={cx} cy={headCy + 5 * s} r={19 * s} fill={skinTone} />
+      {/* 얼굴 하이라이트 */}
+      <ellipse cx={cx - 6 * s} cy={headCy} rx={8 * s} ry={10 * s} fill={skinHighlight} opacity={0.35} />
 
-      {/* Eyes */}
+      {/* 머리카락 */}
+      <HairBangs style={hairStyle} cx={cx} cy={headCy - 12 * s} s={s} color={hoodieColor} />
+
+      {/* 눈 */}
       <Eyes style={eyeStyle} cx={cx} cy={headCy + 4 * s} s={s} />
 
-      {/* Accessory (over eyes) */}
+      {/* 액세서리 */}
       <Accessory style={accessory} cx={cx} cy={headCy + 4 * s} s={s} />
 
-      {/* Blush */}
-      <ellipse cx={cx - 15 * s} cy={headCy + 12 * s} rx={4.5 * s} ry={2.5 * s} fill="#ffb3b3" opacity={0.4} />
-      <ellipse cx={cx + 15 * s} cy={headCy + 12 * s} rx={4.5 * s} ry={2.5 * s} fill="#ffb3b3" opacity={0.4} />
+      {/* 볼터치 */}
+      <ellipse cx={cx - 14 * s} cy={headCy + 12 * s} rx={4 * s} ry={2.2 * s} fill="#ffb3b3" opacity={0.35} />
+      <ellipse cx={cx + 14 * s} cy={headCy + 12 * s} rx={4 * s} ry={2.2 * s} fill="#ffb3b3" opacity={0.35} />
 
-      {/* Mouth — cute smile */}
+      {/* 입 */}
       <path
-        d={`M${cx - 3.5 * s},${headCy + 15 * s} Q${cx},${headCy + 19 * s} ${cx + 3.5 * s},${headCy + 15 * s}`}
-        stroke="#c4956a" strokeWidth={1.2 * s} fill="none" strokeLinecap="round"
+        d={`M${cx - 3 * s},${headCy + 14 * s} Q${cx},${headCy + 17.5 * s} ${cx + 3 * s},${headCy + 14 * s}`}
+        stroke="#c4956a" strokeWidth={1 * s} fill="none" strokeLinecap="round"
       />
 
-      {/* Initial on body */}
+      {/* 이니셜 */}
       <text
         x={cx}
-        y={bodyCy + 1 * s}
+        y={bodyCy + 4 * s}
         textAnchor="middle"
         dominantBaseline="middle"
         fill="white"
-        fontSize={12 * s}
+        fontSize={11 * s}
         fontWeight="900"
         fontFamily="sans-serif"
-        opacity={0.85}
+        opacity={0.8}
       >
         {initial}
       </text>
