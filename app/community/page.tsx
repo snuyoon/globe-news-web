@@ -45,36 +45,55 @@ const LEVEL_NAMES: Record<number, { name: string; color: string }> = {
   5: { name: "디렉터", color: "#f0b90b" },
 };
 
+const LUCKY_SEATS = new Set([1, 7, 77, 100]);
+
 function AuthorBadge({ name, seat, level, characterData }: { name: string; seat?: number | null; level?: number; characterData?: Record<string, string> | null }) {
   const lvl = LEVEL_NAMES[level || 1] || LEVEL_NAMES[1];
+  const isLucky = seat ? LUCKY_SEATS.has(seat) : false;
   return (
-    <div className="flex items-center gap-2">
-      {characterData ? (
-        <div className="w-8 h-8 flex-shrink-0">
-          <Character
-            hoodieColor={characterData.hoodieColor || "#2d2d3d"}
-            eyeStyle={(characterData.eyeStyle as "dot") || "dot"}
-            hairStyle={(characterData.hairStyle as "bangs") || "bangs"}
-            skinTone={(characterData.skinTone as "#fce4c8") || "#fce4c8"}
-            accessory={(characterData.accessory as "none") || "none"}
-            initial={characterData.initial || name[0]?.toUpperCase() || "?"}
-            size={32}
-          />
+    <div className="flex items-center gap-3">
+      {/* 캐릭터 카드 (큰 사이즈) */}
+      <div className="relative flex-shrink-0">
+        {characterData ? (
+          <div className="w-12 h-12">
+            <Character
+              hoodieColor={characterData.hoodieColor || "#2d2d3d"}
+              eyeStyle={(characterData.eyeStyle as "dot") || "dot"}
+              hairStyle={(characterData.hairStyle as "bangs") || "bangs"}
+              skinTone={(characterData.skinTone as "#fce4c8") || "#fce4c8"}
+              accessory={(characterData.accessory as "none") || "none"}
+              initial={characterData.initial || name[0]?.toUpperCase() || "?"}
+              size={48}
+            />
+          </div>
+        ) : (
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+            style={{ backgroundColor: `${lvl.color}20`, color: lvl.color }}
+          >
+            {name[0]?.toUpperCase() || "?"}
+          </div>
+        )}
+        {/* 왕관 — 캐릭터 머리 위 */}
+        {seat && (
+          <div className="absolute -top-[8px] left-1/2 -translate-x-1/2 text-[14px]">
+            {isLucky ? (
+              <span style={{ filter: "drop-shadow(0 0 4px #00d4ff) drop-shadow(0 0 8px #00d4ff80)" }}>&#x1F451;</span>
+            ) : (
+              <span className="opacity-40">&#x1F451;</span>
+            )}
+          </div>
+        )}
+      </div>
+      {/* 이름 + 좌석 + 레벨 */}
+      <div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[13px] font-bold">{name}</span>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${lvl.color}15`, color: lvl.color }}>
+            Lv.{level || 1}
+          </span>
         </div>
-      ) : (
-        <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-          style={{ backgroundColor: `${lvl.color}20`, color: lvl.color }}
-        >
-          {name[0]?.toUpperCase() || "?"}
-        </div>
-      )}
-      <div className="flex items-center gap-1.5">
-        {seat && <span className="text-[11px] text-[var(--text-muted)]">#{seat}</span>}
-        <span className="text-[12px] font-medium">{name}</span>
-        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${lvl.color}15`, color: lvl.color }}>
-          Lv.{level || 1}
-        </span>
+        {seat && <span className="text-[11px] text-[var(--text-muted)]">#{seat}석</span>}
       </div>
     </div>
   );
