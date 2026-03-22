@@ -225,13 +225,13 @@ export default function TheaterSeats() {
                 <span className="px-2.5 py-1 rounded bg-[#ef4444]/15 text-[#ef4444] text-sm font-bold">50% OFF</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
-                  4,990원
+                <span className="text-3xl md:text-5xl lg:text-6xl font-black text-[#22c55e]">
+                  무료 체험
                 </span>
-                <span className="text-[var(--text-muted)] text-lg">/ 월</span>
+                <span className="text-[var(--text-muted)] text-lg">중</span>
               </div>
-              <p className="text-[#f0b90b] text-sm font-semibold mt-1">
-                선착순 100명 <span className="underline underline-offset-2">창립 멤버</span> — 영구 혜택 + 최고 레벨
+              <p className="text-[#22c55e] text-sm font-semibold mt-1">
+                4월 무료 체험 · <span className="text-[#f0b90b]">5월 1일 정식 오픈</span>
               </p>
               <a
                 href="/subscribe"
@@ -265,7 +265,7 @@ export default function TheaterSeats() {
             </div>
 
             <p className="text-[var(--text-muted)] text-xs mt-4">
-              100석 마감 후 시즌 2가 열려요 — 창립 멤버 혜택은 지금뿐!
+              4월 무료 체험 중 · 5월 1일 정식 오픈 · 선착순 100석 한정
             </p>
 
             {/* SNS */}
@@ -288,13 +288,13 @@ export default function TheaterSeats() {
                 <span className="text-2xl text-[var(--text-muted)]">100</span>
               </div>
               <p className="text-sm text-[var(--text)] font-medium mb-1">
-                지금 앉으면 <span className="text-[#f0b90b] font-bold">창립 멤버</span> 영구 등록!
+                지금은 <span className="text-[#22c55e] font-bold">무료 체험</span> 기간!
               </p>
               <p className="text-xs text-[var(--text-muted)] mb-2">
-                창립 멤버는 최고 레벨 즉시 부여 + 구독료 영구 할인
+                5월 1일 정식 오픈 · 지금 착석하고 모든 기능을 무료로 체험하세요
               </p>
               <p className="text-[11px] text-[var(--text-muted)]">
-                <span className="text-[#f0b90b] font-bold">1, 7, 77, 100</span>번째 구독자 → 이번 달만 내면 <span className="text-[#f0b90b] font-bold">평생 무료</span>
+                <span className="text-[#f0b90b] font-bold">1, 7, 77, 100</span>번째 구독자 → 5월 오픈 시 <span className="text-[#f0b90b] font-bold">Pro 평생 무료</span>
               </p>
             </div>
 
