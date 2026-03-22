@@ -13,6 +13,7 @@ import { supabase, type CardNews, type News } from "@/lib/supabase";
 import { dailyCheckin, type CheckinResult } from "@/lib/checkin";
 import { getReferralCode, getReferralLink } from "@/lib/referral";
 import { SHOP_ITEMS, purchaseItem } from "@/lib/shop";
+import { subscribePush, unsubscribePush, isPushSubscribed } from "@/lib/push";
 
 const LEVELS = [
   { level: 1, name: "루키", minXp: 0, color: "#6b7280", perks: ["기본 콘텐츠 열람"] },
@@ -62,6 +63,8 @@ export default function MyPage() {
   const [refCode, setRefCode] = useState("");
   const [refCopied, setRefCopied] = useState(false);
   const [shopBuying, setShopBuying] = useState("");
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
   const [scrapCards, setScrapCards] = useState<CardNews[]>([]);
   const [scrapNews, setScrapNews] = useState<News[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -144,6 +147,7 @@ export default function MyPage() {
       fetchProfile();
       fetchLeaderboard();
       getReferralCode(user.id).then((code) => { if (code) setRefCode(code); });
+      isPushSubscribed().then(setPushEnabled);
     }
   }, [user, fetchScraps, fetchProfile, fetchLeaderboard]);
 
@@ -372,6 +376,34 @@ export default function MyPage() {
               </button>
             </div>
             <p className="text-[10px] text-[var(--text-muted)] mt-2">내 초대 코드: <strong className="text-[#f0b90b]">{refCode}</strong></p>
+          </div>
+        )}
+
+        {/* 알림 설정 */}
+        {isSubscriber && (
+          <div className="mb-8 p-5 rounded-2xl flex items-center justify-between" style={{ backgroundColor: "var(--card)" }}>
+            <div>
+              <h3 className="text-sm font-bold mb-0.5">푸시 알림</h3>
+              <p className="text-xs text-[var(--text-muted)]">긴급 속보, 브리핑 도착 시 알림 받기</p>
+            </div>
+            <button
+              onClick={async () => {
+                if (!user || pushLoading) return;
+                setPushLoading(true);
+                if (pushEnabled) {
+                  await unsubscribePush(user.id);
+                  setPushEnabled(false);
+                } else {
+                  const ok = await subscribePush(user.id);
+                  setPushEnabled(ok);
+                }
+                setPushLoading(false);
+              }}
+              disabled={pushLoading}
+              className={`relative w-12 h-6 rounded-full transition-all ${pushEnabled ? "bg-[#f0b90b]" : "bg-[var(--border)]"}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${pushEnabled ? "left-6" : "left-0.5"}`} />
+            </button>
           </div>
         )}
 
