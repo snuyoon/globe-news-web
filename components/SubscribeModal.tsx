@@ -66,20 +66,19 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0b90b]/10 border border-[#f0b90b]/20 mb-3">
                   <span className="text-[#f0b90b] text-xs font-semibold">{seatId}석 선택</span>
                 </div>
-                <h2 className="text-xl font-extrabold mb-1">월스트리트 VIP 구독</h2>
-                <p className="text-[var(--text-muted)] text-sm">구독 후 나만의 캐릭터로 착석하세요</p>
+                <h2 className="text-xl font-extrabold mb-1">무료 체험 시작</h2>
+                <p className="text-[var(--text-muted)] text-sm">4월 무료 체험 · 나만의 캐릭터로 착석하세요</p>
               </div>
 
               {/* Pricing */}
               <div className="bg-[#0a0a12] rounded-xl p-4 mb-5 border border-[var(--border)]">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <span className="text-[var(--text-muted)] line-through text-sm">월 {PRO_ORIGINAL.toLocaleString()}원</span>
-                    <span className="ml-2 px-1.5 py-0.5 rounded bg-[#ef4444]/20 text-[#ef4444] text-[10px] font-bold">50% OFF</span>
+                    <span className="text-[#22c55e] text-sm font-bold">4월 무료 체험</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">{PRO_PRICE.toLocaleString()}원</span>
-                    <span className="text-[var(--text-muted)] text-xs ml-1">/월</span>
+                    <span className="text-[var(--text-muted)] line-through text-sm mr-2">{PRO_PRICE.toLocaleString()}원/월</span>
+                    <span className="text-2xl font-black text-[#22c55e]">무료</span>
                   </div>
                 </div>
                 <div className="space-y-1.5 text-xs text-[var(--text-muted)]">
@@ -107,13 +106,13 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
                   </div>
 
                   <button
-                    onClick={handlePayment}
+                    onClick={() => { setStep("done"); setTimeout(() => onSubscribed(), 800); }}
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black font-bold text-[15px] hover:opacity-90 transition-opacity"
                   >
-                    {PRO_PRICE.toLocaleString()}원 결제하고 구독하기
+                    무료 체험으로 착석하기
                   </button>
                   <p className="text-center text-[10px] text-[var(--text-muted)]/50 mt-2">
-                    카드 결제 · 언제든 해지 가능
+                    4월 무료 체험 · 5월 1일 정식 오픈
                   </p>
                 </>
               ) : (
@@ -132,7 +131,7 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
               )}
 
               <p className="text-center text-[10px] text-[var(--text-muted)]/50 mt-3">
-                선착순 100명 한정 · 프로모션 종료 후 정상가({PRO_ORIGINAL.toLocaleString()}원) 적용
+                4월 무료 체험 · 5월 1일 정식 오픈 · 선착순 100석 한정
               </p>
             </>
           )}
