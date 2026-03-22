@@ -116,14 +116,20 @@ export default function Navbar() {
               {planOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56 bg-[#16161e] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-[var(--border)]">
-                    <p className="text-xs text-[var(--text-muted)]">현재 플랜</p>
-                    <p className="text-sm font-bold text-[#f0b90b]">PRO — 4,990원/월</p>
+                    <p className="text-xs text-[#22c55e]">4월 무료 체험 중</p>
+                    <p className="text-sm font-bold text-[#f0b90b]">PRO 체험</p>
                   </div>
-                  <div className="px-4 py-3 bg-gradient-to-r from-[#f0b90b]/5 to-[#ef6d09]/5">
-                    <p className="text-xs font-bold text-[#f0b90b] mb-1">ULTRA — 준비 중</p>
-                    <p className="text-[11px] text-[var(--text-muted)]">AI 금융 분석가 + 매크로 보고서</p>
-                    <p className="text-[10px] text-[var(--text-muted)] mt-1">출시 시 알림 받기</p>
+                  <div className="px-4 py-3 bg-gradient-to-r from-[#f0b90b]/5 to-[#ef6d09]/5 border-b border-[var(--border)]">
+                    <p className="text-[11px] text-[var(--text-muted)]">5월 1일 정식 오픈</p>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Pro 4,990원 · Ultra 14,900원</p>
                   </div>
+                  <a
+                    href="/subscribe"
+                    onClick={() => setPlanOpen(false)}
+                    className="block px-4 py-2.5 text-[12px] text-[#f0b90b] hover:bg-[var(--card)] transition-colors font-medium"
+                  >
+                    요금제 비교 자세히 보기 →
+                  </a>
                   <button
                     onClick={() => setPlanOpen(false)}
                     className="w-full px-4 py-2 text-left text-[12px] text-[var(--text-muted)] hover:bg-[var(--card)] transition-colors"
