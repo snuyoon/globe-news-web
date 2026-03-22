@@ -33,12 +33,17 @@ interface SubscriberRow {
   character_data: SeatData | null;
   is_lucky: boolean;
   user_id: string;
+  name: string | null;
+  level: number;
+  xp: number;
 }
 
 export default function TheaterSeats() {
   const { user } = useAuth();
   const [seats, setSeats] = useState<Record<string, SeatData>>({});
+  const [seatProfiles, setSeatProfiles] = useState<Record<string, { name: string; level: number; xp: number; seatNum: number; isLucky: boolean }>>({});
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
+  const [profileSeat, setProfileSeat] = useState<string | null>(null);
   const [subscribeSeat, setSubscribeSeat] = useState<string | null>(null);
   const [mySeatedId, setMySeatedId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -48,7 +53,7 @@ export default function TheaterSeats() {
   const loadSeats = useCallback(async () => {
     const { data, error } = await supabase
       .from("subscribers")
-      .select("seat_number, character_data, is_lucky, user_id")
+      .select("seat_number, character_data, is_lucky, user_id, name, level, xp")
       .order("seat_number");
 
     if (error) {
@@ -58,12 +63,20 @@ export default function TheaterSeats() {
     }
 
     const seatMap: Record<string, SeatData> = {};
+    const profiles: Record<string, { name: string; level: number; xp: number; seatNum: number; isLucky: boolean }> = {};
     let myId: string | null = null;
 
     (data as SubscriberRow[]).forEach((row) => {
       if (row.seat_number && row.character_data) {
         const id = seatIdByOrder(row.seat_number);
         seatMap[id] = row.character_data;
+        profiles[id] = {
+          name: row.name || row.character_data.initial || "익명",
+          level: row.level || 1,
+          xp: row.xp || 0,
+          seatNum: row.seat_number,
+          isLucky: row.is_lucky,
+        };
         if (user && row.user_id === user.id) {
           myId = id;
         }
@@ -71,6 +84,7 @@ export default function TheaterSeats() {
     });
 
     setSeats(seatMap);
+    setSeatProfiles(profiles);
     setMySeatedId(myId);
     setDbLoading(false);
   }, [user]);
@@ -322,7 +336,7 @@ export default function TheaterSeats() {
                         <button
                           key={seatId}
                           onClick={() => {
-                            if (isOccupied) return;
+                            if (isOccupied) { setProfileSeat(seatId); return; }
                             if (mySeatedId) return;
                             handleSeatClick();
                           }}
@@ -479,6 +493,84 @@ export default function TheaterSeats() {
       </div>
 
       {/* Subscribe Modal */}
+      {/* 프로필 카드 모달 */}
+      {profileSeat && seats[profileSeat] && (() => {
+        const data = seats[profileSeat];
+        const prof = seatProfiles[profileSeat];
+        if (!prof) return null;
+        const isLucky = prof.isLucky;
+        const LEVEL_COLORS: Record<number, { name: string; color: string }> = {
+          1: { name: "루키", color: "#6b7280" },
+          2: { name: "트레이더", color: "#22c55e" },
+          3: { name: "애널리스트", color: "#3b82f6" },
+          4: { name: "매니저", color: "#a855f7" },
+          5: { name: "디렉터", color: "#f0b90b" },
+        };
+        const lvl = LEVEL_COLORS[prof.level] || LEVEL_COLORS[1];
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setProfileSeat(null)}>
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div className="relative bg-[#12121a] border border-[var(--border)] rounded-2xl w-full max-w-xs overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setProfileSeat(null)} className="absolute top-3 right-3 z-10 text-[var(--text-muted)] hover:text-white">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" /></svg>
+              </button>
+
+              {/* 배경 그라데이션 */}
+              <div className="h-2" style={{ background: `linear-gradient(to right, ${lvl.color}, ${lvl.color}80)` }} />
+
+              {/* 캐릭터 */}
+              <div className="flex justify-center pt-6 pb-2 relative">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[24px] z-10">
+                  {isLucky ? (
+                    <span style={{ filter: "drop-shadow(0 0 6px #00d4ff) drop-shadow(0 0 12px #00d4ff80)" }}>&#x1F451;</span>
+                  ) : (
+                    <span className="opacity-50">&#x1F451;</span>
+                  )}
+                </div>
+                <Character
+                  hoodieColor={data.hoodieColor || "#2d3035"}
+                  eyeStyle={(data.eyeStyle as "dot") || "dot"}
+                  hairStyle={(data.hairStyle as "none") || "curly"}
+                  skinTone={(data.skinTone as "#ffffff") || "#ffffff"}
+                  accessory={(data.accessory as "none") || "none"}
+                  initial={data.initial || "?"}
+                  size={120}
+                />
+              </div>
+
+              {/* 프로필 정보 */}
+              <div className="px-5 pb-5 text-center">
+                <h3 className="text-lg font-extrabold mb-1">{prof.name}</h3>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <span className="text-[11px] text-[var(--text-muted)]">#{prof.seatNum}석</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${lvl.color}15`, color: lvl.color }}>
+                    Lv.{prof.level} {lvl.name}
+                  </span>
+                </div>
+
+                {/* 뱃지 */}
+                <div className="flex flex-wrap justify-center gap-1.5 mb-3">
+                  {isLucky && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00d4ff]/15 text-[#00d4ff]">
+                      &#x1F48E; 평생 무료 이용자
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f0b90b]/15 text-[#f0b90b]">
+                    &#x1F451; 창립 멤버
+                  </span>
+                </div>
+
+                {/* XP 바 */}
+                <div className="text-[11px] text-[var(--text-muted)] mb-1">{prof.xp} XP</div>
+                <div className="h-1.5 rounded-full bg-[var(--bg)] overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (prof.xp / 1000) * 100)}%`, background: lvl.color }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {subscribeSeat && (
         <SubscribeModal
           seatId={subscribeSeat}
