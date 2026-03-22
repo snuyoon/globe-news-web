@@ -12,9 +12,9 @@ import React from "react";
    ═══════════════════════════════════════════════════════ */
 
 export type EyeStyle = "dot" | "round" | "happy" | "star" | "wink" | "sparkle";
-export type HairStyle = "bangs" | "parted" | "none" | "curly" | "spiky" | "bob";
+export type HairStyle = "bangs" | "parted" | "none" | "curly" | "spiky" | "bob" | "ponytail" | "twoblock" | "long" | "beanie" | "twintail" | "topknot";
 export type FrameStyle = "none" | "gold" | "diamond" | "flame";
-export type AccessoryStyle = "none" | "sunglasses" | "glasses" | "aviator" | "monocle";
+export type AccessoryStyle = "none" | "sunglasses" | "glasses" | "aviator" | "monocle" | "mask" | "bandaid" | "blush_heart";
 export type SkinTone = "#ffffff" | "#fce4c8" | "#f5d0a9" | "#c68642" | "#8d5524";
 
 export const SKIN_TONES: { label: string; value: SkinTone }[] = [
@@ -167,6 +167,55 @@ function Hair({ style, color }: { style: HairStyle; color: string }) {
           <rect x={220} y={108} width={12} height={25} rx={5} />
         </g>
       );
+    case "ponytail":
+      return (
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <path d="M175,118 L178,102 L186,112 L192,98 L200,110 L208,98 L214,112 L222,102 L225,118 Z" />
+          <ellipse cx={260} cy={105} rx={12} ry={18} />
+          <path d="M225,105 Q240,95 248,105" fill="none" strokeWidth={4} />
+        </g>
+      );
+    case "twoblock":
+      return (
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <path d="M172,125 L172,105 Q172,90 185,90 L215,90 Q228,90 228,105 L228,125" />
+          <path d="M185,118 L188,100 L195,112 L200,98 L205,112 L212,100 L215,118 Z" />
+        </g>
+      );
+    case "long":
+      return (
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <ellipse cx={200} cy={105} rx={32} ry={15} />
+          <rect x={165} y={105} width={14} height={55} rx={6} />
+          <rect x={221} y={105} width={14} height={55} rx={6} />
+          <path d="M178,118 L182,102 L190,114 L198,100 L206,114 L214,102 L218,118 Z" />
+        </g>
+      );
+    case "beanie":
+      return (
+        <g stroke="#111111" strokeWidth={2}>
+          <ellipse cx={200} cy={95} rx={50} ry={30} fill={dark} />
+          <rect x={150} y={105} width={100} height={15} rx={4} fill={dark} />
+          <circle cx={200} cy={68} r={6} fill={dark} />
+        </g>
+      );
+    case "twintail":
+      return (
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <path d="M180,118 L183,104 L190,114 L196,100 L200,112 L204,100 L210,114 L217,104 L220,118 Z" />
+          <ellipse cx={155} cy={130} rx={10} ry={22} />
+          <ellipse cx={245} cy={130} rx={10} ry={22} />
+          <path d="M175,115 Q165,118 155,125" fill="none" strokeWidth={3} />
+          <path d="M225,115 Q235,118 245,125" fill="none" strokeWidth={3} />
+        </g>
+      );
+    case "topknot":
+      return (
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <circle cx={200} cy={65} r={14} />
+          <rect x={197} y={72} width={6} height={20} rx={2} />
+        </g>
+      );
   }
 }
 
@@ -212,6 +261,31 @@ function Accessory({ style }: { style: AccessoryStyle }) {
         <g fill="none" stroke="#f0b90b" strokeWidth={2.5}>
           <circle cx={rx} cy={cy} r={15} />
           <line x1={rx} y1={cy + 15} x2={rx - 4} y2={cy + 35} strokeLinecap="round" />
+        </g>
+      );
+    case "mask":
+      return (
+        <g stroke="none">
+          <rect x={165} y={158} width={70} height={30} rx={8} fill="#e0e0e0" />
+          <line x1={165} y1={165} x2={148} y2={155} stroke="#c0c0c0" strokeWidth={2} />
+          <line x1={235} y1={165} x2={252} y2={155} stroke="#c0c0c0" strokeWidth={2} />
+          <path d="M180,170 Q200,178 220,170" fill="none" stroke="#c0c0c0" strokeWidth={1.5} />
+        </g>
+      );
+    case "bandaid":
+      return (
+        <g stroke="none">
+          <rect x={210} y={155} width={22} height={10} rx={3} fill="#f5c8a0" transform="rotate(-15, 221, 160)" />
+          <circle cx={216} cy={159} r={1} fill="#d4a574" />
+          <circle cx={221} cy={159} r={1} fill="#d4a574" />
+          <circle cx={226} cy={159} r={1} fill="#d4a574" />
+        </g>
+      );
+    case "blush_heart":
+      return (
+        <g stroke="none">
+          <path d={`M${lx - 6},${cy + 12} C${lx - 6},${cy + 8} ${lx - 2},${cy + 8} ${lx - 2},${cy + 11} C${lx - 2},${cy + 8} ${lx + 2},${cy + 8} ${lx + 2},${cy + 12} C${lx + 2},${cy + 16} ${lx - 2},${cy + 18} ${lx - 2},${cy + 18} C${lx - 2},${cy + 18} ${lx - 6},${cy + 16} ${lx - 6},${cy + 12} Z`} fill="#ff6b9d" opacity={0.5} />
+          <path d={`M${rx - 6},${cy + 12} C${rx - 6},${cy + 8} ${rx - 2},${cy + 8} ${rx - 2},${cy + 11} C${rx - 2},${cy + 8} ${rx + 2},${cy + 8} ${rx + 2},${cy + 12} C${rx + 2},${cy + 16} ${rx - 2},${cy + 18} ${rx - 2},${cy + 18} C${rx - 2},${cy + 18} ${rx - 6},${cy + 16} ${rx - 6},${cy + 12} Z`} fill="#ff6b9d" opacity={0.5} />
         </g>
       );
   }

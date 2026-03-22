@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Character, { type EyeStyle, type HairStyle, type FrameStyle, type AccessoryStyle, type SkinTone, SKIN_TONES } from "./Character";
-import { COLORS, EYE_OPTIONS, HAIR_OPTIONS, FRAME_OPTIONS, ACCESSORY_OPTIONS } from "./CharacterModal";
+import { COLORS, EYE_OPTIONS, HAIR_OPTIONS, FRAME_OPTIONS, ACCESSORY_CATEGORIES } from "./CharacterModal";
 import { supabase } from "@/lib/supabase";
 
 interface Props {
@@ -146,11 +146,18 @@ export default function CharacterEditModal({ userId, current, onClose, onSaved }
           {/* 액세서리 */}
           <div>
             <label className="block text-[13px] font-semibold text-[var(--text-muted)] mb-2">액세서리</label>
-            <div className="flex gap-2 flex-wrap">
-              {ACCESSORY_OPTIONS.map((a) => (
-                <button key={a.value} onClick={() => setAccessory(a.value)}
-                  className={`px-4 py-2 rounded-lg border text-[13px] font-medium transition-all ${accessory === a.value ? "border-[#f0b90b] bg-[#f0b90b]/10 text-[#f0b90b]" : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] hover:border-[var(--text-muted)]"}`}
-                >{a.label}</button>
+            <div className="space-y-2">
+              {ACCESSORY_CATEGORIES.map((cat) => (
+                <div key={cat.category}>
+                  <p className="text-[11px] text-[var(--text-muted)] mb-1.5">{cat.category}</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {cat.options.map((a) => (
+                      <button key={`${cat.category}-${a.value}`} onClick={() => setAccessory(a.value)}
+                        className={`px-3 py-1.5 rounded-lg border text-[12px] font-medium transition-all ${accessory === a.value ? "border-[#f0b90b] bg-[#f0b90b]/10 text-[#f0b90b]" : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] hover:border-[var(--text-muted)]"}`}
+                      >{a.label}</button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

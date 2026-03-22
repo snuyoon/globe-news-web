@@ -30,6 +30,12 @@ export const HAIR_OPTIONS: { label: string; value: HairStyle }[] = [
   { label: "곱슬", value: "curly" },
   { label: "뾰족", value: "spiky" },
   { label: "단발", value: "bob" },
+  { label: "포니테일", value: "ponytail" },
+  { label: "투블록", value: "twoblock" },
+  { label: "장발", value: "long" },
+  { label: "비니", value: "beanie" },
+  { label: "양갈래", value: "twintail" },
+  { label: "상투", value: "topknot" },
 ];
 
 interface CharacterModalProps {
@@ -45,13 +51,30 @@ export const FRAME_OPTIONS: { label: string; value: FrameStyle }[] = [
   { label: "불꽃", value: "flame" },
 ];
 
-export const ACCESSORY_OPTIONS: { label: string; value: AccessoryStyle }[] = [
-  { label: "없음", value: "none" },
-  { label: "선글라스", value: "sunglasses" },
-  { label: "안경", value: "glasses" },
-  { label: "에비에이터", value: "aviator" },
-  { label: "모노클", value: "monocle" },
+export const ACCESSORY_CATEGORIES: { category: string; options: { label: string; value: AccessoryStyle }[] }[] = [
+  {
+    category: "안경류",
+    options: [
+      { label: "없음", value: "none" },
+      { label: "선글라스", value: "sunglasses" },
+      { label: "안경", value: "glasses" },
+      { label: "에비에이터", value: "aviator" },
+      { label: "모노클", value: "monocle" },
+    ],
+  },
+  {
+    category: "얼굴",
+    options: [
+      { label: "없음", value: "none" },
+      { label: "마스크", value: "mask" },
+      { label: "반창고", value: "bandaid" },
+      { label: "하트 볼터치", value: "blush_heart" },
+    ],
+  },
 ];
+
+// 하위 호환용
+export const ACCESSORY_OPTIONS = ACCESSORY_CATEGORIES.flatMap((c) => c.options).filter((o, i, arr) => i === arr.findIndex((x) => x.value === o.value));
 
 export interface SeatData {
   initial: string;
@@ -265,19 +288,26 @@ export default function CharacterModal({ seatId, onClose, onSave }: CharacterMod
 
           <div>
             <label className="block text-[13px] font-semibold text-[var(--text-muted)] mb-2">액세서리</label>
-            <div className="flex gap-2 flex-wrap">
-              {ACCESSORY_OPTIONS.map((a) => (
-                <button
-                  key={a.value}
-                  onClick={() => setAccessory(a.value)}
-                  className={`px-4 py-2 rounded-lg border text-[13px] font-medium transition-all ${
-                    accessory === a.value
-                      ? "border-[#f0b90b] bg-[#f0b90b]/10 text-[#f0b90b]"
-                      : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] hover:border-[var(--text-muted)]"
-                  }`}
-                >
-                  {a.label}
-                </button>
+            <div className="space-y-2">
+              {ACCESSORY_CATEGORIES.map((cat) => (
+                <div key={cat.category}>
+                  <p className="text-[11px] text-[var(--text-muted)] mb-1.5">{cat.category}</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {cat.options.map((a) => (
+                      <button
+                        key={`${cat.category}-${a.value}`}
+                        onClick={() => setAccessory(a.value)}
+                        className={`px-3 py-1.5 rounded-lg border text-[12px] font-medium transition-all ${
+                          accessory === a.value
+                            ? "border-[#f0b90b] bg-[#f0b90b]/10 text-[#f0b90b]"
+                            : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] hover:border-[var(--text-muted)]"
+                        }`}
+                      >
+                        {a.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
