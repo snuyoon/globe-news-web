@@ -448,8 +448,8 @@ function IndicatorsSection({ data }: { data: SampleJson }) {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {data.indicators.map((ind) => {
-          const isUp = ind.values.includes("▲");
-          const isDown = ind.values.includes("▼");
+          const isUp = (ind.values || "").includes("▲");
+          const isDown = (ind.values || "").includes("▼");
           return (
             <div key={ind.num} className="bg-[var(--card)] rounded-xl p-4 border border-[var(--border)]">
               <div className="flex items-center justify-between mb-1.5">
