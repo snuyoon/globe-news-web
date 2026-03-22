@@ -339,11 +339,13 @@ export default function CommunityPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {posts.map((post) => (
+            {posts.map((post, idx) => {
+              const isLocked = !canWrite && !post.is_pinned && idx >= 3;
+              return (
               <button
                 key={post.id}
-                onClick={() => openPost(post.id)}
-                className={`text-left p-4 rounded-xl transition-all hover:scale-[1.01] ${
+                onClick={() => { if (isLocked) return; openPost(post.id); }}
+                className={`text-left p-4 rounded-xl transition-all ${isLocked ? "opacity-60" : "hover:scale-[1.01]"} ${
                   openPostId === post.id ? "ring-1 ring-[#f0b90b]/30" : ""
                 }`}
                 style={{ backgroundColor: "var(--card)" }}
@@ -355,7 +357,10 @@ export default function CommunityPage() {
                       {post.is_hot && <span className="text-[11px] font-bold text-[#ef4444] bg-[#ef4444]/10 px-2 py-0.5 rounded-full">HOT</span>}
                       <h3 className="text-sm font-bold line-clamp-1">{post.title}</h3>
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3">{post.body}</p>
+                    <p className={`text-xs text-[var(--text-muted)] line-clamp-2 mb-3 ${isLocked ? "blur-sm select-none" : ""}`}>{post.body}</p>
+                    {isLocked && (
+                      <p className="text-[11px] text-[#f0b90b] font-medium">구독하면 전체 게시글을 볼 수 있어요</p>
+                    )}
                     <div className="flex items-center justify-between">
                       <AuthorBadge name={post.author_name || "익명"} seat={post.author_seat} level={post.author_level} characterData={post.author_character} />
                       <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
@@ -375,7 +380,8 @@ export default function CommunityPage() {
                   </div>
                 </div>
               </button>
-            ))}
+            );
+            })}
           </div>
         )}
 
