@@ -239,75 +239,64 @@ export default function TheaterSeats() {
               실시간 속보 · 모닝 브리핑 · 장전 브리핑 · 카드뉴스
             </p>
 
-            {/* Price — 모바일 간결, 데스크톱 풍부 */}
-            <div className="mb-6 flex flex-col gap-1 items-center lg:items-start">
+            {/* Price — 모바일 간결 */}
+            <div className="mb-4 lg:mb-6 flex flex-col gap-1 items-center lg:items-start">
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl md:text-5xl lg:text-6xl font-black text-[#22c55e]">
                   무료 체험
                 </span>
                 <span className="text-[var(--text-muted)] text-lg">중</span>
               </div>
-              <p className="text-[#22c55e] text-sm font-semibold mt-1">
+              <p className="text-[#22c55e] text-xs md:text-sm font-semibold mt-1">
                 4월 무료 체험 · <span className="text-[#f0b90b]">5월 1일 정식 오픈</span>
               </p>
+            </div>
+
+            {/* Progress bar — 모바일에서도 유지 (컴팩트) */}
+            <div className="mb-2">
+              <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1.5">
+                <span>현재 <span className="text-[#f0b90b] font-bold">{occupiedCount}명</span> 탑승</span>
+                <span>남은 <span className="text-white font-bold">{remaining}석</span></span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-[#1a1a2e] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#e74c3c] via-[#f0b90b] via-[#27ae60] to-[#3498db] transition-all duration-700"
+                  style={{ width: `${fillPercent}%` }}
+                />
+              </div>
+            </div>
+
+            {/* SNS + 요금제 — 데스크톱만 */}
+            <div className="hidden lg:block">
               <a
                 href="/subscribe"
                 className="inline-flex items-center gap-1.5 mt-3 text-sm text-[var(--text-muted)] hover:text-[#f0b90b] transition-colors"
               >
                 요금제 비교 <span className="underline underline-offset-2">자세히 보기</span>
               </a>
-            </div>
-
-            {/* Progress bar */}
-            <div className="mb-2">
-              <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1.5">
-                <span>현재 <span className="text-[#f0b90b] font-bold">{occupiedCount}명</span> 탑승 완료</span>
-                <span>남은 좌석 <span className="text-white font-bold">{remaining}석</span></span>
+              <div className="flex items-center gap-4 mt-4 text-xs text-[var(--text-muted)]">
+                <a href="https://x.com/US_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">X @US_sokbo</a>
+                <a href="https://www.threads.net/@us_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">Threads</a>
+                <a href="https://www.instagram.com/us_sokbo/" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">Instagram</a>
               </div>
-              <div className="w-full h-2.5 rounded-full bg-[#1a1a2e] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#e74c3c] via-[#f0b90b] via-[#27ae60] to-[#3498db] transition-all duration-700"
-                  style={{ width: `${fillPercent}%` }}
-                />
-              </div>
-              {/* Color legend dots */}
-              <div className="flex gap-0.5 mt-1.5">
-                {SEAT_COLORS.map((c) => (
-                  <div key={c} className="w-3 h-3 rounded-sm" style={{ backgroundColor: c }} />
-                ))}
-              </div>
-            </div>
-
-            <p className="text-[var(--text-muted)] text-xs mt-4">
-              4월 무료 체험 중 · 5월 1일 정식 오픈 · 선착순 100석 한정
-            </p>
-
-            {/* SNS */}
-            <div className="flex items-center gap-4 mt-6 text-xs text-[var(--text-muted)] justify-center lg:justify-start">
-              <a href="https://x.com/US_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">X @US_sokbo</a>
-              <a href="https://www.threads.net/@us_sokbo" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">Threads</a>
-              <a href="https://www.instagram.com/us_sokbo/" target="_blank" rel="noopener noreferrer" className="hover:text-[#f0b90b] transition-colors">Instagram</a>
             </div>
           </div>
 
           {/* Right: Theater seats */}
           <div className="flex-1 max-w-[640px] w-full">
             {/* 좌석 상단 안내 */}
-            <div className="text-center mb-5">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-3xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
+            <div className="text-center mb-3 md:mb-5">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <span className="text-2xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">
                   {occupiedCount}
                 </span>
-                <span className="text-2xl text-[var(--text-muted)]">/</span>
-                <span className="text-2xl text-[var(--text-muted)]">100</span>
+                <span className="text-lg md:text-2xl text-[var(--text-muted)]">/</span>
+                <span className="text-lg md:text-2xl text-[var(--text-muted)]">100</span>
               </div>
-              <p className="text-sm text-[var(--text)] font-medium mb-1">
+              <p className="text-xs md:text-sm text-[var(--text)] font-medium">
                 나만의 캐릭터를 만들어 <span className="text-[#f0b90b] font-bold">자랑해보세요!</span>
               </p>
-              <p className="text-xs text-[var(--text-muted)] mb-2">
-                5월 1일 선착순 100석 구독 오픈 예정
-              </p>
-              <p className="text-[11px] text-[var(--text-muted)]">
+              <p className="hidden md:block text-[11px] text-[var(--text-muted)] mt-1">
                 5월 구독 선착순 <span className="text-[#f0b90b] font-bold">1, 7, 77, 100</span>번째 → <span className="text-[#f0b90b] font-bold">Pro 평생 무료</span>
               </p>
             </div>
