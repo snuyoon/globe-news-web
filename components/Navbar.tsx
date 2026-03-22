@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
+import Character from "./Character";
+import { supabase } from "@/lib/supabase";
 
 const NAV_LINKS = [
   { label: "홈", href: "/" },
@@ -41,13 +43,21 @@ function GoogleIcon() {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [tabBarHidden, setTabBarHidden] = useState(false);
+  const [charData, setCharData] = useState<Record<string, string> | null>(null);
   const { user, loading, isAdmin, isSubscriber, isInAppBrowser, signInWithGoogle, signOut } = useAuth();
   const pathname = usePathname();
 
   useEffect(() => {
     setTabBarHidden(localStorage.getItem("tabbar_hidden") === "1");
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("subscribers").select("character_data").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => { if (data?.character_data) setCharData(data.character_data); });
+  }, [user]);
 
   const handleSubscribeClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     if (pathname === "/") {
@@ -96,9 +106,33 @@ export default function Navbar() {
             </a>
           )}
           {isSubscriber ? (
-            <span className="ml-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold">
-              PRO
-            </span>
+            <div className="relative ml-2">
+              <button
+                onClick={() => setPlanOpen(!planOpen)}
+                className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity"
+              >
+                PRO
+              </button>
+              {planOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-[#16161e] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-[var(--border)]">
+                    <p className="text-xs text-[var(--text-muted)]">현재 플랜</p>
+                    <p className="text-sm font-bold text-[#f0b90b]">PRO — 4,990원/월</p>
+                  </div>
+                  <div className="px-4 py-3 bg-gradient-to-r from-[#f0b90b]/5 to-[#ef6d09]/5">
+                    <p className="text-xs font-bold text-[#f0b90b] mb-1">ULTRA — 준비 중</p>
+                    <p className="text-[11px] text-[var(--text-muted)]">AI 금융 분석가 + 매크로 보고서</p>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-1">출시 시 알림 받기</p>
+                  </div>
+                  <button
+                    onClick={() => setPlanOpen(false)}
+                    className="w-full px-4 py-2 text-left text-[12px] text-[var(--text-muted)] hover:bg-[var(--card)] transition-colors"
+                  >
+                    닫기
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <a
               href="/#subscribe"
@@ -118,15 +152,18 @@ export default function Navbar() {
                     onClick={() => setProfileOpen(!profileOpen)}
                     className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-[var(--card)] transition-colors"
                   >
-                    {user.user_metadata?.avatar_url ? (
-                      <img
-                        src={user.user_metadata.avatar_url}
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="rounded-full"
-                        referrerPolicy="no-referrer"
-                      />
+                    {charData ? (
+                      <div className="w-8 h-8 flex-shrink-0">
+                        <Character
+                          hoodieColor={charData.hoodieColor || "#2d3035"}
+                          eyeStyle={(charData.eyeStyle as "dot") || "dot"}
+                          hairStyle={(charData.hairStyle as "none") || "curly"}
+                          skinTone={(charData.skinTone as "#ffffff") || "#ffffff"}
+                          accessory={(charData.accessory as "none") || "none"}
+                          initial={charData.initial || (user.user_metadata?.full_name || user.email || "U")[0].toUpperCase()}
+                          size={32}
+                        />
+                      </div>
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-[#f0b90b] flex items-center justify-center text-black text-xs font-bold">
                         {(user.user_metadata?.full_name || user.email || "U")[0].toUpperCase()}
@@ -151,7 +188,7 @@ export default function Navbar() {
                         onClick={() => setProfileOpen(false)}
                         className="block px-4 py-2.5 text-sm text-[var(--text-muted)] hover:bg-[var(--card)] hover:text-white transition-colors"
                       >
-                        내 스크랩
+                        마이페이지
                       </a>
                       <button
                         onClick={() => {
