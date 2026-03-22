@@ -12,6 +12,7 @@ import CharacterEditModal from "@/components/CharacterEditModal";
 import { supabase, type CardNews, type News } from "@/lib/supabase";
 import { dailyCheckin, type CheckinResult } from "@/lib/checkin";
 import { getReferralCode, getReferralLink } from "@/lib/referral";
+import { SHOP_ITEMS, purchaseItem } from "@/lib/shop";
 
 const LEVELS = [
   { level: 1, name: "루키", minXp: 0, color: "#6b7280", perks: ["기본 콘텐츠 열람"] },
@@ -44,9 +45,10 @@ interface Profile {
   is_lucky: boolean;
   created_at: string;
   topic_request: string | null;
+  owned_items: string[];
 }
 
-type Tab = "cards" | "news";
+type Tab = "cards" | "news" | "shop";
 
 export default function MyPage() {
   const { user, loading, isSubscriber } = useAuth();
@@ -59,6 +61,7 @@ export default function MyPage() {
   const [leaderboard, setLeaderboard] = useState<{ name: string; xp: number; level: number; seat_number: number | null }[]>([]);
   const [refCode, setRefCode] = useState("");
   const [refCopied, setRefCopied] = useState(false);
+  const [shopBuying, setShopBuying] = useState("");
   const [scrapCards, setScrapCards] = useState<CardNews[]>([]);
   const [scrapNews, setScrapNews] = useState<News[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -120,7 +123,7 @@ export default function MyPage() {
     if (!user) return;
     const { data } = await supabase
       .from("subscribers")
-      .select("name, seat_number, character_data, xp, level, points, payment_status, is_lucky, created_at, topic_request")
+      .select("name, seat_number, character_data, xp, level, points, payment_status, is_lucky, created_at, topic_request, owned_items")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) setProfile(data as Profile);
@@ -416,6 +419,7 @@ export default function MyPage() {
           {([
             { key: "cards" as Tab, label: "카드뉴스", count: scrapCards.length },
             { key: "news" as Tab, label: "뉴스", count: scrapNews.length },
+            { key: "shop" as Tab, label: "상점", count: SHOP_ITEMS.length },
           ]).map((t) => (
             <button
               key={t.key}
@@ -484,7 +488,7 @@ export default function MyPage() {
               <a href="/cardnews" className="text-xs text-[#f0b90b] hover:underline">카드뉴스 보러가기</a>
             </div>
           )
-        ) : (
+        ) : tab === "news" ? (
           /* 뉴스 스크랩 */
           scrapNews.length > 0 ? (
             <div className="flex flex-col gap-3">
@@ -531,7 +535,54 @@ export default function MyPage() {
               <a href="/news" className="text-xs text-[#f0b90b] hover:underline">뉴스 보러가기</a>
             </div>
           )
-        )}
+        ) : tab === "shop" ? (
+          /* 포인트 상점 */
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {SHOP_ITEMS.map((item) => {
+              const owned = (profile?.owned_items || []).includes(item.id);
+              const locked = item.minLevel && (profile?.level || 1) < item.minLevel;
+              const canBuy = !owned && !locked && (profile?.points || 0) >= item.price;
+              return (
+                <div key={item.id} className={`p-4 rounded-xl border transition-all ${owned ? "border-[#22c55e]/30 bg-[#22c55e]/5" : "border-[var(--border)]"}`} style={{ backgroundColor: owned ? undefined : "var(--card)" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--bg)] text-[var(--text-muted)]">
+                      {item.category === "accessory" ? "액세서리" : item.category === "frame" ? "테두리" : "특수"}
+                    </span>
+                    {owned && <span className="text-[10px] font-bold text-[#22c55e]">보유 중</span>}
+                    {locked && <span className="text-[10px] font-bold text-[var(--text-muted)]">Lv.{item.minLevel}+</span>}
+                  </div>
+                  <h4 className="text-sm font-bold mb-1">{item.name}</h4>
+                  <p className="text-[11px] text-[var(--text-muted)] mb-3">{item.description}</p>
+                  {owned ? (
+                    <p className="text-center text-[11px] text-[#22c55e] font-medium">구매 완료</p>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        if (!user || shopBuying || !canBuy) return;
+                        setShopBuying(item.id);
+                        const result = await purchaseItem(user.id, item.id);
+                        if (result.success) {
+                          fetchProfile();
+                        } else {
+                          alert(result.error);
+                        }
+                        setShopBuying("");
+                      }}
+                      disabled={!canBuy || shopBuying === item.id}
+                      className={`w-full py-2 rounded-lg text-[12px] font-bold transition-all ${
+                        canBuy
+                          ? "bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black hover:opacity-90"
+                          : "bg-[var(--bg)] text-[var(--text-muted)] cursor-not-allowed"
+                      }`}
+                    >
+                      {shopBuying === item.id ? "구매 중..." : `${item.price}P`}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </main>
       <Footer />
 
