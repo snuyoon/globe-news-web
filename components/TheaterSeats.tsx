@@ -89,6 +89,13 @@ export default function TheaterSeats() {
     setDbLoading(false);
   }, [user]);
 
+  // ESC로 프로필 모달 닫기
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape" && profileSeat) setProfileSeat(null); };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [profileSeat]);
+
   useEffect(() => {
     setMounted(true);
     loadSeats();
@@ -508,7 +515,7 @@ export default function TheaterSeats() {
         };
         const lvl = LEVEL_COLORS[prof.level] || LEVEL_COLORS[1];
         return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setProfileSeat(null)}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setProfileSeat(null)} onKeyDown={(e) => { if (e.key === "Escape") setProfileSeat(null); }}>
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
             <div className="relative bg-[#12121a] border border-[var(--border)] rounded-2xl w-full max-w-xs overflow-hidden" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setProfileSeat(null)} className="absolute top-3 right-3 z-10 text-[var(--text-muted)] hover:text-white">
