@@ -2,13 +2,23 @@
 
 import React from "react";
 
+/* ═══════════════════════════════════════════════════════
+   캐릭터 커스터마이징 시스템
+   레퍼런스: character-reference.svg (viewBox 400x460)
+
+   비율: 머리 6 : 몸통+다리 4
+   레이어: 발 → 몸통 → 여밈선 → 팔 → 머리/후드 → 얼굴/눈/머리카락 → 액세서리 → 이니셜
+   스타일: 외곽선 stroke=#111, 2D 플랫, 그라데이션 없음
+   ═══════════════════════════════════════════════════════ */
+
 export type EyeStyle = "dot" | "round" | "happy" | "star" | "wink" | "sparkle";
 export type HairStyle = "bangs" | "parted" | "none" | "curly" | "spiky" | "bob";
 export type FrameStyle = "none" | "gold" | "diamond" | "flame";
 export type AccessoryStyle = "none" | "sunglasses" | "glasses" | "aviator" | "monocle";
-export type SkinTone = "#fce4c8" | "#f5d0a9" | "#c68642" | "#8d5524";
+export type SkinTone = "#ffffff" | "#fce4c8" | "#f5d0a9" | "#c68642" | "#8d5524";
 
 export const SKIN_TONES: { label: string; value: SkinTone }[] = [
+  { label: "밝은", value: "#ffffff" },
   { label: "라이트", value: "#fce4c8" },
   { label: "미디엄", value: "#f5d0a9" },
   { label: "탄", value: "#c68642" },
@@ -26,6 +36,11 @@ export interface CharacterProps {
   accessory?: AccessoryStyle;
 }
 
+// 레퍼런스 viewBox 기준 상수 (400x460)
+const VW = 400;
+const VH = 460;
+const CX = 200; // 중심 x
+
 function darkenColor(hex: string, amount: number): string {
   const num = parseInt(hex.replace("#", ""), 16);
   const r = Math.max(0, (num >> 16) - amount);
@@ -34,287 +49,254 @@ function darkenColor(hex: string, amount: number): string {
   return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, "0")}`;
 }
 
-function lightenColor(hex: string, amount: number): string {
-  const num = parseInt(hex.replace("#", ""), 16);
-  const r = Math.min(255, (num >> 16) + amount);
-  const g = Math.min(255, ((num >> 8) & 0x00ff) + amount);
-  const b = Math.min(255, (num & 0x0000ff) + amount);
-  return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, "0")}`;
-}
+/* ─────────────────────────────────────────
+   Layer 6: Eyes (교체 가능)
+   기준점: cx=200, cy=150 (레퍼런스)
+   ───────────────────────────────────────── */
+function Eyes({ style, color }: { style: EyeStyle; color: string }) {
+  const cy = 150;
+  const lx = 180; // 왼눈 x
+  const rx = 220; // 오른눈 x
+  const r = 7.5;
 
-/* ═══════════════════════════════════════════
-   Layer 4: Eyes (교체 가능)
-   ═══════════════════════════════════════════ */
-function Eyes({ style, cx, cy, s }: { style: EyeStyle; cx: number; cy: number; s: number }) {
-  const gap = 7 * s;
   switch (style) {
     case "dot":
       return (
-        <>
-          <ellipse cx={cx - gap} cy={cy} rx={3 * s} ry={3.5 * s} fill="#1a1a2e" />
-          <ellipse cx={cx + gap} cy={cy} rx={3 * s} ry={3.5 * s} fill="#1a1a2e" />
-          <circle cx={cx - gap + 1 * s} cy={cy - 1.2 * s} r={1.2 * s} fill="white" opacity={0.9} />
-          <circle cx={cx + gap + 1 * s} cy={cy - 1.2 * s} r={1.2 * s} fill="white" opacity={0.9} />
-        </>
+        <g>
+          <circle cx={lx} cy={cy} r={r} fill="#111111" stroke="none" />
+          <circle cx={rx} cy={cy} r={r} fill="#111111" stroke="none" />
+        </g>
       );
     case "round":
       return (
-        <>
-          <ellipse cx={cx - gap} cy={cy} rx={4.5 * s} ry={5 * s} fill="white" stroke="#1a1a2e" strokeWidth={0.7 * s} />
-          <ellipse cx={cx - gap + 0.8 * s} cy={cy + 0.5 * s} rx={2.5 * s} ry={3 * s} fill="#1a1a2e" />
-          <circle cx={cx - gap + 1.5 * s} cy={cy - 1 * s} r={1.2 * s} fill="white" opacity={0.9} />
-          <ellipse cx={cx + gap} cy={cy} rx={4.5 * s} ry={5 * s} fill="white" stroke="#1a1a2e" strokeWidth={0.7 * s} />
-          <ellipse cx={cx + gap + 0.8 * s} cy={cy + 0.5 * s} rx={2.5 * s} ry={3 * s} fill="#1a1a2e" />
-          <circle cx={cx + gap + 1.5 * s} cy={cy - 1 * s} r={1.2 * s} fill="white" opacity={0.9} />
-        </>
+        <g>
+          <circle cx={lx} cy={cy} r={10} fill="#ffffff" stroke="#111111" strokeWidth={2} />
+          <circle cx={lx + 2} cy={cy + 1} r={6} fill="#111111" stroke="none" />
+          <circle cx={lx + 3.5} cy={cy - 2} r={2.5} fill="#ffffff" stroke="none" />
+          <circle cx={rx} cy={cy} r={10} fill="#ffffff" stroke="#111111" strokeWidth={2} />
+          <circle cx={rx + 2} cy={cy + 1} r={6} fill="#111111" stroke="none" />
+          <circle cx={rx + 3.5} cy={cy - 2} r={2.5} fill="#ffffff" stroke="none" />
+        </g>
       );
     case "happy":
       return (
-        <>
-          <path d={`M${cx - gap - 3.5 * s},${cy + 1 * s} Q${cx - gap},${cy - 4.5 * s} ${cx - gap + 3.5 * s},${cy + 1 * s}`} fill="none" stroke="#1a1a2e" strokeWidth={1.8 * s} strokeLinecap="round" />
-          <path d={`M${cx + gap - 3.5 * s},${cy + 1 * s} Q${cx + gap},${cy - 4.5 * s} ${cx + gap + 3.5 * s},${cy + 1 * s}`} fill="none" stroke="#1a1a2e" strokeWidth={1.8 * s} strokeLinecap="round" />
-        </>
+        <g>
+          <path d={`M${lx - 8},${cy + 2} Q${lx},${cy - 10} ${lx + 8},${cy + 2}`} fill="none" stroke="#111111" strokeWidth={4} strokeLinecap="round" />
+          <path d={`M${rx - 8},${cy + 2} Q${rx},${cy - 10} ${rx + 8},${cy + 2}`} fill="none" stroke="#111111" strokeWidth={4} strokeLinecap="round" />
+        </g>
       );
-    case "star":
+    case "star": {
+      const star = (cx: number) => {
+        const pts = [];
+        for (let i = 0; i < 5; i++) {
+          const oa = -Math.PI / 2 + (2 * Math.PI * i) / 5;
+          const ia = oa + Math.PI / 5;
+          pts.push(`${cx + 9 * Math.cos(oa)},${cy + 9 * Math.sin(oa)}`);
+          pts.push(`${cx + 3.6 * Math.cos(ia)},${cy + 3.6 * Math.sin(ia)}`);
+        }
+        return pts.join(" ");
+      };
       return (
-        <>
-          <StarShape cx={cx - gap} cy={cy} r={4.5 * s} />
-          <StarShape cx={cx + gap} cy={cy} r={4.5 * s} />
-          <circle cx={cx - gap + 1.2 * s} cy={cy - 1.5 * s} r={1 * s} fill="white" opacity={0.8} />
-          <circle cx={cx + gap + 1.2 * s} cy={cy - 1.5 * s} r={1 * s} fill="white" opacity={0.8} />
-        </>
+        <g>
+          <polygon points={star(lx)} fill="#111111" stroke="none" />
+          <polygon points={star(rx)} fill="#111111" stroke="none" />
+        </g>
       );
+    }
     case "wink":
       return (
-        <>
-          <ellipse cx={cx - gap} cy={cy} rx={3 * s} ry={3.5 * s} fill="#1a1a2e" />
-          <circle cx={cx - gap + 1 * s} cy={cy - 1.2 * s} r={1.2 * s} fill="white" opacity={0.9} />
-          <path d={`M${cx + gap - 3.5 * s},${cy} Q${cx + gap},${cy - 3.5 * s} ${cx + gap + 3.5 * s},${cy}`} fill="none" stroke="#1a1a2e" strokeWidth={1.8 * s} strokeLinecap="round" />
-        </>
+        <g>
+          <circle cx={lx} cy={cy} r={r} fill="#111111" stroke="none" />
+          <path d={`M${rx - 8},${cy} Q${rx},${cy - 8} ${rx + 8},${cy}`} fill="none" stroke="#111111" strokeWidth={4} strokeLinecap="round" />
+        </g>
       );
     case "sparkle":
       return (
-        <>
-          <ellipse cx={cx - gap} cy={cy} rx={4.5 * s} ry={5 * s} fill="#1a1a2e" />
-          <circle cx={cx - gap - 0.5 * s} cy={cy - 1 * s} r={2 * s} fill="white" opacity={0.9} />
-          <circle cx={cx - gap + 1.5 * s} cy={cy + 1.5 * s} r={0.8 * s} fill="white" opacity={0.7} />
-          <ellipse cx={cx + gap} cy={cy} rx={4.5 * s} ry={5 * s} fill="#1a1a2e" />
-          <circle cx={cx + gap - 0.5 * s} cy={cy - 1 * s} r={2 * s} fill="white" opacity={0.9} />
-          <circle cx={cx + gap + 1.5 * s} cy={cy + 1.5 * s} r={0.8 * s} fill="white" opacity={0.7} />
-        </>
+        <g>
+          <circle cx={lx} cy={cy} r={10} fill="#111111" stroke="none" />
+          <circle cx={lx - 1} cy={cy - 2} r={4} fill="#ffffff" stroke="none" opacity={0.9} />
+          <circle cx={lx + 3} cy={cy + 3} r={1.5} fill="#ffffff" stroke="none" opacity={0.7} />
+          <circle cx={rx} cy={cy} r={10} fill="#111111" stroke="none" />
+          <circle cx={rx - 1} cy={cy - 2} r={4} fill="#ffffff" stroke="none" opacity={0.9} />
+          <circle cx={rx + 3} cy={cy + 3} r={1.5} fill="#ffffff" stroke="none" opacity={0.7} />
+        </g>
       );
   }
 }
 
-function StarShape({ cx, cy, r }: { cx: number; cy: number; r: number }) {
-  const points = [];
-  for (let i = 0; i < 5; i++) {
-    const outerAngle = (Math.PI / 2) * -1 + (2 * Math.PI * i) / 5;
-    const innerAngle = outerAngle + Math.PI / 5;
-    points.push(`${cx + r * Math.cos(outerAngle)},${cy + r * Math.sin(outerAngle)}`);
-    points.push(`${cx + r * 0.4 * Math.cos(innerAngle)},${cy + r * 0.4 * Math.sin(innerAngle)}`);
-  }
-  return <polygon points={points.join(" ")} fill="#1a1a2e" />;
-}
-
-/* ═══════════════════════════════════════════
-   Layer 3: Hair (교체 가능)
-   ═══════════════════════════════════════════ */
-function HairBangs({ style, cx, cy, s, color }: { style: HairStyle; cx: number; cy: number; s: number; color: string }) {
-  const dark = darkenColor(color, 50);
+/* ─────────────────────────────────────────
+   Layer 6: Hair (교체 가능)
+   기준점: cx=200, 이마 y≈115
+   ───────────────────────────────────────── */
+function Hair({ style, color }: { style: HairStyle; color: string }) {
+  const dark = darkenColor(color, 40);
   switch (style) {
     case "none": return null;
+    case "curly":
+      return (
+        <g fill="none" stroke="#111111" strokeWidth={4} strokeLinecap="round">
+          <path d="M 182 115 C 185 105 190 105 192 115" />
+          <path d="M 192 115 C 196 105 204 105 208 115" />
+          <path d="M 208 115 C 212 105 216 105 218 115" />
+        </g>
+      );
     case "bangs":
       return (
-        <g fill={dark}>
-          <path d={`M${cx - 6 * s},${cy + 2 * s} L${cx - 7 * s},${cy - 7 * s} L${cx - 3 * s},${cy} L${cx - 1 * s},${cy - 9 * s} L${cx + 1 * s},${cy} L${cx + 4 * s},${cy - 8 * s} L${cx + 6 * s},${cy + 2 * s} Z`} />
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <path d="M175,118 L177,100 L185,112 L190,96 L198,112 L205,98 L210,112 L215,100 L218,118 Z" />
         </g>
       );
     case "parted":
       return (
-        <g fill={dark}>
-          <path d={`M${cx - 9 * s},${cy + 2 * s} L${cx - 8 * s},${cy - 6 * s} L${cx - 3 * s},${cy} L${cx},${cy - 4 * s} L${cx},${cy + 2 * s} Z`} />
-          <path d={`M${cx + 9 * s},${cy + 2 * s} L${cx + 8 * s},${cy - 6 * s} L${cx + 3 * s},${cy} L${cx},${cy - 4 * s} L${cx},${cy + 2 * s} Z`} />
-        </g>
-      );
-    case "curly":
-      return (
-        <g fill={dark}>
-          <circle cx={cx - 7 * s} cy={cy - 2 * s} r={4 * s} />
-          <circle cx={cx} cy={cy - 4 * s} r={4 * s} />
-          <circle cx={cx + 7 * s} cy={cy - 2 * s} r={4 * s} />
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <path d="M170,118 L175,100 L185,112 L195,98 L200,115 Z" />
+          <path d="M200,115 L205,98 L215,112 L225,100 L230,118 Z" />
         </g>
       );
     case "spiky":
       return (
-        <g fill={dark}>
-          <path d={`M${cx - 8 * s},${cy + 1 * s} L${cx - 10 * s},${cy - 10 * s} L${cx - 4 * s},${cy - 2 * s} L${cx - 2 * s},${cy - 12 * s} L${cx + 2 * s},${cy - 2 * s} L${cx + 6 * s},${cy - 11 * s} L${cx + 8 * s},${cy + 1 * s} Z`} />
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <path d="M168,118 L165,88 L180,108 L185,82 L200,108 L215,85 L220,108 L235,90 L232,118 Z" />
         </g>
       );
     case "bob":
       return (
-        <g fill={dark}>
-          <ellipse cx={cx} cy={cy - 1 * s} rx={12 * s} ry={6 * s} />
-          <rect x={cx - 12 * s} y={cy - 1 * s} width={5 * s} height={10 * s} rx={2 * s} />
-          <rect x={cx + 7 * s} y={cy - 1 * s} width={5 * s} height={10 * s} rx={2 * s} />
+        <g fill={dark} stroke="#111111" strokeWidth={2}>
+          <ellipse cx={200} cy={108} rx={30} ry={14} />
+          <rect x={168} y={108} width={12} height={25} rx={5} />
+          <rect x={220} y={108} width={12} height={25} rx={5} />
         </g>
       );
   }
 }
 
-/* ═══════════════════════════════════════════
-   Layer 5: Accessories (on/off 토글)
-   ═══════════════════════════════════════════ */
-function Accessory({ style, cx, cy, s }: { style: AccessoryStyle; cx: number; cy: number; s: number }) {
-  const gap = 7 * s;
+/* ─────────────────────────────────────────
+   Layer 7: Accessories (on/off 토글)
+   기준점: 눈 위치 cy=150
+   ───────────────────────────────────────── */
+function Accessory({ style }: { style: AccessoryStyle }) {
+  const cy = 150;
+  const lx = 180;
+  const rx = 220;
   switch (style) {
     case "none": return null;
     case "sunglasses":
       return (
-        <g>
-          <rect x={cx - gap - 5.5 * s} y={cy - 3.5 * s} width={11 * s} height={7 * s} rx={2.5 * s} fill="#1a1a2e" opacity={0.85} />
-          <rect x={cx + gap - 5.5 * s} y={cy - 3.5 * s} width={11 * s} height={7 * s} rx={2.5 * s} fill="#1a1a2e" opacity={0.85} />
-          <line x1={cx - gap + 5.5 * s} y1={cy} x2={cx + gap - 5.5 * s} y2={cy} stroke="#1a1a2e" strokeWidth={1.3 * s} />
-          <rect x={cx - gap - 2.5 * s} y={cy - 2.5 * s} width={2.5 * s} height={1.2 * s} rx={0.4 * s} fill="white" opacity={0.3} />
-          <rect x={cx + gap - 2.5 * s} y={cy - 2.5 * s} width={2.5 * s} height={1.2 * s} rx={0.4 * s} fill="white" opacity={0.3} />
+        <g stroke="none">
+          <rect x={lx - 14} y={cy - 8} width={28} height={18} rx={6} fill="#111111" opacity={0.85} />
+          <rect x={rx - 14} y={cy - 8} width={28} height={18} rx={6} fill="#111111" opacity={0.85} />
+          <line x1={lx + 14} y1={cy + 1} x2={rx - 14} y2={cy + 1} stroke="#111111" strokeWidth={3} />
+          <rect x={lx - 8} y={cy - 5} width={6} height={3} rx={1} fill="#ffffff" opacity={0.25} />
+          <rect x={rx - 8} y={cy - 5} width={6} height={3} rx={1} fill="#ffffff" opacity={0.25} />
         </g>
       );
     case "glasses":
       return (
-        <g>
-          <circle cx={cx - gap} cy={cy} r={6 * s} fill="none" stroke="#8b7355" strokeWidth={1 * s} />
-          <circle cx={cx + gap} cy={cy} r={6 * s} fill="none" stroke="#8b7355" strokeWidth={1 * s} />
-          <line x1={cx - gap + 6 * s} y1={cy} x2={cx + gap - 6 * s} y2={cy} stroke="#8b7355" strokeWidth={0.8 * s} />
+        <g fill="none" stroke="#8b7355" strokeWidth={2.5}>
+          <circle cx={lx} cy={cy} r={14} />
+          <circle cx={rx} cy={cy} r={14} />
+          <line x1={lx + 14} y1={cy} x2={rx - 14} y2={cy} />
         </g>
       );
     case "aviator":
       return (
-        <g>
-          <ellipse cx={cx - gap} cy={cy + 0.5 * s} rx={6.5 * s} ry={5.5 * s} fill="#1a1a2e" opacity={0.75} />
-          <ellipse cx={cx + gap} cy={cy + 0.5 * s} rx={6.5 * s} ry={5.5 * s} fill="#1a1a2e" opacity={0.75} />
-          <line x1={cx - gap + 6.5 * s} y1={cy - 0.5 * s} x2={cx + gap - 6.5 * s} y2={cy - 0.5 * s} stroke="#f0b90b" strokeWidth={1 * s} />
-          <ellipse cx={cx - gap - 0.5 * s} cy={cy - 0.5 * s} rx={1.5 * s} ry={0.8 * s} fill="white" opacity={0.2} />
+        <g stroke="none">
+          <ellipse cx={lx} cy={cy + 2} rx={16} ry={13} fill="#111111" opacity={0.7} />
+          <ellipse cx={rx} cy={cy + 2} rx={16} ry={13} fill="#111111" opacity={0.7} />
+          <line x1={lx + 16} y1={cy - 1} x2={rx - 16} y2={cy - 1} stroke="#f0b90b" strokeWidth={2.5} />
+          <ellipse cx={lx - 2} cy={cy - 2} rx={4} ry={2} fill="#ffffff" opacity={0.2} />
         </g>
       );
     case "monocle":
       return (
-        <g>
-          <circle cx={cx + gap} cy={cy} r={6.5 * s} fill="none" stroke="#f0b90b" strokeWidth={1 * s} />
-          <line x1={cx + gap} y1={cy + 6.5 * s} x2={cx + gap - 1.5 * s} y2={cy + 13 * s} stroke="#f0b90b" strokeWidth={0.7 * s} strokeLinecap="round" />
+        <g fill="none" stroke="#f0b90b" strokeWidth={2.5}>
+          <circle cx={rx} cy={cy} r={15} />
+          <line x1={rx} y1={cy + 15} x2={rx - 4} y2={cy + 35} strokeLinecap="round" />
         </g>
       );
   }
 }
 
-/* ═══════════════════════════════════════════
-   Layer 1: Body Silhouette (단일 path — 핵심)
-   후드+몸통 일체형 벨 쉐이프.
-   팔은 실루엣에 포함 (별도 도형 없음).
-   ═══════════════════════════════════════════ */
-function BellBody({ cx, s, color, darker, lighter }: { cx: number; s: number; color: string; darker: string; lighter: string }) {
-  // 비율 후드:몸:다리 = 45:45:10  →  viewBox 100 기준: 후드 0~45, 몸 45~90, 다리 90~100
-  // 단일 path: 후드 원 상단 → 좌측 어깨 → 좌측 팔(몸에 포함) → 좌하단 → 우하단 → 우측 팔 → 우측 어깨 → 다시 상단
-  const path = [
-    // 후드 상단 시작 (12시 방향에서 시계방향)
-    `M${cx},${3 * s}`,
-    // 후드 좌측 곡선
-    `C${cx - 28 * s},${3 * s} ${cx - 32 * s},${28 * s} ${cx - 28 * s},${40 * s}`,
-    // 좌측 어깨 → 팔(몸 실루엣에 포함된 볼록한 곡선) → 좌하단
-    `C${cx - 30 * s},${48 * s} ${cx - 28 * s},${58 * s} ${cx - 26 * s},${65 * s}`,
-    `C${cx - 24 * s},${72 * s} ${cx - 22 * s},${82 * s} ${cx - 16 * s},${90 * s}`,
-    // 좌측 하단 → 중앙 하단 (평평한 바닥)
-    `Q${cx - 10 * s},${94 * s} ${cx},${94 * s}`,
-    // 중앙 하단 → 우측 하단
-    `Q${cx + 10 * s},${94 * s} ${cx + 16 * s},${90 * s}`,
-    // 우측 팔(몸 실루엣에 포함) → 우측 어깨
-    `C${cx + 22 * s},${82 * s} ${cx + 24 * s},${72 * s} ${cx + 26 * s},${65 * s}`,
-    `C${cx + 28 * s},${58 * s} ${cx + 30 * s},${48 * s} ${cx + 28 * s},${40 * s}`,
-    // 후드 우측 곡선 → 상단 복귀
-    `C${cx + 32 * s},${28 * s} ${cx + 28 * s},${3 * s} ${cx},${3 * s}`,
-    "Z",
-  ].join(" ");
-
-  return (
-    <>
-      {/* 메인 바디 실루엣 */}
-      <path d={path} fill={color} />
-      {/* 좌측 하이라이트 */}
-      <ellipse cx={cx - 12 * s} cy={35 * s} rx={10 * s} ry={18 * s} fill={lighter} opacity={0.1} />
-      {/* 지퍼 라인 */}
-      <line x1={cx} y1={50 * s} x2={cx} y2={90 * s} stroke={darker} strokeWidth={1 * s} strokeLinecap="round" opacity={0.25} />
-    </>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   Main Character Component
+/* ═══════════════════════════════════════════════════════
+   Main Character — 레퍼런스 SVG 구조 그대로
 
    레이어 순서 (아래→위):
-   1. Shadow
-   2. Legs (다리 2개)
-   3. Body Silhouette (후드+몸통 일체형 단일 path)
-   4. Face (피부색 원)
-   5. Hair
-   6. Eyes
-   7. Accessories
-   8. Blush + Mouth
-   9. Initial text
-   ═══════════════════════════════════════════ */
-function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120, skinTone = "#fce4c8", frame = "none", accessory = "none" }: CharacterProps) {
-  const s = size / 100;
-  const cx = 50 * s;
-  const darker = darkenColor(hoodieColor, 30);
-  const lighter = lightenColor(hoodieColor, 30);
-  const skinHighlight = lightenColor(skinTone, 20);
-
-  const headCy = 30 * s;  // 후드 중심 (상단 45% 영역)
-  const faceCy = headCy + 5 * s;
-  const eyeCy = headCy + 4 * s;
+   1. 발
+   2. 몸통 (rect, rx=20)
+   3. 여밈선
+   4. 팔 (물방울 path, 몸통 위!)
+   5. 머리/후드 (circle)
+   6. 얼굴 (circle) + 눈 + 머리카락
+   7. 액세서리
+   8. 이니셜
+   ═══════════════════════════════════════════════════════ */
+function Character({ hoodieColor, eyeStyle, hairStyle, initial, size = 120, skinTone = "#ffffff", frame = "none", accessory = "none" }: CharacterProps) {
+  const footColor = darkenColor(hoodieColor, 60);
 
   return (
-    <svg width={size} height={size * 1.05} viewBox={`0 0 ${100 * s} ${105 * s}`} fill="none">
-      {/* Layer 0: Shadow */}
-      <ellipse cx={cx} cy={99 * s} rx={18 * s} ry={2.5 * s} fill="black" opacity={0.1} />
+    <svg width={size} height={size * (VH / VW)} viewBox={`0 0 ${VW} ${VH}`} fill="none">
 
-      {/* Layer 1: Legs (다리만 살짝) */}
-      <rect x={cx - 10 * s} y={92 * s} width={7 * s} height={6 * s} rx={2.5 * s} fill={darker} />
-      <rect x={cx + 3 * s} y={92 * s} width={7 * s} height={6 * s} rx={2.5 * s} fill={darker} />
+      <g stroke="#111111" strokeWidth={9} strokeLinecap="round" strokeLinejoin="round">
 
-      {/* Layer 2: Body Silhouette (후드+몸통 일체형 벨 쉐이프) */}
-      <BellBody cx={cx} s={s} color={hoodieColor} darker={darker} lighter={lighter} />
+        {/* ── Layer 1: 발 ── */}
+        <rect x={145} y={345} width={50} height={22} rx={11} fill={footColor} />
+        <rect x={205} y={345} width={50} height={22} rx={11} fill={footColor} />
 
-      {/* Layer 3: Face (후드 안 피부색 원) */}
-      <circle cx={cx} cy={faceCy} r={18 * s} fill={skinTone} />
-      <ellipse cx={cx - 5 * s} cy={faceCy - 4 * s} rx={7 * s} ry={9 * s} fill={skinHighlight} opacity={0.3} />
+        {/* ── Layer 2: 몸통 (직사각형, 모서리만 둥글게) ── */}
+        <rect x={130} y={200} width={140} height={150} rx={20} fill={hoodieColor} />
 
-      {/* Layer 4: Hair */}
-      <HairBangs style={hairStyle} cx={cx} cy={headCy - 11 * s} s={s} color={hoodieColor} />
+        {/* ── Layer 3: 여밈 세로선 ── */}
+        <line x1={200} y1={208} x2={200} y2={345} strokeWidth={5} opacity={0.8} />
 
-      {/* Layer 5: Eyes */}
-      <Eyes style={eyeStyle} cx={cx} cy={eyeCy} s={s} />
+        {/* ── Layer 4: 팔 (물방울 path, 몸통 위!) ── */}
+        {/* 왼팔: 어깨(141,208)에서 시작, 아래로 떨어지는 물방울 */}
+        <path d={`
+          M 141,208
+          C 135,212 124,225 115,245
+          C 105,265 102,278 110,287
+          C 118,296 131,292 134,280
+          C 138,265 140,240 141,220
+          Z
+        `} fill={hoodieColor} />
+        {/* 오른팔 */}
+        <path d={`
+          M 259,208
+          C 265,212 276,225 285,245
+          C 295,265 298,278 290,287
+          C 282,296 269,292 266,280
+          C 262,265 260,240 259,220
+          Z
+        `} fill={hoodieColor} />
 
-      {/* Layer 6: Accessories */}
-      <Accessory style={accessory} cx={cx} cy={eyeCy} s={s} />
+        {/* ── Layer 5: 머리/후드 ── */}
+        <circle cx={200} cy={140} r={95} fill={hoodieColor} />
 
-      {/* Layer 7: Blush + Mouth */}
-      <ellipse cx={cx - 13 * s} cy={faceCy + 8 * s} rx={3.5 * s} ry={2 * s} fill="#ffb3b3" opacity={0.35} />
-      <ellipse cx={cx + 13 * s} cy={faceCy + 8 * s} rx={3.5 * s} ry={2 * s} fill="#ffb3b3" opacity={0.35} />
-      <path
-        d={`M${cx - 2.5 * s},${faceCy + 11 * s} Q${cx},${faceCy + 14 * s} ${cx + 2.5 * s},${faceCy + 11 * s}`}
-        stroke="#c4956a" strokeWidth={0.9 * s} fill="none" strokeLinecap="round"
-      />
+        {/* ── Layer 6: 얼굴 (피부색 원) ── */}
+        <circle cx={200} cy={150} r={55} fill={skinTone} />
 
-      {/* Layer 8: Initial */}
+      </g>
+
+      {/* ── Layer 6b: 눈 (stroke 그룹 밖) ── */}
+      <Eyes style={eyeStyle} color={hoodieColor} />
+
+      {/* ── Layer 6c: 머리카락 ── */}
+      <Hair style={hairStyle} color={hoodieColor} />
+
+      {/* ── Layer 7: 액세서리 ── */}
+      <Accessory style={accessory} />
+
+      {/* ── Layer 8: 이니셜 ── */}
       <text
-        x={cx}
-        y={74 * s}
+        x={200}
+        y={295}
         textAnchor="middle"
         dominantBaseline="middle"
         fill="white"
-        fontSize={10 * s}
+        fontSize={36}
         fontWeight="900"
         fontFamily="sans-serif"
-        opacity={0.75}
+        opacity={0.8}
+        stroke="none"
       >
         {initial}
       </text>
