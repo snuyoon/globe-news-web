@@ -60,8 +60,9 @@ const ALLOWED_TAGS: Record<string, string> = {
   "em-green": "color:#22c55e;font-size:1.25rem;font-weight:700",
 };
 
-function parseMarkup(text: string): string {
+function parseMarkup(text: unknown): string {
   if (!text) return "";
+  if (typeof text !== "string") return String(text);
   let s = text;
 
   // Handle <br> / <br/>
@@ -82,8 +83,8 @@ function parseMarkup(text: string): string {
   return s;
 }
 
-function Markup({ text }: { text: string }) {
-  return <span dangerouslySetInnerHTML={{ __html: parseMarkup(text || "") }} />;
+function Markup({ text }: { text: unknown }) {
+  return <span dangerouslySetInnerHTML={{ __html: parseMarkup(text) }} />;
 }
 
 /* ── 색상 맵 ── */
