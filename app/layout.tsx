@@ -25,6 +25,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        <script src="https://cdn.portone.io/v2/browser-sdk.js" defer />
+      </head>
       <body>
         <ClientLayout>{children}</ClientLayout>
       </body>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "./AuthProvider";
+import { requestPayment } from "@/lib/payment";
 
 interface SubscribeModalProps {
   seatId: string;
@@ -20,19 +21,33 @@ function GoogleIcon() {
   );
 }
 
+const PRO_PRICE = 4990;
+const PRO_ORIGINAL = 9900;
+
 export default function SubscribeModal({ seatId, onClose, onSubscribed }: SubscribeModalProps) {
   const { user, signInWithGoogle } = useAuth();
-  const [step, setStep] = useState<"info" | "processing" | "done">("info");
+  const [step, setStep] = useState<"info" | "processing" | "done" | "error">("info");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleTestPayment = () => {
+  const handlePayment = async () => {
     if (!user) return;
     setStep("processing");
+    setErrorMsg("");
 
-    // 테스트 결제 시뮬레이션 (나중에 포트원 연동)
-    setTimeout(() => {
+    const result = await requestPayment({
+      userId: user.id,
+      email: user.email || "",
+      planName: "PRO",
+      amount: PRO_PRICE,
+    });
+
+    if (result.success) {
       setStep("done");
       setTimeout(() => onSubscribed(), 800);
-    }, 1500);
+    } else {
+      setErrorMsg(result.error || "결제에 실패했습니다.");
+      setStep("error");
+    }
   };
 
   return (
@@ -42,13 +57,11 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
         className="relative bg-[#12121a] border border-[var(--border)] rounded-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header gradient */}
         <div className="h-2 bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]" />
 
         <div className="p-4 md:p-6">
           {step === "info" && (
             <>
-              {/* Seat info */}
               <div className="text-center mb-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0b90b]/10 border border-[#f0b90b]/20 mb-3">
                   <span className="text-[#f0b90b] text-xs font-semibold">{seatId}석 선택</span>
@@ -61,11 +74,11 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
               <div className="bg-[#0a0a12] rounded-xl p-4 mb-5 border border-[var(--border)]">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <span className="text-[var(--text-muted)] line-through text-sm">월 9,900원</span>
+                    <span className="text-[var(--text-muted)] line-through text-sm">월 {PRO_ORIGINAL.toLocaleString()}원</span>
                     <span className="ml-2 px-1.5 py-0.5 rounded bg-[#ef4444]/20 text-[#ef4444] text-[10px] font-bold">50% OFF</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">4,990원</span>
+                    <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f0b90b] to-[#ef6d09]">{PRO_PRICE.toLocaleString()}원</span>
                     <span className="text-[var(--text-muted)] text-xs ml-1">/월</span>
                   </div>
                 </div>
@@ -74,28 +87,16 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
                   <div className="flex items-center gap-2"><span className="text-[#22c55e]">&#10003;</span> 매일 모닝/장전 카드뉴스 브리핑</div>
                   <div className="flex items-center gap-2"><span className="text-[#22c55e]">&#10003;</span> 주말 특별판 교육 콘텐츠</div>
                   <div className="flex items-center gap-2"><span className="text-[#22c55e]">&#10003;</span> VIP 전용 좌석 + 나만의 캐릭터</div>
+                  <div className="flex items-center gap-2"><span className="text-[#22c55e]">&#10003;</span> 커뮤니티 글쓰기/댓글</div>
                 </div>
               </div>
 
-              {/* 로그인 상태에 따라 분기 */}
               {user ? (
                 <>
-                  {/* 로그인된 사용자 정보 표시 */}
                   <div className="flex items-center gap-3 mb-5 px-3 py-2.5 rounded-lg bg-[#0a0a12] border border-[var(--border)]">
-                    {user.user_metadata?.avatar_url ? (
-                      <img
-                        src={user.user_metadata.avatar_url}
-                        alt=""
-                        width={36}
-                        height={36}
-                        className="rounded-full"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-[#f0b90b] flex items-center justify-center text-black text-sm font-bold">
-                        {(user.user_metadata?.full_name || user.email || "U")[0].toUpperCase()}
-                      </div>
-                    )}
+                    <div className="w-9 h-9 rounded-full bg-[#f0b90b] flex items-center justify-center text-black text-sm font-bold">
+                      {(user.user_metadata?.full_name || user.email || "U")[0].toUpperCase()}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[var(--text)] truncate">
                         {user.user_metadata?.full_name || "사용자"}
@@ -105,37 +106,33 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
                     <span className="text-[10px] text-[#22c55e] font-semibold px-2 py-0.5 rounded bg-[#22c55e]/10">로그인됨</span>
                   </div>
 
-                  {/* 테스트 결제 CTA */}
                   <button
-                    onClick={handleTestPayment}
-                    className="w-full py-3 rounded-lg bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black font-bold text-sm hover:opacity-90 transition-opacity"
+                    onClick={handlePayment}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black font-bold text-[15px] hover:opacity-90 transition-opacity"
                   >
-                    테스트 결제하고 착석하기
+                    {PRO_PRICE.toLocaleString()}원 결제하고 구독하기
                   </button>
                   <p className="text-center text-[10px] text-[var(--text-muted)]/50 mt-2">
-                    결제 시스템 준비 중 — 테스트 결제로 진행됩니다
+                    카드 결제 · 언제든 해지 가능
                   </p>
                 </>
               ) : (
-                <>
-                  {/* 로그인 필요 */}
-                  <div className="text-center mb-4">
-                    <p className="text-sm text-[var(--text-muted)] mb-4">
-                      구독하려면 먼저 구글 로그인이 필요합니다
-                    </p>
-                    <button
-                      onClick={signInWithGoogle}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-white text-[#333] font-bold text-sm hover:bg-gray-100 transition-colors"
-                    >
-                      <GoogleIcon />
-                      구글 계정으로 로그인
-                    </button>
-                  </div>
-                </>
+                <div className="text-center mb-4">
+                  <p className="text-sm text-[var(--text-muted)] mb-4">
+                    구독하려면 먼저 구글 로그인이 필요합니다
+                  </p>
+                  <button
+                    onClick={signInWithGoogle}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-white text-[#333] font-bold text-sm hover:bg-gray-100 transition-colors"
+                  >
+                    <GoogleIcon />
+                    구글 계정으로 로그인
+                  </button>
+                </div>
               )}
 
               <p className="text-center text-[10px] text-[var(--text-muted)]/50 mt-3">
-                선착순 100명 한정 · 프로모션 종료 후 정상가(9,900원) 적용
+                선착순 100명 한정 · 프로모션 종료 후 정상가({PRO_ORIGINAL.toLocaleString()}원) 적용
               </p>
             </>
           )}
@@ -144,6 +141,7 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
             <div className="text-center py-12">
               <div className="w-10 h-10 border-2 border-[#f0b90b] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-sm text-[var(--text-muted)]">결제 처리 중...</p>
+              <p className="text-[11px] text-[var(--text-muted)]/50 mt-2">결제창이 뜨지 않으면 팝업 차단을 확인해주세요</p>
             </div>
           )}
 
@@ -155,8 +153,21 @@ export default function SubscribeModal({ seatId, onClose, onSubscribed }: Subscr
             </div>
           )}
 
-          {/* Close */}
-          {step === "info" && (
+          {step === "error" && (
+            <div className="text-center py-10">
+              <div className="text-4xl mb-3">&#128533;</div>
+              <h3 className="text-lg font-bold mb-2">결제 실패</h3>
+              <p className="text-sm text-[var(--text-muted)] mb-5">{errorMsg}</p>
+              <button
+                onClick={() => setStep("info")}
+                className="px-6 py-2.5 rounded-lg bg-[var(--card)] border border-[var(--border)] text-sm font-medium text-[var(--text-muted)] hover:text-white transition-colors"
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
+          {(step === "info" || step === "error") && (
             <button
               onClick={onClose}
               className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-white transition-colors"
