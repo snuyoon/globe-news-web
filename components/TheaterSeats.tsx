@@ -330,7 +330,7 @@ export default function TheaterSeats() {
                             isOccupied ? "cursor-default" : "cursor-pointer hover:scale-105"
                           }`}
                           style={{ width: "clamp(56px, 9.5vw, 70px)", height: "clamp(78px, 14vw, 96px)" }}
-                          title={isOccupied ? `${data.initial} (${row}${col})` : lucky ? `${seatNum}번째 — 평생 무료!` : `${row}${col} — 빈 좌석`}
+                          title={isOccupied ? `${data.initial} (${row}${col})` : `${row}${col} — 빈 좌석`}
                         >
                           {/* Neon glow behind occupied seat */}
                           {isOccupied && (
@@ -344,7 +344,7 @@ export default function TheaterSeats() {
                           )}
 
                           {/* Lucky seat glow */}
-                          {lucky && !isOccupied && (
+                          {false && lucky && !isOccupied && (
                             <div
                               className="absolute inset-[-2px] rounded-xl pointer-events-none z-0 animate-pulse"
                               style={{
@@ -404,10 +404,14 @@ export default function TheaterSeats() {
                             />
                           </div>
 
-                          {/* Lucky badge */}
-                          {lucky && (
-                            <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 z-20 px-1.5 py-[1px] rounded-t bg-[#f0b90b] text-black text-[7px] font-black whitespace-nowrap">
-                              {isOccupied ? "당첨!" : "FREE"}
+                          {/* 왕관 뱃지: 럭키(1,7,77,100)=다이아, 일반 착석=동색, Lv.3+=은색 */}
+                          {isOccupied && (
+                            <div className="absolute -top-[6px] left-1/2 -translate-x-1/2 z-20 text-[10px]">
+                              {lucky ? (
+                                <span title="다이아 왕관 — 럭키넘버!" style={{ filter: "drop-shadow(0 0 4px #00d4ff)" }}>&#x1F451;</span>
+                              ) : (
+                                <span className="opacity-60" title="창립 멤버 왕관">&#x1F451;</span>
+                              )}
                             </div>
                           )}
 
