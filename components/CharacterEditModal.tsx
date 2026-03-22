@@ -54,7 +54,16 @@ export default function CharacterEditModal({ userId, current, onClose, onSaved }
 
         <h3 className="text-lg font-bold mb-4">캐릭터 꾸미기</h3>
 
-        <div className="flex justify-center mb-5 bg-[#1a1a2e] rounded-xl py-5">
+        <div
+          className="flex justify-center mb-5 bg-[#1a1a2e] rounded-xl py-5"
+          style={{
+            border: frame === "gold" ? "2.5px solid #f0b90b90"
+              : frame === "diamond" ? "2.5px solid #c0c0c090"
+              : frame === "flame" ? "2.5px solid #ef6d0990"
+              : "1px solid transparent",
+            boxShadow: frame !== "none" ? `0 0 16px ${frame === "gold" ? "#f0b90b20" : frame === "diamond" ? "#c0c0c020" : "#ef6d0920"}` : "none",
+          }}
+        >
           <Character
             hoodieColor={hoodieColor} eyeStyle={eyeStyle} hairStyle={hairStyle}
             skinTone={skinTone} accessory={accessory} initial={initial || "?"} size={140}
