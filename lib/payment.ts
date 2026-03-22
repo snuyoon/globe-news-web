@@ -38,10 +38,11 @@ export interface PaymentResult {
   error?: string;
 }
 
-const STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "";
-const CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
-
 export async function requestPayment({ userId, email, planName, amount }: PaymentRequest): Promise<PaymentResult> {
+  // 런타임에 환경변수 읽기 (static export 대응)
+  const STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "";
+  const CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || "";
+
   // PortOne SDK 로드 확인
   const portone = getPortOne();
   if (!portone) {
@@ -51,10 +52,11 @@ export async function requestPayment({ userId, email, planName, amount }: Paymen
   // 환경변수 확인
   if (!STORE_ID || !CHANNEL_KEY) {
     console.warn("[Payment] PortOne 설정 없음 — 테스트 모드");
-    // 테스트 모드: 2초 후 성공 시뮬레이션
     await new Promise((r) => setTimeout(r, 2000));
     return { success: true, paymentId: `test_${Date.now()}` };
   }
+
+  console.log("[Payment] storeId:", STORE_ID, "channelKey:", CHANNEL_KEY.slice(0, 20) + "...");
 
   const orderId = `globe_${planName.toLowerCase()}_${userId.slice(0, 8)}_${Date.now()}`;
 
