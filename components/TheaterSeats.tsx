@@ -239,12 +239,8 @@ export default function TheaterSeats() {
               실시간 속보 · 모닝 브리핑 · 장전 브리핑 · 카드뉴스
             </p>
 
-            {/* Price */}
+            {/* Price — 모바일 간결, 데스크톱 풍부 */}
             <div className="mb-6 flex flex-col gap-1 items-center lg:items-start">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl md:text-3xl text-[var(--text-muted)]/50 line-through decoration-[var(--text-muted)]/30 decoration-2">9,900원</span>
-                <span className="px-2.5 py-1 rounded bg-[#ef4444]/15 text-[#ef4444] text-sm font-bold">50% OFF</span>
-              </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl md:text-5xl lg:text-6xl font-black text-[#22c55e]">
                   무료 체험
@@ -258,11 +254,8 @@ export default function TheaterSeats() {
                 href="/subscribe"
                 className="inline-flex items-center gap-1.5 mt-3 text-sm text-[var(--text-muted)] hover:text-[#f0b90b] transition-colors"
               >
-                구독하면 어떤 혜택이? <span className="underline underline-offset-2">자세히 보기</span>
+                요금제 비교 <span className="underline underline-offset-2">자세히 보기</span>
               </a>
-              <p className="mt-3 text-xs text-[var(--text-muted)] bg-[#f0b90b]/[0.06] border border-[#f0b90b]/15 rounded-lg px-3 py-2 text-center lg:text-left">
-                회원가입만 해도 <span className="text-[#f0b90b] font-bold">카드뉴스 2건 + 뉴스 5건</span> 무료 체험
-              </p>
             </div>
 
             {/* Progress bar */}
