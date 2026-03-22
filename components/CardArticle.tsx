@@ -83,7 +83,7 @@ function parseMarkup(text: string): string {
 }
 
 function Markup({ text }: { text: string }) {
-  return <span dangerouslySetInnerHTML={{ __html: parseMarkup(text) }} />;
+  return <span dangerouslySetInnerHTML={{ __html: parseMarkup(text || "") }} />;
 }
 
 /* ── 색상 맵 ── */
@@ -494,14 +494,14 @@ function EarningsSection({ section }: { section: EarningsSection }) {
                 <span className="text-lg font-black text-[#f0b90b]">{item.symbol}</span>
                 <span className="text-sm font-bold text-white">{item.name}</span>
               </div>
-              {item.status && (
+              {item.status && typeof item.status === 'string' && (
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusStyles[item.status] || statusStyles.pending}`}>
-                  {item.status.toUpperCase()}
+                  {(item.status || "").toUpperCase()}
                 </span>
               )}
             </div>
-            {item.eps && <p className="text-sm text-[var(--text-muted)] mb-1"><Markup text={item.eps} /></p>}
-            {item.why && <p className="text-sm leading-relaxed"><Markup text={item.why} /></p>}
+            {item.eps && <p className="text-sm text-[var(--text-muted)] mb-1"><Markup text={item.eps || ""} /></p>}
+            {item.why && <p className="text-sm leading-relaxed"><Markup text={item.why || ""} /></p>}
           </div>
         ))}
       </div>
@@ -780,8 +780,8 @@ function CheckpointsSection({ checkpoints }: { checkpoints: Checkpoint[] }) {
         {checkpoints.map((cp) => (
           <div key={cp.num} className="bg-[var(--card)] rounded-xl p-4 md:p-5 border border-[var(--border)]">
             <span className="inline-block text-2xl font-black text-[#f0b90b] mb-2">{cp.num}</span>
-            <p className="text-sm font-bold text-white mb-1">{cp.title}</p>
-            <p className="text-sm text-[var(--text-muted)] leading-relaxed"><Markup text={cp.desc} /></p>
+            <p className="text-sm font-bold text-white mb-1">{cp.title || ""}</p>
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed"><Markup text={cp.desc || ""} /></p>
           </div>
         ))}
       </div>
