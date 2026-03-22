@@ -126,97 +126,109 @@ function Eyes({ style, color }: { style: EyeStyle; color: string }) {
 
 /* ─────────────────────────────────────────
    Layer 6: Hair (교체 가능)
-   기준점: cx=200, 이마 y≈115
+   모든 머리카락은 얼굴 원(cx=200,cy=150,r=55) 안에서만 보임.
+   후드 밖으로 절대 튀어나가지 않도록 clipPath 적용.
    ───────────────────────────────────────── */
-function Hair({ style, color }: { style: HairStyle; color: string }) {
-  const dark = darkenColor(color, 40);
+function HairContent({ style, dark }: { style: HairStyle; dark: string }) {
+  // 이마 영역: y≈100~125, x≈155~245 (얼굴 원 상단)
   switch (style) {
     case "none": return null;
     case "curly":
       return (
-        <g fill="none" stroke="#111111" strokeWidth={4} strokeLinecap="round">
-          <path d="M 182 115 C 185 105 190 105 192 115" />
-          <path d="M 192 115 C 196 105 204 105 208 115" />
-          <path d="M 208 115 C 212 105 216 105 218 115" />
+        <g fill="none" stroke="#333" strokeWidth={3.5} strokeLinecap="round">
+          <path d="M 182 118 C 184 108 189 108 191 118" />
+          <path d="M 192 116 C 195 106 203 106 206 116" />
+          <path d="M 207 118 C 210 108 215 108 217 118" />
         </g>
       );
     case "bangs":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <path d="M175,118 L177,100 L185,112 L190,96 L198,112 L205,98 L210,112 L215,100 L218,118 Z" />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <path d="M168,122 L172,106 L182,118 L188,102 L198,118 L205,104 L212,118 L218,108 L225,122 Z" />
         </g>
       );
     case "parted":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <path d="M170,118 L175,100 L185,112 L195,98 L200,115 Z" />
-          <path d="M200,115 L205,98 L215,112 L225,100 L230,118 Z" />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <path d="M168,122 L174,106 L184,118 L194,104 L200,120 Z" />
+          <path d="M200,120 L206,104 L216,118 L226,106 L232,122 Z" />
         </g>
       );
     case "spiky":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <path d="M168,118 L165,88 L180,108 L185,82 L200,108 L215,85 L220,108 L235,90 L232,118 Z" />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <path d="M165,122 L168,98 L180,115 L188,96 L200,115 L212,96 L220,115 L232,98 L235,122 Z" />
         </g>
       );
     case "bob":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <ellipse cx={200} cy={108} rx={30} ry={14} />
-          <rect x={168} y={108} width={12} height={25} rx={5} />
-          <rect x={220} y={108} width={12} height={25} rx={5} />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <ellipse cx={200} cy={112} rx={30} ry={12} />
+          <rect x={168} y={112} width={11} height={30} rx={4} />
+          <rect x={221} y={112} width={11} height={30} rx={4} />
         </g>
       );
     case "ponytail":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <path d="M175,118 L178,102 L186,112 L192,98 L200,110 L208,98 L214,112 L222,102 L225,118 Z" />
-          <ellipse cx={260} cy={105} rx={12} ry={18} />
-          <path d="M225,105 Q240,95 248,105" fill="none" strokeWidth={4} />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <path d="M168,122 L172,106 L182,118 L190,104 L200,116 L210,104 L218,118 L228,106 L232,122 Z" />
         </g>
       );
     case "twoblock":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <path d="M172,125 L172,105 Q172,90 185,90 L215,90 Q228,90 228,105 L228,125" />
-          <path d="M185,118 L188,100 L195,112 L200,98 L205,112 L212,100 L215,118 Z" />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <rect x={170} y={105} width={60} height={18} rx={4} />
+          <path d="M180,122 L184,108 L192,118 L200,104 L208,118 L216,108 L220,122 Z" />
         </g>
       );
     case "long":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <ellipse cx={200} cy={105} rx={32} ry={15} />
-          <rect x={165} y={105} width={14} height={55} rx={6} />
-          <rect x={221} y={105} width={14} height={55} rx={6} />
-          <path d="M178,118 L182,102 L190,114 L198,100 L206,114 L214,102 L218,118 Z" />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <path d="M168,122 L174,104 L186,118 L198,102 L210,118 L222,104 L232,122 Z" />
+          <rect x={155} y={122} width={10} height={45} rx={4} />
+          <rect x={235} y={122} width={10} height={45} rx={4} />
         </g>
       );
     case "beanie":
       return (
-        <g stroke="#111111" strokeWidth={2}>
-          <ellipse cx={200} cy={95} rx={50} ry={30} fill={dark} />
-          <rect x={150} y={105} width={100} height={15} rx={4} fill={dark} />
-          <circle cx={200} cy={68} r={6} fill={dark} />
+        <g stroke="#222" strokeWidth={1.5}>
+          <ellipse cx={200} cy={102} rx={40} ry={20} fill={dark} />
+          <rect x={158} y={112} width={84} height={12} rx={3} fill={dark} />
+          <circle cx={200} cy={84} r={5} fill={dark} />
         </g>
       );
     case "twintail":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <path d="M180,118 L183,104 L190,114 L196,100 L200,112 L204,100 L210,114 L217,104 L220,118 Z" />
-          <ellipse cx={155} cy={130} rx={10} ry={22} />
-          <ellipse cx={245} cy={130} rx={10} ry={22} />
-          <path d="M175,115 Q165,118 155,125" fill="none" strokeWidth={3} />
-          <path d="M225,115 Q235,118 245,125" fill="none" strokeWidth={3} />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <path d="M175,122 L180,108 L190,118 L200,104 L210,118 L220,108 L225,122 Z" />
         </g>
       );
     case "topknot":
       return (
-        <g fill={dark} stroke="#111111" strokeWidth={2}>
-          <circle cx={200} cy={65} r={14} />
-          <rect x={197} y={72} width={6} height={20} rx={2} />
+        <g fill={dark} stroke="#222" strokeWidth={1.5}>
+          <ellipse cx={200} cy={100} rx={8} ry={6} />
         </g>
       );
   }
+}
+
+function Hair({ style, color }: { style: HairStyle; color: string }) {
+  if (style === "none") return null;
+  const dark = darkenColor(color, 40);
+  // clipPath: 얼굴 원(cx=200,cy=150,r=55)에 맞춰 클리핑 — 후드 밖으로 안 나감
+  const clipId = "hair-clip";
+  return (
+    <>
+      <defs>
+        <clipPath id={clipId}>
+          <circle cx={200} cy={150} r={54} />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clipId})`}>
+        <HairContent style={style} dark={dark} />
+      </g>
+    </>
+  );
 }
 
 /* ─────────────────────────────────────────
