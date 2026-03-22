@@ -364,38 +364,69 @@ export default function CommunityPage() {
               <button
                 key={post.id}
                 onClick={() => { if (isLocked) return; openPost(post.id); }}
-                className={`text-left p-4 rounded-xl transition-all ${isLocked ? "opacity-60" : "hover:scale-[1.01]"} ${
+                className={`text-left rounded-xl transition-all ${isLocked ? "opacity-60" : "hover:scale-[1.01]"} ${
                   openPostId === post.id ? "ring-1 ring-[#f0b90b]/30" : ""
-                }`}
+                } flex overflow-hidden`}
                 style={{ backgroundColor: "var(--card)" }}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      {post.is_pinned && <span className="text-[11px] font-bold text-[#f0b90b] bg-[#f0b90b]/10 px-2 py-0.5 rounded-full">&#x1F4CC; 공지</span>}
-                      {post.is_hot && <span className="text-[11px] font-bold text-[#ef4444] bg-[#ef4444]/10 px-2 py-0.5 rounded-full">HOT</span>}
-                      <h3 className="text-sm font-bold line-clamp-1">{post.title}</h3>
+                {/* 왼쪽: 캐릭터 카드 */}
+                <div className="flex-shrink-0 w-20 md:w-24 flex flex-col items-center justify-center py-4 px-2" style={{ backgroundColor: "var(--bg)" }}>
+                  {post.author_character ? (
+                    <div className="relative">
+                      {post.author_seat && (
+                        <div className="absolute -top-[6px] left-1/2 -translate-x-1/2 text-[12px] z-10">
+                          {LUCKY_SEATS.has(post.author_seat) ? (
+                            <span style={{ filter: "drop-shadow(0 0 3px #00d4ff)" }}>&#x1F451;</span>
+                          ) : (
+                            <span className="opacity-40">&#x1F451;</span>
+                          )}
+                        </div>
+                      )}
+                      <Character
+                        hoodieColor={post.author_character.hoodieColor || "#2d3035"}
+                        eyeStyle={(post.author_character.eyeStyle as "dot") || "dot"}
+                        hairStyle={(post.author_character.hairStyle as "bangs") || "bangs"}
+                        skinTone={(post.author_character.skinTone as "#ffffff") || "#ffffff"}
+                        accessory={(post.author_character.accessory as "none") || "none"}
+                        initial={post.author_character.initial || (post.author_name || "?")[0]}
+                        size={56}
+                      />
                     </div>
-                    <p className={`text-xs text-[var(--text-muted)] line-clamp-2 mb-3 ${isLocked ? "blur-sm select-none" : ""}`}>{post.body}</p>
-                    {isLocked && (
-                      <p className="text-[11px] text-[#f0b90b] font-medium">구독하면 전체 게시글을 볼 수 있어요</p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <AuthorBadge name={post.author_name || "익명"} seat={post.author_seat} level={post.author_level} characterData={post.author_character} />
-                      <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
-                        <button
-                          onClick={(e) => toggleLike(post.id, e)}
-                          className={`flex items-center gap-1 transition-colors ${post.liked_by_me ? "text-[#ef4444]" : "hover:text-[#ef4444]"}`}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill={post.liked_by_me ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                          {(post.like_count || 0) > 0 && <span>{post.like_count}</span>}
-                        </button>
-                        <span>&#x1F4AC; {post.comment_count}</span>
-                        <span>{timeAgo(post.created_at)}</span>
-                      </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-[var(--card)] flex items-center justify-center text-sm font-bold text-[var(--text-muted)]">
+                      {(post.author_name || "?")[0].toUpperCase()}
                     </div>
+                  )}
+                  <p className="text-[10px] font-bold mt-1 text-center truncate w-full">{post.author_name || "익명"}</p>
+                  {post.author_seat && <p className="text-[9px] text-[var(--text-muted)]">#{post.author_seat}석</p>}
+                </div>
+
+                {/* 오른쪽: 글 내용 */}
+                <div className="flex-1 min-w-0 p-4">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    {post.is_pinned && <span className="text-[11px] font-bold text-[#f0b90b] bg-[#f0b90b]/10 px-2 py-0.5 rounded-full">&#x1F4CC; 공지</span>}
+                    {post.is_hot && <span className="text-[11px] font-bold text-[#ef4444] bg-[#ef4444]/10 px-2 py-0.5 rounded-full">HOT</span>}
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${(LEVEL_NAMES[post.author_level || 1] || LEVEL_NAMES[1]).color}15`, color: (LEVEL_NAMES[post.author_level || 1] || LEVEL_NAMES[1]).color }}>
+                      Lv.{post.author_level || 1}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold line-clamp-1 mb-1">{post.title}</h3>
+                  <p className={`text-xs text-[var(--text-muted)] line-clamp-2 mb-2 ${isLocked ? "blur-sm select-none" : ""}`}>{post.body}</p>
+                  {isLocked && (
+                    <p className="text-[11px] text-[#f0b90b] font-medium mb-2">구독하면 전체 게시글을 볼 수 있어요</p>
+                  )}
+                  <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
+                    <button
+                      onClick={(e) => toggleLike(post.id, e)}
+                      className={`flex items-center gap-1 transition-colors ${post.liked_by_me ? "text-[#ef4444]" : "hover:text-[#ef4444]"}`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill={post.liked_by_me ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {(post.like_count || 0) > 0 && <span>{post.like_count}</span>}
+                    </button>
+                    <span>&#x1F4AC; {post.comment_count}</span>
+                    <span>{timeAgo(post.created_at)}</span>
                   </div>
                 </div>
               </button>
