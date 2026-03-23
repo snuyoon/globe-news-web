@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 import Character from "./Character";
@@ -48,6 +48,22 @@ export default function Navbar() {
   const [charData, setCharData] = useState<Record<string, string> | null>(null);
   const { user, loading, isAdmin, isSubscriber, isInAppBrowser, signInWithGoogle, signOut } = useAuth();
   const pathname = usePathname();
+  const profileRef = useRef<HTMLDivElement>(null);
+  const planRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileOpen && profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+      if (planOpen && planRef.current && !planRef.current.contains(e.target as Node)) {
+        setPlanOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileOpen, planOpen]);
 
   useEffect(() => {
     setTabBarHidden(localStorage.getItem("tabbar_hidden") === "1");
@@ -106,7 +122,7 @@ export default function Navbar() {
             </a>
           )}
           {isSubscriber ? (
-            <div className="relative ml-2">
+            <div className="relative ml-2" ref={planRef}>
               <button
                 onClick={() => setPlanOpen(!planOpen)}
                 className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#f0b90b] to-[#ef6d09] text-black text-[13px] font-bold hover:opacity-90 transition-opacity"
@@ -153,7 +169,7 @@ export default function Navbar() {
           {!loading && (
             <>
               {user ? (
-                <div className="relative">
+                <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
                     className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-[var(--card)] transition-colors"

@@ -81,7 +81,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
       setShowCreditModal(false);
       onClose();
     }
-  }, [useFreeView, onClose]);
+  }, [useFreeView, onClose, authUser]);
 
   // Keyboard navigation
   useEffect(() => {

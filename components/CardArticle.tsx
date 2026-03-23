@@ -179,7 +179,7 @@ export default function CardArticle({ card, onClose }: CardArticleProps) {
       setShowCreditModal(false);
       onClose();
     }
-  }, [useFreeView, onClose]);
+  }, [useFreeView, onClose, authUser]);
 
   // 페이지 바뀔 때 스크롤 맨 위로
   useEffect(() => {
