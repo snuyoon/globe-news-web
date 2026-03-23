@@ -80,6 +80,16 @@ function parseMarkup(text: unknown): string {
   // Strip any remaining HTML tags that aren't span or br (XSS protection)
   s = s.replace(/<(?!\/?(?:span|br)\b)[^>]*>/gi, "");
 
+  // Remove dangerous attributes from remaining span tags (event handlers, javascript:, etc.)
+  s = s.replace(/<span\s+([^>]*)>/gi, (match, attrs: string) => {
+    const safeAttrs = attrs.replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, "")
+                          .replace(/style\s*=\s*["'][^"']*expression\s*\([^"']*["']/gi, "")
+                          .replace(/style\s*=\s*["'][^"']*javascript\s*:[^"']*["']/gi, "")
+                          .replace(/href\s*=\s*["']\s*javascript\s*:[^"']*["']/gi, "")
+                          .trim();
+    return `<span ${safeAttrs}>`;
+  });
+
   return s;
 }
 

@@ -104,13 +104,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const useFreeView = useCallback(async (): Promise<boolean> => {
     if (!user || isSubscriber || isAdmin) return true;
     if (freeViews <= 0) return false;
-    const newCount = freeViews - 1;
-    const { error } = await supabase
-      .from("subscribers")
-      .update({ free_views: newCount })
-      .eq("user_id", user.id);
-    if (!error) {
-      setFreeViews(newCount);
+    const { data, error } = await supabase.rpc("decrement_free_views", { p_user_id: user.id });
+    if (!error && data === true) {
+      setFreeViews((prev) => Math.max(0, prev - 1));
       return true;
     }
     return false;
@@ -119,13 +115,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const useFreeNewsView = useCallback(async (): Promise<boolean> => {
     if (!user || isSubscriber || isAdmin) return true;
     if (freeNewsViews <= 0) return false;
-    const newCount = freeNewsViews - 1;
-    const { error } = await supabase
-      .from("subscribers")
-      .update({ free_news_views: newCount })
-      .eq("user_id", user.id);
-    if (!error) {
-      setFreeNewsViews(newCount);
+    const { data, error } = await supabase.rpc("decrement_free_news_views", { p_user_id: user.id });
+    if (!error && data === true) {
+      setFreeNewsViews((prev) => Math.max(0, prev - 1));
       return true;
     }
     return false;
