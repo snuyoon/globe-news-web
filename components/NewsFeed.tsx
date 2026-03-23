@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase, type News } from "@/lib/supabase";
 import NewsCard from "./NewsCard";
 import NewsDetailModal from "./NewsDetailModal";
@@ -44,11 +44,15 @@ export default function NewsFeed() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [newCount, setNewCount] = useState(0);
+  const newsRef = useRef<News[]>([]);
+
+  // newsRef를 news와 동기화
+  useEffect(() => { newsRef.current = news; }, [news]);
 
   const fetchNews = useCallback(async (append = false) => {
     if (append) {
       setLoadingMore(true);
-    } else if (news.length === 0) {
+    } else if (newsRef.current.length === 0) {
       setLoading(true);
     }
 
@@ -66,9 +70,9 @@ export default function NewsFeed() {
       query = query.eq("theme", themeFilter);
     }
 
-    if (append && news.length > 0) {
-      const lastDate = news[news.length - 1].published_at;
-      query = query.lt("published_at", lastDate);
+    if (append) {
+      const lastDate = newsRef.current[newsRef.current.length - 1]?.published_at;
+      if (lastDate) query = query.lt("published_at", lastDate);
     }
 
     const { data, error } = await query;
@@ -84,12 +88,12 @@ export default function NewsFeed() {
     }
     setLoading(false);
     setLoadingMore(false);
-  }, [importanceFilter, themeFilter, news]);
+  }, [importanceFilter, themeFilter]);
 
   // 새 뉴스 체크 (전체 교체 대신 최신 1건만 확인)
   const checkForNew = useCallback(async () => {
-    if (news.length === 0) return;
-    const latestDate = news[0].published_at;
+    if (newsRef.current.length === 0) return;
+    const latestDate = newsRef.current[0].published_at;
     let query = supabase
       .from("news")
       .select("id", { count: "exact", head: true })
@@ -106,7 +110,7 @@ export default function NewsFeed() {
     if (count && count > 0) {
       setNewCount(count);
     }
-  }, [news, importanceFilter, themeFilter]);
+  }, [importanceFilter, themeFilter]);
 
   // 초기 로드 + 필터 변경 시 fetch
   useEffect(() => {

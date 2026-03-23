@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useAuth } from "./AuthProvider";
 import { grantXp } from "@/lib/xp";
 
@@ -51,7 +51,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
     }
   }, []);
 
-  const slides = Array.from({ length: slideCount }, (_, i) => `${baseUrl}/slide_${i + 1}.png`);
+  const slides = useMemo(() => Array.from({ length: slideCount }, (_, i) => `${baseUrl}/slide_${i + 1}.png`), [slideCount, baseUrl]);
 
   const goPrev = useCallback(() => setCurrent((c) => Math.max(0, c - 1)), []);
 
@@ -118,7 +118,8 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
         img.onload = () => setLoadedImages((prev) => new Set(prev).add(i));
       }
     });
-  }, [current, slideCount, slides, loadedImages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, slideCount, slides]);
 
   // Touch swipe
   const handleTouchStart = (e: React.TouchEvent) => {
