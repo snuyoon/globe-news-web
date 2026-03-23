@@ -28,7 +28,7 @@ export default function PortfolioSettings() {
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    fetch("/api/portfolio")
+    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://bjdlyjeltwjukuthxkti.supabase.co"}/functions/v1/portfolio`)
       .then((r) => r.json())
       .then((data) => {
         if (data.tickers) setTickers(data.tickers);
@@ -97,7 +97,7 @@ export default function PortfolioSettings() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/api/portfolio", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://bjdlyjeltwjukuthxkti.supabase.co"}/functions/v1/portfolio`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tickers }),

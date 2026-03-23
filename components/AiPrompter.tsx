@@ -70,7 +70,7 @@ export default function AiPrompter({ newsId, newsText }: { newsId: string; newsT
     setResult(null);
 
     try {
-      const res = await fetch("/api/ai-prompter", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://bjdlyjeltwjukuthxkti.supabase.co"}/functions/v1/ai-prompter`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newsId, newsText }),
