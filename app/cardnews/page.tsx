@@ -17,18 +17,28 @@ const TABS = [
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 const POLL_INTERVAL = 30_000;
 
+function toKST(d: Date) {
+  return new Date(d.getTime() + 9 * 60 * 60 * 1000);
+}
+
+function formatKSTDate(d: Date) {
+  const kst = toKST(d);
+  return kst.toISOString().split("T")[0];
+}
+
 function getWeekDates(): { label: string; date: string; isToday: boolean }[] {
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-
+  const kstNow = toKST(now);
+  const dayOfWeek = kstNow.getUTCDay();
+  const monday = new Date(kstNow);
+  monday.setUTCDate(kstNow.getUTCDate() - ((dayOfWeek + 6) % 7));
+  const todayStr = formatKSTDate(now);
   return DAYS.map((label, i) => {
     const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    d.setUTCDate(monday.getUTCDate() + i);
     const date = d.toISOString().split("T")[0];
-    const isToday = date === now.toISOString().split("T")[0];
-    return { label: `${label} ${d.getDate()}일`, date, isToday };
+    const isToday = date === todayStr;
+    return { label: `${label} ${d.getUTCDate()}일`, date, isToday };
   });
 }
 

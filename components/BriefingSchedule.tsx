@@ -13,8 +13,9 @@ const SCHEDULE: ScheduleItem[] = [
     time: "08:30",
     label: "모닝 브리핑",
     getStatus: (now: Date) => {
-      const h = now.getHours();
-      const m = now.getMinutes();
+      const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      const h = kst.getUTCHours();
+      const m = kst.getUTCMinutes();
       const current = h * 60 + m;
       if (current >= 8 * 60 + 30) {
         return { text: "오늘 발행 완료", icon: "check", active: true };
@@ -26,8 +27,9 @@ const SCHEDULE: ScheduleItem[] = [
     time: "22:00",
     label: "장전 브리핑",
     getStatus: (now: Date) => {
-      const h = now.getHours();
-      const m = now.getMinutes();
+      const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      const h = kst.getUTCHours();
+      const m = kst.getUTCMinutes();
       const current = h * 60 + m;
       if (current >= 22 * 60) {
         return { text: "오늘 발행 완료", icon: "check", active: true };
@@ -39,7 +41,8 @@ const SCHEDULE: ScheduleItem[] = [
     time: "SAT",
     label: "주말 특별판",
     getStatus: (now: Date) => {
-      const day = now.getDay();
+      const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      const day = kst.getUTCDay();
       if (day === 6) {
         return { text: "이번 주 발행 완료", icon: "check", active: true };
       }
