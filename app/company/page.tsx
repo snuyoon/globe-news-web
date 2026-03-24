@@ -7,6 +7,7 @@ import CardArticle from "@/components/CardArticle";
 import CardActions from "@/components/CardActions";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase, type CardNews } from "@/lib/supabase";
+import { stripMarkup } from "@/lib/utils";
 
 export default function CompanyPage() {
   const [cards, setCards] = useState<CardNews[]>([]);
@@ -89,10 +90,16 @@ export default function CompanyPage() {
                 <div className="relative aspect-[16/9] bg-black/20 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={card.cover_image || `${card.base_url}/slide_1.png`}
-                    alt={card.title}
+                    src={card.cover_image || (card.base_url ? `${card.base_url}/slide_1.png` : undefined)}
+                    alt={stripMarkup(card.title)}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.src !== "") {
+                        img.style.display = "none";
+                      }
+                    }}
                   />
                   <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-xs font-medium">
                     {card.slide_count}장
@@ -107,7 +114,7 @@ export default function CompanyPage() {
                     </span>
                   </div>
                   <h3 className="text-sm font-bold mb-3 group-hover:text-[#f0b90b] transition-colors line-clamp-2">
-                    {card.title}
+                    {stripMarkup(card.title)}
                   </h3>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-[#f0b90b] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">

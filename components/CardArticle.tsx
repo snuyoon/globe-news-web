@@ -7,7 +7,7 @@ import { grantXp } from "@/lib/xp";
 
 /* ── SampleJson 타입 ── */
 interface Ticker { name: string; value: string; color: string; }
-interface Indicator { num: string; label: string; values: string; time: string; }
+interface Indicator { num: string; label: string; values: string; time: string; hint_positive?: string; hint_negative?: string; }
 interface EarningItem { symbol: string; name: string; eps: string; why: string; color: string; status: string; quarter: string; }
 interface EarningsSection { title: string; subtitle: string; cat_label: string; items: EarningItem[]; }
 interface QnaWebExtended { deep_dive: string; data_points: string[]; action_items: string[]; related: string[]; }
@@ -449,7 +449,69 @@ function HeroHeader({ data }: { data: SampleJson }) {
   );
 }
 
-/* ── B. 지수 카드 ── */
+/* ── B. 지수 카드 (뒤집기 지원) ── */
+function IndicatorCard({ ind }: { ind: Indicator }) {
+  const hasHint = !!(ind.hint_positive || ind.hint_negative);
+  const [flipped, setFlipped] = useState(false);
+  const isUp = (ind.values || "").includes("▲");
+  const isDown = (ind.values || "").includes("▼");
+
+  return (
+    <div
+      onClick={() => hasHint && setFlipped((f) => !f)}
+      className={`relative ${hasHint ? "cursor-pointer" : ""}`}
+      style={{ perspective: "600px" }}
+    >
+      <div
+        className="relative w-full transition-transform duration-500"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        }}
+      >
+        {/* 앞면 */}
+        <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--border)]" style={{ backfaceVisibility: "hidden" }}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm font-bold text-white">{ind.label}</span>
+            <div className="flex items-center gap-1.5">
+              {ind.time && <span className="text-[10px] text-[var(--text-muted)] bg-[#0a0a12] px-2 py-0.5 rounded">{ind.time}</span>}
+              {hasHint && (
+                <span className="text-[10px] text-[var(--text-muted)] bg-[#f0b90b]/10 text-[#f0b90b] px-1.5 py-0.5 rounded">
+                  TAP
+                </span>
+              )}
+            </div>
+          </div>
+          <p className={`text-base font-semibold ${isUp ? "text-[#22c55e]" : isDown ? "text-[#ef4444]" : "text-white"}`}>
+            <Markup text={ind.values} />
+          </p>
+        </div>
+
+        {/* 뒷면 */}
+        {hasHint && (
+          <div
+            className="absolute inset-0 bg-[var(--card)] rounded-xl p-4 border border-[#f0b90b]/30 flex flex-col justify-center"
+            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+          >
+            <span className="text-xs font-bold text-[#f0b90b] mb-2">{ind.label} 해석</span>
+            {ind.hint_positive && (
+              <p className="text-sm text-[#22c55e] mb-1">
+                <span className="font-bold">▲</span> {ind.hint_positive}
+              </p>
+            )}
+            {ind.hint_negative && (
+              <p className="text-sm text-[#ef4444]">
+                <span className="font-bold">▼</span> {ind.hint_negative}
+              </p>
+            )}
+            <span className="text-[10px] text-[var(--text-muted)] mt-2">다시 탭하여 돌아가기</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function IndicatorsSection({ data }: { data: SampleJson }) {
   return (
     <section className="py-4">
@@ -458,21 +520,9 @@ function IndicatorsSection({ data }: { data: SampleJson }) {
         <Markup text={data.indicators_title || "주요 경제 지표"} />
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {data.indicators.map((ind) => {
-          const isUp = (ind.values || "").includes("▲");
-          const isDown = (ind.values || "").includes("▼");
-          return (
-            <div key={ind.num} className="bg-[var(--card)] rounded-xl p-4 border border-[var(--border)]">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-bold text-white">{ind.label}</span>
-                {ind.time && <span className="text-[10px] text-[var(--text-muted)] bg-[#0a0a12] px-2 py-0.5 rounded">{ind.time}</span>}
-              </div>
-              <p className={`text-base font-semibold ${isUp ? "text-[#22c55e]" : isDown ? "text-[#ef4444]" : "text-white"}`}>
-                <Markup text={ind.values} />
-              </p>
-            </div>
-          );
-        })}
+        {data.indicators.map((ind) => (
+          <IndicatorCard key={ind.num} ind={ind} />
+        ))}
       </div>
     </section>
   );
@@ -544,7 +594,7 @@ function ExplainerSection({ explainer }: { explainer: Explainer }) {
 /* Q&A — deep dive 없으면 펼침, 있으면 아코디언 */
 function QnaRenderer({ items }: { items: Qna[] }) {
   const hasAnyDeepDive = items.some((qa) => qa.web_extended);
-  const [openIdx, setOpenIdx] = useState<number | null>(hasAnyDeepDive ? null : 0);
+  const [openIdx, setOpenIdx] = useState<number | null>(0);
   const [deepDiveOpen, setDeepDiveOpen] = useState<Record<number, boolean>>({});
 
   // deep dive 없으면 전부 펼침

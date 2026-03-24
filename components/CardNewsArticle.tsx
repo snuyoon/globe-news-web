@@ -7,7 +7,7 @@ export interface SampleJSON {
   _schema_version?: string;
   meta: { date: string; day: string; handle: string; total_slides: number; brief_label?: string; cover_title?: string; cover_sub?: string };
   cover: { headline: string; tickers?: { name: string; value: string; color: string }[] };
-  indicators?: { num: string; label: string; time?: string; values: string }[];
+  indicators?: { num: string; label: string; time?: string; values: string; hint_positive?: string; hint_negative?: string }[];
   indicators_label?: string;
   indicators_title?: string;
   earnings_pre?: { subtitle?: string; cat_label?: string; title?: string; items: { symbol: string; name: string; eps?: string; why?: string; color?: string; quarter?: string; status?: string }[] };
@@ -62,6 +62,63 @@ function renderMarkup(text: string) {
 const FLOW_COLORS: Record<string, string> = {
   red: "#ef4444", yellow: "#f0b90b", green: "#22c55e", purple: "#8b5cf6", pink: "#ec4899", blue: "#3b82f6",
 };
+
+/* ── 뒤집기 지표 카드 ── */
+function FlippableIndicator({ ind }: { ind: NonNullable<SampleJSON["indicators"]>[number] }) {
+  const [flipped, setFlipped] = useState(false);
+  const hasHint = !!(ind.hint_positive || ind.hint_negative);
+
+  return (
+    <div
+      onClick={() => hasHint && setFlipped((f) => !f)}
+      className={hasHint ? "cursor-pointer" : ""}
+      style={{ perspective: "600px" }}
+    >
+      <div
+        className="relative w-full transition-transform duration-500"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        }}
+      >
+        {/* 앞면 */}
+        <div className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]" style={{ backfaceVisibility: "hidden" }}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-bold">{ind.label}</span>
+            <div className="flex items-center gap-1.5">
+              {ind.time && <span className="text-xs text-[var(--text-muted)] bg-[var(--bg)] px-2 py-0.5 rounded">{ind.time}</span>}
+              {hasHint && (
+                <span className="text-[10px] bg-[#f0b90b]/10 text-[#f0b90b] px-1.5 py-0.5 rounded">TAP</span>
+              )}
+            </div>
+          </div>
+          <p className="text-lg">{renderMarkup(ind.values)}</p>
+        </div>
+
+        {/* 뒷면 */}
+        {hasHint && (
+          <div
+            className="absolute inset-0 bg-[var(--card)] rounded-xl p-5 border border-[#f0b90b]/30 flex flex-col justify-center"
+            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+          >
+            <span className="text-xs font-bold text-[#f0b90b] mb-2">{ind.label} 해석</span>
+            {ind.hint_positive && (
+              <p className="text-sm text-[#22c55e] mb-1">
+                <span className="font-bold">▲</span> {ind.hint_positive}
+              </p>
+            )}
+            {ind.hint_negative && (
+              <p className="text-sm text-[#ef4444]">
+                <span className="font-bold">▼</span> {ind.hint_negative}
+              </p>
+            )}
+            <span className="text-[10px] text-[var(--text-muted)] mt-2">다시 탭하여 돌아가기</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /* ── 메인: 페이지 넘기기 형태 ── */
 export default function CardNewsArticle({ data, onClose }: { data: SampleJSON; onClose: () => void }) {
@@ -173,13 +230,7 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
         <h2 className="text-xl font-bold mb-6">{renderMarkup(data.indicators_title || "경제 지표")}</h2>
         <div className="space-y-3">
           {data.indicators.map((ind) => (
-            <div key={ind.num} className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold">{ind.label}</span>
-                {ind.time && <span className="text-xs text-[var(--text-muted)] bg-[var(--bg)] px-2 py-0.5 rounded">{ind.time}</span>}
-              </div>
-              <p className="text-lg">{renderMarkup(ind.values)}</p>
-            </div>
+            <FlippableIndicator key={ind.num} ind={ind} />
           ))}
         </div>
       </div>

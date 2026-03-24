@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useAuth } from "./AuthProvider";
 import { grantXp } from "@/lib/xp";
+import { stripMarkup } from "@/lib/utils";
 
 interface CardViewerProps {
   title: string;
@@ -172,7 +173,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
 
       {/* Title */}
       <div className="absolute top-4 left-4 right-32 z-10">
-        <h2 className="text-white text-sm md:text-base font-bold truncate">{title}</h2>
+        <h2 className="text-white text-sm md:text-base font-bold truncate">{stripMarkup(title)}</h2>
       </div>
 
       {/* Left arrow */}
