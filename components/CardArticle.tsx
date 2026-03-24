@@ -54,10 +54,10 @@ const ALLOWED_TAGS: Record<string, string> = {
   red: "color:#ef4444;font-weight:600",
   yellow: "color:#eab308;font-weight:600",
   "hl-box": "background:rgba(240,185,11,0.2);color:#f0b90b;padding:2px 6px;border-radius:4px;font-weight:700",
-  "em-red": "color:#ef4444;font-size:1.25rem;font-weight:700",
-  "em-yellow": "color:#eab308;font-size:1.25rem;font-weight:700",
-  "em-purple": "color:#8b5cf6;font-size:1.25rem;font-weight:700",
-  "em-green": "color:#22c55e;font-size:1.25rem;font-weight:700",
+  "em-red": "color:#ef4444;font-size:1.5em;font-weight:900",
+  "em-yellow": "color:#eab308;font-size:1.5em;font-weight:900",
+  "em-purple": "color:#8b5cf6;font-size:1.5em;font-weight:900",
+  "em-green": "color:#22c55e;font-size:1.5em;font-weight:900",
 };
 
 function parseMarkup(text: unknown): string {
@@ -524,6 +524,9 @@ function IndicatorsSection({ data }: { data: SampleJson }) {
           <IndicatorCard key={ind.num} ind={ind} />
         ))}
       </div>
+      {data.indicators.some(i => i.hint_positive || i.hint_negative) && (
+        <p className="text-center text-xs text-[var(--text-muted)] mt-3 animate-pulse">👆 카드를 눌러서 해석을 확인해보세요!</p>
+      )}
     </section>
   );
 }

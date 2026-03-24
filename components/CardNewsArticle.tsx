@@ -233,6 +233,9 @@ function buildPages(data: SampleJSON): React.ReactNode[] {
             <FlippableIndicator key={ind.num} ind={ind} />
           ))}
         </div>
+        {data.indicators.some(i => i.hint_positive || i.hint_negative) && (
+          <p className="text-center text-xs text-gray-500 mt-3 animate-pulse">👆 카드를 눌러서 해석을 확인해보세요!</p>
+        )}
       </div>
     );
   }
