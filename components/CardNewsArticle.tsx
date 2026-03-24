@@ -82,7 +82,7 @@ function FlippableIndicator({ ind }: { ind: NonNullable<SampleJSON["indicators"]
         }}
       >
         {/* 앞면 */}
-        <div className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)]" style={{ backfaceVisibility: "hidden" }}>
+        <div className="bg-[var(--card)] rounded-xl p-5 border border-[var(--border)] min-h-[100px]" style={{ backfaceVisibility: "hidden" }}>
           <div className="flex items-center justify-between mb-2">
             <span className="font-bold">{ind.label}</span>
             <div className="flex items-center gap-1.5">
@@ -98,21 +98,21 @@ function FlippableIndicator({ ind }: { ind: NonNullable<SampleJSON["indicators"]
         {/* 뒷면 */}
         {hasHint && (
           <div
-            className="absolute inset-0 bg-[var(--card)] rounded-xl p-5 border border-[#f0b90b]/30 flex flex-col justify-center"
+            className="absolute inset-0 bg-[var(--card)] rounded-xl p-5 border border-[#f0b90b]/30 flex flex-col justify-center gap-1.5"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
-            <span className="text-xs font-bold text-[#f0b90b] mb-2">{ind.label} 해석</span>
+            <span className="text-xs font-bold text-[#f0b90b] mb-1">{ind.label} 해석</span>
             {ind.hint_positive && (
-              <p className="text-sm text-[#22c55e] mb-1">
-                <span className="font-bold">▲</span> {ind.hint_positive}
+              <p className="text-[13px] leading-snug text-[#22c55e]">
+                <span className="font-bold">▲</span> {renderMarkup(ind.hint_positive)}
               </p>
             )}
             {ind.hint_negative && (
-              <p className="text-sm text-[#ef4444]">
-                <span className="font-bold">▼</span> {ind.hint_negative}
+              <p className="text-[13px] leading-snug text-[#ef4444]">
+                <span className="font-bold">▼</span> {renderMarkup(ind.hint_negative)}
               </p>
             )}
-            <span className="text-[10px] text-[var(--text-muted)] mt-2">다시 탭하여 돌아가기</span>
+            <span className="text-[10px] text-[var(--text-muted)] mt-1">다시 탭하여 돌아가기</span>
           </div>
         )}
       </div>
