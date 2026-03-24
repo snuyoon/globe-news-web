@@ -180,7 +180,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
       {current > 0 && (
         <button
           onClick={goPrev}
-          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white text-xl md:text-2xl transition-colors"
+          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white text-xl md:text-2xl transition-colors"
           aria-label="Previous slide"
         >
           &#8249;
@@ -191,7 +191,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
       {current < slideCount - 1 && (
         <button
           onClick={goNext}
-          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white text-xl md:text-2xl transition-colors"
+          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white text-xl md:text-2xl transition-colors"
           aria-label="Next slide"
         >
           &#8250;
@@ -200,7 +200,7 @@ export default function CardViewer({ title, slideCount, baseUrl, onClose }: Card
 
       {/* Slide image */}
       <div
-        className="relative w-full h-full flex items-center justify-center px-14 md:px-20 py-16"
+        className="relative w-full h-full flex items-center justify-center px-4 md:px-12 py-16"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >

@@ -88,7 +88,7 @@ function FlippableIndicator({ ind }: { ind: NonNullable<SampleJSON["indicators"]
             <div className="flex items-center gap-1.5">
               {ind.time && <span className="text-xs text-[var(--text-muted)] bg-[var(--bg)] px-2 py-0.5 rounded">{ind.time}</span>}
               {hasHint && (
-                <span className="text-[10px] bg-[#f0b90b]/10 text-[#f0b90b] px-1.5 py-0.5 rounded">TAP</span>
+                <span className="text-xs bg-[#f0b90b]/10 text-[#f0b90b] px-1.5 py-0.5 rounded">TAP</span>
               )}
             </div>
           </div>
@@ -103,16 +103,16 @@ function FlippableIndicator({ ind }: { ind: NonNullable<SampleJSON["indicators"]
           >
             <span className="text-xs font-bold text-[#f0b90b] mb-1">{ind.label} 해석</span>
             {ind.hint_positive && (
-              <p className="text-[13px] leading-snug text-[#22c55e]">
+              <p className="text-sm leading-snug text-[#22c55e]">
                 <span className="font-bold">▲</span> {renderMarkup(ind.hint_positive)}
               </p>
             )}
             {ind.hint_negative && (
-              <p className="text-[13px] leading-snug text-[#ef4444]">
+              <p className="text-sm leading-snug text-[#ef4444]">
                 <span className="font-bold">▼</span> {renderMarkup(ind.hint_negative)}
               </p>
             )}
-            <span className="text-[10px] text-[var(--text-muted)] mt-1">다시 탭하여 돌아가기</span>
+            <span className="text-xs text-[var(--text-muted)] mt-1">다시 탭하여 돌아가기</span>
           </div>
         )}
       </div>

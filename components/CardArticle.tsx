@@ -474,9 +474,9 @@ function IndicatorCard({ ind }: { ind: Indicator }) {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-bold text-white">{ind.label}</span>
             <div className="flex items-center gap-1.5">
-              {ind.time && <span className="text-[10px] text-[var(--text-muted)] bg-[#0a0a12] px-2 py-0.5 rounded">{ind.time}</span>}
+              {ind.time && <span className="text-xs text-[var(--text-muted)] bg-[#0a0a12] px-2 py-0.5 rounded">{ind.time}</span>}
               {hasHint && (
-                <span className="text-[10px] text-[var(--text-muted)] bg-[#f0b90b]/10 text-[#f0b90b] px-1.5 py-0.5 rounded">
+                <span className="text-xs text-[var(--text-muted)] bg-[#f0b90b]/10 text-[#f0b90b] px-1.5 py-0.5 rounded">
                   TAP
                 </span>
               )}
@@ -495,16 +495,16 @@ function IndicatorCard({ ind }: { ind: Indicator }) {
           >
             <span className="text-xs font-bold text-[#f0b90b] mb-1">{ind.label} 해석</span>
             {ind.hint_positive && (
-              <p className="text-[13px] leading-snug text-[#22c55e]">
+              <p className="text-sm leading-snug text-[#22c55e]">
                 <span className="font-bold">▲</span> <Markup text={ind.hint_positive} />
               </p>
             )}
             {ind.hint_negative && (
-              <p className="text-[13px] leading-snug text-[#ef4444]">
+              <p className="text-sm leading-snug text-[#ef4444]">
                 <span className="font-bold">▼</span> <Markup text={ind.hint_negative} />
               </p>
             )}
-            <span className="text-[10px] text-[var(--text-muted)] mt-1">다시 탭하여 돌아가기</span>
+            <span className="text-xs text-[var(--text-muted)] mt-1">다시 탭하여 돌아가기</span>
           </div>
         )}
       </div>
@@ -625,7 +625,7 @@ function QnaRenderer({ items }: { items: Qna[] }) {
               <div className="flex flex-col gap-1 pr-4">
                 <span className="text-sm md:text-base font-bold text-[#f0b90b]">Q. {qa.q}</span>
                 {showHint && (
-                  <span className="text-[10px] text-[var(--text-muted)]">눌러서 답변 보기</span>
+                  <span className="text-xs text-[var(--text-muted)]">눌러서 답변 보기</span>
                 )}
               </div>
               {!alwaysOpen && (
@@ -639,7 +639,7 @@ function QnaRenderer({ items }: { items: Qna[] }) {
             </button>
 
             {/* 답변 */}
-            <div className={alwaysOpen ? "" : `transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
+            <div className={alwaysOpen ? "" : `transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-none opacity-100" : "max-h-0 opacity-0"}`}>
               <div className="px-4 md:px-5 pb-4">
                 <p className="text-sm md:text-base leading-relaxed text-[var(--text-muted)]">
                   <Markup text={qa.a} />
@@ -664,7 +664,7 @@ function QnaRenderer({ items }: { items: Qna[] }) {
                     >
                       <span>상세 해설 보기</span>
                       {!deepDiveOpen[i] && (typeof window === "undefined" || parseInt(localStorage.getItem("dd_seen") || "0", 10) < 5) && (
-                        <span className="text-[10px] text-[#a78bfa]/70 ml-1">눌러서 펼치기</span>
+                        <span className="text-xs text-[#a78bfa]/70 ml-1">눌러서 펼치기</span>
                       )}
                       <svg
                         width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
